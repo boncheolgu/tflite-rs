@@ -1,0 +1,6 @@
+[package]
+name = "tflite-rs"
+version = "0.1.0"
+authors = ["Boncheol Gu <boncheol.gu@gmail.com>"]
+
+[dependencies]
