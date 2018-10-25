@@ -1,9 +1,9 @@
 use std::ffi::CString;
-use std::os::raw::c_void;
 use std::path::Path;
 
 use failure::Fallible;
 
+use bindings;
 use interpreter::Interpreter;
 use op_resolver::OpResolver;
 
@@ -15,7 +15,7 @@ cpp!{{
 }}
 
 pub struct FlatBufferModel {
-    handle: *mut c_void,
+    handle: *mut bindings::FlatBufferModel,
 }
 
 impl Drop for FlatBufferModel {
@@ -34,7 +34,7 @@ impl FlatBufferModel {
         let path_str = CString::new(path.as_ref().to_str().unwrap())?;
         let path = path_str.as_ptr();
         let handle = unsafe {
-            cpp!([path as "const char*"] -> *mut c_void as "void*" {
+            cpp!([path as "const char*"] -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
                 return FlatBufferModel::BuildFromFile(path).release();
             })
         };
@@ -43,7 +43,7 @@ impl FlatBufferModel {
 }
 
 pub struct InterpreterBuilder<'a> {
-    handle: *mut c_void,
+    handle: *mut bindings::InterpreterBuilder,
     phantom: ::std::marker::PhantomData<&'a ()>,
 }
 
@@ -65,7 +65,7 @@ impl<'a> InterpreterBuilder<'a> {
         let handle = unsafe {
             cpp!([model_handle as "const FlatBufferModel*",
                   resolver_handle as "const OpResolver*"
-            ] -> *mut c_void as "void*" {
+            ] -> *mut bindings::InterpreterBuilder as "InterpreterBuilder*" {
                 return new InterpreterBuilder(*model_handle, *resolver_handle);
             })
         };
@@ -79,7 +79,7 @@ impl<'a> InterpreterBuilder<'a> {
     pub fn build(&self) -> Fallible<Interpreter> {
         let builder = self.handle;
         let handle = unsafe {
-            cpp!([builder as "InterpreterBuilder*"] -> *mut c_void as "void*" {
+            cpp!([builder as "InterpreterBuilder*"] -> *mut bindings::Interpreter as "Interpreter*" {
                 std::unique_ptr<Interpreter> interpreter;
                 (*builder)(&interpreter);
                 return interpreter.release();

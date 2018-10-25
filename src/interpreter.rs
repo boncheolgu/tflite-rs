@@ -1,6 +1,6 @@
-use std::os::raw::c_void;
-
 use failure::Fallible;
+
+use bindings;
 
 cpp!{{
     #include "tensorflow/contrib/lite/interpreter.h"
@@ -10,7 +10,7 @@ cpp!{{
 }}
 
 pub struct Interpreter<'a> {
-    pub(crate) handle: *mut c_void,
+    pub(crate) handle: *mut bindings::Interpreter,
     pub(crate) phantom: ::std::marker::PhantomData<&'a ()>,
 }
 

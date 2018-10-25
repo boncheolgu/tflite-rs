@@ -6,7 +6,6 @@ authors = ["Boncheol Gu <boncheol.gu@gmail.com>"]
 [dependencies]
 cpp = "0.5"
 failure = "0.1"
-libc = "0.2"
 ndarray = "0.11"
 
 [build-dependencies]

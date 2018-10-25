@@ -1,5 +1,5 @@
-use std::os::raw::c_void;
+use bindings;
 
 pub trait OpResolver {
-    fn get_resolver_handle(&self) -> *mut c_void;
+    fn get_resolver_handle(&self) -> *mut bindings::OpResolver;
 }

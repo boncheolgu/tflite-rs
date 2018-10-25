@@ -16,7 +16,7 @@ pub fn main() -> Fallible<()> {
     let filename = args().nth(1).unwrap();
 
     let model = FlatBufferModel::build_from_file(filename)?;
-    let resolver = BuiltinOpResolver::new();
+    let resolver = BuiltinOpResolver::default();
 
     let builder = InterpreterBuilder::new(&model, &resolver)?;
     let mut interpreter = builder.build()?;

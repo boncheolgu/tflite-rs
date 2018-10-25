@@ -1,6 +1,6 @@
-use std::os::raw::c_void;
-
 use op_resolver::OpResolver;
+
+use bindings;
 
 cpp!{{
     #include "tensorflow/contrib/lite/kernels/register.h"
@@ -9,7 +9,7 @@ cpp!{{
 }}
 
 pub struct Resolver {
-    handle: *mut c_void,
+    handle: *mut bindings::OpResolver,
 }
 
 impl Drop for Resolver {
@@ -24,15 +24,15 @@ impl Drop for Resolver {
 }
 
 impl OpResolver for Resolver {
-    fn get_resolver_handle(&self) -> *mut c_void {
+    fn get_resolver_handle(&self) -> *mut bindings::OpResolver {
         self.handle
     }
 }
 
-impl Resolver {
-    pub fn new() -> Self {
+impl Default for Resolver {
+    fn default() -> Self {
         let handle = unsafe {
-            cpp!([] -> *mut c_void as "void*" {
+            cpp!([] -> *mut bindings::OpResolver as "OpResolver*" {
                 return new BuiltinOpResolver();
             })
         };
