@@ -72,6 +72,16 @@ fn prepare_tensorflow_source() -> PathBuf {
             .current_dir(&tf_src_dir_inner)
             .status()
             .expect("failed to download tflite dependencies.");
+
+        // To compile C files with -fPIC
+        if std::env::consts::OS == "linux" {
+            fs::copy(
+                "data/linux_makefile.inc",
+                tflite
+                    .as_ref()
+                    .join("tensorflow/contrib/lite/tools/make/targets/linux_makefile.inc"),
+            ).unwrap();
+        }
     }
     tf_src_dir_inner
 }
@@ -79,32 +89,22 @@ fn prepare_tensorflow_source() -> PathBuf {
 fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
     let tf_lib_name = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtensorflow-lite.a");
     if !tf_lib_name.exists() {
-        if download(&format!(
-            "https://raw.githubusercontent.com/boncheolgu/asset/master/library/tensorflow/v{VERSION}/{OS}_{ARCH}/libtensorflow-lite.a",
-            VERSION=TFLITE_VERSION,
-            OS=std::env::consts::OS,
-            ARCH=std::env::consts::ARCH,
-        ), &tf_lib_name).is_err() {
-            // if download failed, build it
-            Command::new("make")
-                .arg("-j")
-                .arg("-f")
-                .arg("tensorflow/contrib/lite/tools/make/Makefile")
-                .current_dir(&tflite)
-                .status()
-                .expect("failed to download tflite dependencies.");
+        Command::new("make")
+            .arg("-j")
+            .arg("-f")
+            .arg("tensorflow/contrib/lite/tools/make/Makefile")
+            .current_dir(&tflite)
+            .status()
+            .expect("failed to download tflite dependencies.");
 
-            fs::copy(
-                tflite
-                    .as_ref()
-                    .join(format!(
-                        "tensorflow/contrib/lite/tools/make/gen/{OS}_{ARCH}/lib/libtensorflow-lite.a",
-                        OS=std::env::consts::OS,
-                        ARCH=std::env::consts::ARCH,
-                    )),
-                &tf_lib_name,
-            ).unwrap();
-        }
+        fs::copy(
+            tflite.as_ref().join(format!(
+                "tensorflow/contrib/lite/tools/make/gen/{OS}_{ARCH}/lib/libtensorflow-lite.a",
+                OS = std::env::consts::OS,
+                ARCH = std::env::consts::ARCH,
+            )),
+            &tf_lib_name,
+        ).unwrap();
     }
 }
 
@@ -137,8 +137,7 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .clang_arg(format!(
             "-I{}/tensorflow/contrib/lite/tools/make/downloads/flatbuffers/include",
             tflite.as_ref().to_str().unwrap()
-        ))
-        .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
+        )).clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=c++11");
@@ -163,8 +162,7 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
             tflite
                 .as_ref()
                 .join("tensorflow/contrib/lite/tools/make/downloads/flatbuffers/include"),
-        )
-        .flag("-fPIC")
+        ).flag("-fPIC")
         .flag("-std=c++11")
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
