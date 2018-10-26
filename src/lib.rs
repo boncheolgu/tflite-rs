@@ -2,6 +2,7 @@
 extern crate cpp;
 #[macro_use]
 extern crate failure;
+extern crate libc;
 extern crate ndarray;
 
 mod bindings;

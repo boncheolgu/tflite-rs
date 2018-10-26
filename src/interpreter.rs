@@ -1,4 +1,7 @@
+use std::slice;
+
 use failure::Fallible;
+use libc::{c_int, size_t};
 
 use bindings;
 
@@ -8,6 +11,8 @@ cpp!{{
 
     using namespace tflite;
 }}
+
+type TensorIndex = c_int;
 
 pub struct Interpreter<'a> {
     pub(crate) handle: *mut bindings::Interpreter,
@@ -55,5 +60,37 @@ impl<'a> Interpreter<'a> {
         };
         ensure!(result, "Interpreter::allocate_tensors failed");
         Ok(())
+    }
+
+    pub fn inputs(&self) -> &[TensorIndex] {
+        let interpreter = self.handle;
+        let mut count: size_t = 0;
+        let ptr = unsafe {
+            cpp!([
+                interpreter as "Interpreter*",
+                mut count as "size_t"
+            ] -> *const TensorIndex as "const int*" {
+                const auto& inputs = interpreter->inputs();
+                count = inputs.size();
+                return inputs.data();
+            })
+        };
+        unsafe { slice::from_raw_parts(ptr, count) }
+    }
+
+    pub fn outputs(&self) -> &[TensorIndex] {
+        let interpreter = self.handle;
+        let mut count: size_t = 0;
+        let ptr = unsafe {
+            cpp!([
+                interpreter as "Interpreter*",
+                mut count as "size_t"
+            ] -> *const TensorIndex as "const int*" {
+                const auto& outputs = interpreter->outputs();
+                count = outputs.size();
+                return outputs.data();
+            })
+        };
+        unsafe { slice::from_raw_parts(ptr, count) }
     }
 }
