@@ -77,8 +77,7 @@ fn prepare_tensorflow_source() -> PathBuf {
         if std::env::consts::OS == "linux" {
             fs::copy(
                 "data/linux_makefile.inc",
-                tflite
-                    .as_ref()
+                tf_src_dir_inner
                     .join("tensorflow/contrib/lite/tools/make/targets/linux_makefile.inc"),
             ).unwrap();
         }
