@@ -90,6 +90,7 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
     if !tf_lib_name.exists() {
         Command::new("make")
             .arg("-j")
+            .arg("3")
             .arg("-f")
             .arg("tensorflow/contrib/lite/tools/make/Makefile")
             .current_dir(&tflite)
