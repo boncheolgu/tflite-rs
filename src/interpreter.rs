@@ -1,10 +1,11 @@
+use std::mem::size_of;
 use std::slice;
 
 use failure::Fallible;
 use libc::{c_int, size_t};
 
 use bindings;
-use context::TensorInfo;
+use context::{ElemKindOf, TensorInfo};
 
 cpp!{{
     #include "tensorflow/contrib/lite/interpreter.h"
@@ -23,6 +24,11 @@ pub struct Interpreter<'a> {
 impl<'a> Drop for Interpreter<'a> {
     fn drop(&mut self) {
         let handle = self.handle;
+
+        #[cfg_attr(
+            feature = "cargo-clippy",
+            allow(forget_copy, useless_transmute)
+        )]
         unsafe {
             cpp!([handle as "Interpreter*"] {
                 delete handle;
@@ -34,6 +40,8 @@ impl<'a> Drop for Interpreter<'a> {
 impl<'a> Interpreter<'a> {
     pub fn allocate_tensors(&mut self) -> Fallible<()> {
         let interpreter = self.handle;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let result = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->AllocateTensors() == kTfLiteOk;
@@ -45,6 +53,11 @@ impl<'a> Interpreter<'a> {
 
     pub fn print_state(&self) {
         let interpreter = self.handle;
+
+        #[cfg_attr(
+            feature = "cargo-clippy",
+            allow(forget_copy, useless_transmute)
+        )]
         unsafe {
             cpp!([interpreter as "Interpreter*"] {
                 PrintInterpreterState(interpreter);
@@ -54,6 +67,8 @@ impl<'a> Interpreter<'a> {
 
     pub fn invoke(&mut self) -> Fallible<()> {
         let interpreter = self.handle;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let result = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->Invoke() == kTfLiteOk;
@@ -66,6 +81,8 @@ impl<'a> Interpreter<'a> {
     pub fn inputs(&self) -> &[TensorIndex] {
         let interpreter = self.handle;
         let mut count: size_t = 0;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let ptr = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -82,6 +99,8 @@ impl<'a> Interpreter<'a> {
     pub fn outputs(&self) -> &[TensorIndex] {
         let interpreter = self.handle;
         let mut count: size_t = 0;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let ptr = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -97,6 +116,8 @@ impl<'a> Interpreter<'a> {
 
     fn tensor_inner(&self, tensor_index: TensorIndex) -> Fallible<&bindings::TfLiteTensor> {
         let interpreter = self.handle;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let ptr = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -111,7 +132,48 @@ impl<'a> Interpreter<'a> {
 
     pub fn tensor_info(&self, tensor_index: TensorIndex) -> Fallible<TensorInfo> {
         Ok(TensorInfo {
-            handle: self.tensor_inner(tensor_index)?,
+            inner: self.tensor_inner(tensor_index)?,
+        })
+    }
+
+    pub fn tensor_data<T>(&self, tensor_index: TensorIndex) -> Fallible<&[T]>
+    where
+        T: ElemKindOf,
+    {
+        let inner = self.tensor_inner(tensor_index)?;
+        let tensor_info = TensorInfo { inner };
+
+        ensure!(
+            tensor_info.element_kind() == T::elem_kind_of(),
+            "Invalid type reference of `{:?}` to the original type `{:?}`",
+            T::elem_kind_of(),
+            tensor_info.element_kind()
+        );
+
+        Ok(unsafe {
+            slice::from_raw_parts(
+                inner.data.raw_const as *const T,
+                inner.bytes / size_of::<T>(),
+            )
+        })
+    }
+
+    pub fn tensor_data_mut<T>(&mut self, tensor_index: TensorIndex) -> Fallible<&mut [T]>
+    where
+        T: ElemKindOf,
+    {
+        let inner = self.tensor_inner(tensor_index)?;
+        let tensor_info = TensorInfo { inner };
+
+        ensure!(
+            tensor_info.element_kind() == T::elem_kind_of(),
+            "Invalid type reference of `{:?}` to the original type `{:?}`",
+            T::elem_kind_of(),
+            tensor_info.element_kind()
+        );
+
+        Ok(unsafe {
+            slice::from_raw_parts_mut(inner.data.raw as *mut T, inner.bytes / size_of::<T>())
         })
     }
 }

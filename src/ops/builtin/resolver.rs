@@ -13,6 +13,10 @@ pub struct Resolver {
 }
 
 impl Drop for Resolver {
+    #[cfg_attr(
+        feature = "cargo-clippy",
+        allow(useless_transmute, forget_copy)
+    )]
     fn drop(&mut self) {
         let handle = self.handle;
         unsafe {
@@ -30,6 +34,7 @@ impl OpResolver for Resolver {
 }
 
 impl Default for Resolver {
+    #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
     fn default() -> Self {
         let handle = unsafe {
             cpp!([] -> *mut bindings::OpResolver as "OpResolver*" {

@@ -28,7 +28,7 @@ impl ElemKindOf for i32 {
 }
 
 pub struct TensorInfo<'a> {
-    pub(crate) handle: &'a bindings::TfLiteTensor,
+    pub(crate) inner: &'a bindings::TfLiteTensor,
 }
 
 impl<'a> fmt::Debug for TensorInfo<'a> {
@@ -42,12 +42,18 @@ impl<'a> fmt::Debug for TensorInfo<'a> {
 
 impl<'a> TensorInfo<'a> {
     pub fn name(&self) -> &str {
-        unsafe { CStr::from_ptr(self.handle.name) }
-            .to_str()
-            .unwrap()
+        unsafe { CStr::from_ptr(self.inner.name) }.to_str().unwrap()
     }
 
     pub fn element_kind(&self) -> ElementKind {
-        self.handle.type_
+        self.inner.type_
+    }
+
+    pub fn dims(&self) -> Vec<usize> {
+        let slice = unsafe {
+            let dims = &*self.inner.dims;
+            dims.data.as_slice(dims.size as usize)
+        };
+        slice.iter().map(|n| *n as usize).collect()
     }
 }

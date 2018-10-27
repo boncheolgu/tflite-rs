@@ -9,7 +9,6 @@ env_logger = "0.5"
 failure = "0.1"
 libc = "0.2"
 log = "0.4"
-ndarray = "0.11"
 
 [build-dependencies]
 bindgen = "0.43"
