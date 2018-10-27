@@ -6,6 +6,7 @@ extern crate libc;
 extern crate ndarray;
 
 mod bindings;
+pub mod context;
 pub mod interpreter;
 pub mod model;
 pub mod op_resolver;

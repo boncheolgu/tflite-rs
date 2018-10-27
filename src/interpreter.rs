@@ -4,6 +4,7 @@ use failure::Fallible;
 use libc::{c_int, size_t};
 
 use bindings;
+use context::TensorInfo;
 
 cpp!{{
     #include "tensorflow/contrib/lite/interpreter.h"
@@ -92,5 +93,25 @@ impl<'a> Interpreter<'a> {
             })
         };
         unsafe { slice::from_raw_parts(ptr, count) }
+    }
+
+    fn tensor_inner(&self, tensor_index: TensorIndex) -> Fallible<&bindings::TfLiteTensor> {
+        let interpreter = self.handle;
+        let ptr = unsafe {
+            cpp!([
+                interpreter as "Interpreter*",
+                tensor_index as "int"
+            ] -> *const bindings::TfLiteTensor as "const TfLiteTensor*" {
+                return interpreter->tensor(tensor_index);
+            })
+        };
+        ensure!(!ptr.is_null(), "Invalid tensor index");
+        Ok(unsafe { &*ptr })
+    }
+
+    pub fn tensor_info(&self, tensor_index: TensorIndex) -> Fallible<TensorInfo> {
+        Ok(TensorInfo {
+            handle: self.tensor_inner(tensor_index)?,
+        })
     }
 }

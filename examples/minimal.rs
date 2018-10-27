@@ -31,5 +31,10 @@ pub fn main() -> Fallible<()> {
     println!("\n\n=== Post-invoke Interpreter State ===");
     interpreter.print_state();
 
+    for input in interpreter.inputs() {
+        let info = interpreter.tensor_info(*input);
+        println!("{:?}", info);
+    }
+
     Ok(())
 }

@@ -111,9 +111,10 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
 fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
     use bindgen::*;
 
-    let bindings = bindgen::Builder::default()
+    let bindings = Builder::default()
         .whitelist_recursively(false)
         .prepend_enum_name(false)
+        .impl_debug(true)
         .with_codegen_config(CodegenConfig::TYPES)
         .layout_tests(false)
         .enable_cxx_namespaces()
@@ -128,9 +129,20 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .opaque_type("tflite::ops::builtin::BuiltinOpResolver")
         .whitelist_type("tflite::OpResolver")
         .opaque_type("tflite::OpResolver")
+        .whitelist_type("TfLiteTensor")
+        .whitelist_type("TfLiteType")
+        .whitelist_type("TfLitePtrUnion")
+        .whitelist_type("TfLiteIntArray")
+        .whitelist_type("TfLiteQuantizationParams")
+        .whitelist_type("TfLiteAllocationType")
+        .whitelist_type("TfLiteDelegate")
+        .opaque_type("TfLiteDelegate")
+        .whitelist_type("TfLiteBufferHandle")
+        .whitelist_type("TfLiteComplex64")
+        .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
         .blacklist_type("tflite::Interpreter_State")
-        .default_enum_style(bindgen::EnumVariation::Rust)
+        .default_enum_style(EnumVariation::Rust)
         .header("csrc/tflite_wrapper.hpp")
         .clang_arg(format!("-I{}", tflite.as_ref().to_str().unwrap()))
         .clang_arg(format!(
