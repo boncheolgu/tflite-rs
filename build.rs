@@ -81,6 +81,14 @@ fn prepare_tensorflow_source() -> PathBuf {
                     .join("tensorflow/contrib/lite/tools/make/targets/linux_makefile.inc"),
             ).unwrap();
         }
+
+        fs::remove_file(
+            tf_src_dir_inner.join("tensorflow/contrib/lite/mmap_allocation_disabled.cc"),
+        ).unwrap();
+
+        fs::remove_file(
+            tf_src_dir_inner.join("tensorflow/contrib/lite/nnapi_delegate_disabled.cc"),
+        ).unwrap();
     }
     tf_src_dir_inner
 }
