@@ -14,7 +14,7 @@ cpp!{{
     using namespace tflite;
 }}
 
-type TensorIndex = c_int;
+pub type TensorIndex = c_int;
 
 pub struct Interpreter<'a> {
     pub(crate) handle: *mut bindings::Interpreter,
