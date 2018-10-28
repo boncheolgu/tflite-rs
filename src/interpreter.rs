@@ -131,9 +131,7 @@ impl<'a> Interpreter<'a> {
     }
 
     pub fn tensor_info(&self, tensor_index: TensorIndex) -> Fallible<TensorInfo> {
-        Ok(TensorInfo {
-            inner: self.tensor_inner(tensor_index)?,
-        })
+        Ok(self.tensor_inner(tensor_index)?.into())
     }
 
     pub fn tensor_data<T>(&self, tensor_index: TensorIndex) -> Fallible<&[T]>
@@ -141,13 +139,13 @@ impl<'a> Interpreter<'a> {
         T: ElemKindOf,
     {
         let inner = self.tensor_inner(tensor_index)?;
-        let tensor_info = TensorInfo { inner };
+        let tensor_info: TensorInfo = inner.into();
 
         ensure!(
-            tensor_info.element_kind() == T::elem_kind_of(),
+            tensor_info.element_kind == T::elem_kind_of(),
             "Invalid type reference of `{:?}` to the original type `{:?}`",
             T::elem_kind_of(),
-            tensor_info.element_kind()
+            tensor_info.element_kind
         );
 
         Ok(unsafe {
@@ -163,13 +161,13 @@ impl<'a> Interpreter<'a> {
         T: ElemKindOf,
     {
         let inner = self.tensor_inner(tensor_index)?;
-        let tensor_info = TensorInfo { inner };
+        let tensor_info: TensorInfo = inner.into();
 
         ensure!(
-            tensor_info.element_kind() == T::elem_kind_of(),
+            tensor_info.element_kind == T::elem_kind_of(),
             "Invalid type reference of `{:?}` to the original type `{:?}`",
             T::elem_kind_of(),
-            tensor_info.element_kind()
+            tensor_info.element_kind
         );
 
         Ok(unsafe {
