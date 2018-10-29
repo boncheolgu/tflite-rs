@@ -3,12 +3,16 @@ name = "tflite"
 version = "0.1.0"
 authors = ["Boncheol Gu <boncheol.gu@gmail.com>"]
 
+description = "Rust bindings for TensorFlow Lite"
+keywords = ["tensorflow", "tflite", "bindings"]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/boncheolgu/tflite-rs"
+readme = "README.md"
+
 [dependencies]
 cpp = "0.5"
-env_logger = "0.5"
 failure = "0.1"
 libc = "0.2"
-log = "0.4"
 
 [build-dependencies]
 bindgen = "0.43"
