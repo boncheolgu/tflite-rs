@@ -13,10 +13,7 @@ pub struct Resolver {
 }
 
 impl Drop for Resolver {
-    #[cfg_attr(
-        feature = "cargo-clippy",
-        allow(useless_transmute, forget_copy)
-    )]
+    #[cfg_attr(feature = "cargo-clippy", allow(useless_transmute, forget_copy))]
     fn drop(&mut self) {
         let handle = self.handle;
         unsafe {

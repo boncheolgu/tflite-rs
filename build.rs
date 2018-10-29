@@ -157,7 +157,8 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .clang_arg(format!(
             "-I{}/tensorflow/contrib/lite/tools/make/downloads/flatbuffers/include",
             tflite.as_ref().to_str().unwrap()
-        )).clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
+        ))
+        .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=c++11");
@@ -182,7 +183,8 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
             tflite
                 .as_ref()
                 .join("tensorflow/contrib/lite/tools/make/downloads/flatbuffers/include"),
-        ).flag("-fPIC")
+        )
+        .flag("-fPIC")
         .flag("-std=c++11")
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
