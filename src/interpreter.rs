@@ -25,7 +25,10 @@ impl<'a> Drop for Interpreter<'a> {
     fn drop(&mut self) {
         let handle = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy, useless_transmute))]
+        #[cfg_attr(
+            feature = "cargo-clippy",
+            allow(forget_copy, useless_transmute)
+        )]
         unsafe {
             cpp!([handle as "Interpreter*"] {
                 delete handle;
@@ -51,7 +54,10 @@ impl<'a> Interpreter<'a> {
     pub fn print_state(&self) {
         let interpreter = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy, useless_transmute))]
+        #[cfg_attr(
+            feature = "cargo-clippy",
+            allow(forget_copy, useless_transmute)
+        )]
         unsafe {
             cpp!([interpreter as "Interpreter*"] {
                 PrintInterpreterState(interpreter);

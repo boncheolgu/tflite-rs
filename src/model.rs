@@ -22,7 +22,10 @@ impl Drop for FlatBufferModel {
     fn drop(&mut self) {
         let handle = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy, useless_transmute))]
+        #[cfg_attr(
+            feature = "cargo-clippy",
+            allow(forget_copy, useless_transmute)
+        )]
         unsafe {
             cpp!([handle as "FlatBufferModel*"] {
                 delete handle;
@@ -55,7 +58,10 @@ impl<'a> Drop for InterpreterBuilder<'a> {
     fn drop(&mut self) {
         let handle = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy, useless_transmute))]
+        #[cfg_attr(
+            feature = "cargo-clippy",
+            allow(forget_copy, useless_transmute)
+        )]
         unsafe {
             cpp!([handle as "InterpreterBuilder*"] {
                 delete handle;
