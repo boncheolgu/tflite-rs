@@ -38,6 +38,9 @@ impl<'a> Drop for Interpreter<'a> {
 }
 
 impl<'a> Interpreter<'a> {
+    /// Update allocations for all tensors. This will redim dependent tensors using
+    /// the input tensor dimensionality as given. This is relatively expensive.
+    /// If you know that your sizes are not changing, you need not call this.
     pub fn allocate_tensors(&mut self) -> Fallible<()> {
         let interpreter = self.handle;
 
@@ -51,6 +54,7 @@ impl<'a> Interpreter<'a> {
         Ok(())
     }
 
+    /// Prints a dump of what tensors and what nodes are in the interpreter.
     pub fn print_state(&self) {
         let interpreter = self.handle;
 
@@ -65,6 +69,7 @@ impl<'a> Interpreter<'a> {
         };
     }
 
+    /// Invoke the interpreter (run the whole graph in dependency order).
     pub fn invoke(&mut self) -> Fallible<()> {
         let interpreter = self.handle;
 
@@ -78,6 +83,7 @@ impl<'a> Interpreter<'a> {
         Ok(())
     }
 
+    /// Read only access to list of inputs.
     pub fn inputs(&self) -> &[TensorIndex] {
         let interpreter = self.handle;
         let mut count: size_t = 0;
@@ -85,7 +91,7 @@ impl<'a> Interpreter<'a> {
         #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let ptr = unsafe {
             cpp!([
-                interpreter as "Interpreter*",
+                interpreter as "const Interpreter*",
                 mut count as "size_t"
             ] -> *const TensorIndex as "const int*" {
                 const auto& inputs = interpreter->inputs();
@@ -96,6 +102,7 @@ impl<'a> Interpreter<'a> {
         unsafe { slice::from_raw_parts(ptr, count) }
     }
 
+    /// Read only access to list of outputs.
     pub fn outputs(&self) -> &[TensorIndex] {
         let interpreter = self.handle;
         let mut count: size_t = 0;
@@ -103,7 +110,7 @@ impl<'a> Interpreter<'a> {
         #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let ptr = unsafe {
             cpp!([
-                interpreter as "Interpreter*",
+                interpreter as "const Interpreter*",
                 mut count as "size_t"
             ] -> *const TensorIndex as "const int*" {
                 const auto& outputs = interpreter->outputs();
@@ -114,13 +121,56 @@ impl<'a> Interpreter<'a> {
         unsafe { slice::from_raw_parts(ptr, count) }
     }
 
+    /// Read only access to list of variable tensors.
+    pub fn variables(&self) -> &[TensorIndex] {
+        let interpreter = self.handle;
+        let mut count: size_t = 0;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        let ptr = unsafe {
+            cpp!([
+                interpreter as "const Interpreter*",
+                mut count as "size_t"
+            ] -> *const TensorIndex as "const int*" {
+                const auto& variables = interpreter->variables();
+                count = variables.size();
+                return variables.data();
+            })
+        };
+        unsafe { slice::from_raw_parts(ptr, count) }
+    }
+
+    /// Return the number of tensors in the model.
+    pub fn tensors_size(&self) -> size_t {
+        let interpreter = self.handle;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        unsafe {
+            cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
+                return interpreter->tensors_size();
+            })
+        }
+    }
+
+    /// Return the number of ops in the model.
+    pub fn nodes_size(&self) -> size_t {
+        let interpreter = self.handle;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        unsafe {
+            cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
+                return interpreter->nodes_size();
+            })
+        }
+    }
+
     fn tensor_inner(&self, tensor_index: TensorIndex) -> Fallible<&bindings::TfLiteTensor> {
         let interpreter = self.handle;
 
         #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let ptr = unsafe {
             cpp!([
-                interpreter as "Interpreter*",
+                interpreter as "const Interpreter*",
                 tensor_index as "int"
             ] -> *const bindings::TfLiteTensor as "const TfLiteTensor*" {
                 return interpreter->tensor(tensor_index);
