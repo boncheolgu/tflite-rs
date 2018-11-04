@@ -4,18 +4,16 @@ extern crate tflite;
 
 use std::fs::File;
 use std::io::Read;
-use std::path::Path;
 
 use failure::Fallible;
 
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder};
 
-fn test_mnist<P: AsRef<Path>>(model_path: P) -> Fallible<()> {
-    let model = FlatBufferModel::build_from_file(model_path)?;
+fn test_mnist(model: &FlatBufferModel) -> Fallible<()> {
     let resolver = BuiltinOpResolver::default();
 
-    let builder = InterpreterBuilder::new(&model, &resolver)?;
+    let builder = InterpreterBuilder::new(model, &resolver)?;
     let mut interpreter = builder.build()?;
 
     interpreter.allocate_tensors()?;
@@ -58,10 +56,22 @@ fn test_mnist<P: AsRef<Path>>(model_path: P) -> Fallible<()> {
 
 #[test]
 fn mobilenetv1_mnist() {
-    test_mnist("data/MNISTnet_uint8_quant.tflite").unwrap();
+    test_mnist(&FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite").unwrap())
+        .unwrap();
+
+    let mut f = File::open("data/MNISTnet_uint8_quant.tflite").unwrap();
+    let mut buf = Vec::new();
+    f.read_to_end(&mut buf).unwrap();
+    test_mnist(&FlatBufferModel::build_from_buffer(&buf).unwrap()).unwrap();
 }
 
 #[test]
 fn mobilenetv2_mnist() {
-    test_mnist("data/MNISTnet_v2_uint8_quant.tflite").unwrap();
+    test_mnist(&FlatBufferModel::build_from_file("data/MNISTnet_v2_uint8_quant.tflite").unwrap())
+        .unwrap();
+
+    let mut f = File::open("data/MNISTnet_v2_uint8_quant.tflite").unwrap();
+    let mut buf = Vec::new();
+    f.read_to_end(&mut buf).unwrap();
+    test_mnist(&FlatBufferModel::build_from_buffer(&buf).unwrap()).unwrap();
 }

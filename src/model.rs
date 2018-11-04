@@ -42,9 +42,25 @@ impl FlatBufferModel {
         #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
         let handle = unsafe {
             cpp!([path as "const char*"] -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
-                return FlatBufferModel::BuildFromFile(path).release();
+                return FlatBufferModel::VerifyAndBuildFromFile(path).release();
             })
         };
+        ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
+        Ok(FlatBufferModel { handle })
+    }
+
+    pub fn build_from_buffer(buffer: &[u8]) -> Fallible<Self> {
+        let ptr = buffer.as_ptr();
+        let size = buffer.len();
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        let handle = unsafe {
+            cpp!([ptr as "const char*", size as "size_t"]
+                  -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
+                return FlatBufferModel::BuildFromBuffer(ptr, size).release();
+            })
+        };
+        ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
         Ok(FlatBufferModel { handle })
     }
 }
