@@ -148,6 +148,8 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .opaque_type("TfLiteDelegate")
         .whitelist_type("TfLiteBufferHandle")
         .whitelist_type("TfLiteComplex64")
+        .whitelist_type("TfLiteStatus")
+        .whitelist_type("TfLiteQuantizationParams")
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
         .blacklist_type("tflite::Interpreter_State")

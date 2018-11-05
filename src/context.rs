@@ -4,6 +4,7 @@ use std::fmt;
 use bindings;
 
 pub type ElementKind = bindings::TfLiteType;
+pub type QuantizationParams = bindings::TfLiteQuantizationParams;
 
 pub trait ElemKindOf {
     fn elem_kind_of() -> ElementKind;

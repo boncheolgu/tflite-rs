@@ -5,7 +5,7 @@ use failure::Fallible;
 use libc::{c_int, size_t};
 
 use bindings;
-use context::{ElemKindOf, TensorInfo};
+use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
 
 cpp!{{
     #include "tensorflow/contrib/lite/interpreter.h"
@@ -162,6 +162,150 @@ impl<'a> Interpreter<'a> {
                 return interpreter->nodes_size();
             })
         }
+    }
+
+    /// Adds `count` tensors, preserving pre-existing Tensor entries.
+    /// Return the index of the first new tensor.
+    pub fn add_tensors(&mut self, count: size_t) -> Fallible<TensorIndex> {
+        let interpreter = self.handle;
+        let mut index: TensorIndex = 0;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        let result = unsafe {
+            cpp!([
+                interpreter as "Interpreter*",
+                count as "size_t",
+                mut index as "int"
+            ] -> bindings::TfLiteStatus as "TfLiteStatus" {
+                return interpreter->AddTensors(count, &index);
+            })
+        };
+        ensure!(
+            result == bindings::TfLiteStatus::kTfLiteOk,
+            "AddTensors failed."
+        );
+        Ok(index)
+    }
+
+    /// Provide a list of tensor indexes that are inputs to the model.
+    /// Each index is bound check and this modifies the consistent_ flag of the
+    /// interpreter.
+    pub fn set_inputs(&mut self, inputs: &[TensorIndex]) -> Fallible<()> {
+        let interpreter = self.handle;
+        let ptr = inputs.as_ptr();
+        let len = inputs.len() as size_t;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        let result = unsafe {
+            cpp!([
+                interpreter as "Interpreter*",
+                ptr as "const int*",
+                len as "size_t"
+            ] -> bindings::TfLiteStatus as "TfLiteStatus" {
+                std::vector<int> inputs(ptr, ptr + len);
+                return interpreter->SetInputs(inputs);
+            })
+        };
+        ensure!(
+            result == bindings::TfLiteStatus::kTfLiteOk,
+            "SetInputs failed."
+        );
+        Ok(())
+    }
+
+    /// Provide a list of tensor indexes that are outputs to the model
+    /// Each index is bound check and this modifies the consistent_ flag of the
+    /// interpreter.
+    pub fn set_outputs(&mut self, outputs: &[TensorIndex]) -> Fallible<()> {
+        let interpreter = self.handle;
+        let ptr = outputs.as_ptr();
+        let len = outputs.len() as size_t;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        let result = unsafe {
+            cpp!([
+                interpreter as "Interpreter*",
+                ptr as "const int*",
+                len as "size_t"
+            ] -> bindings::TfLiteStatus as "TfLiteStatus" {
+                std::vector<int> outputs(ptr, ptr + len);
+                return interpreter->SetOutputs(outputs);
+            })
+        };
+        ensure!(
+            result == bindings::TfLiteStatus::kTfLiteOk,
+            "SetInputs failed."
+        );
+        Ok(())
+    }
+
+    /// Provide a list of tensor indexes that are variable tensors.
+    /// Each index is bound check and this modifies the consistent_ flag of the
+    /// interpreter.
+    pub fn set_variables(&mut self, variables: &[TensorIndex]) -> Fallible<()> {
+        let interpreter = self.handle;
+        let ptr = variables.as_ptr();
+        let len = variables.len() as size_t;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        let result = unsafe {
+            cpp!([
+                interpreter as "Interpreter*",
+                ptr as "const int*",
+                len as "size_t"
+            ] -> bindings::TfLiteStatus as "TfLiteStatus" {
+                std::vector<int> variables(ptr, ptr + len);
+                return interpreter->SetVariables(variables);
+            })
+        };
+        ensure!(
+            result == bindings::TfLiteStatus::kTfLiteOk,
+            "SetInputs failed."
+        );
+        Ok(())
+    }
+
+    pub fn set_tensor_parameters_read_write(
+        &self,
+        tensor_index: TensorIndex,
+        element_type: ElementKind,
+        name: &str,
+        dims: &[usize],
+        quantization: QuantizationParams,
+        is_variable: bool,
+    ) -> Fallible<()> {
+        let interpreter = self.handle;
+
+        let name_ptr = name.as_ptr();
+        let name_len = name.len() as size_t;
+
+        let dims: Vec<i32> = dims.iter().map(|x| *x as i32).collect();
+        let dims_ptr = dims.as_ptr();
+        let dims_len = dims.len() as size_t;
+
+        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        let result = unsafe {
+            cpp!([
+                interpreter as "Interpreter*",
+                tensor_index as "int",
+                element_type as "TfLiteType",
+                name_ptr as "const char*",
+                name_len as "size_t",
+                dims_ptr as "const int*",
+                dims_len as "size_t",
+                quantization as "TfLiteQuantizationParams",
+                is_variable as "bool"
+            ] -> bindings::TfLiteStatus as "TfLiteStatus" {
+                return interpreter->SetTensorParametersReadWrite(
+                    tensor_index, element_type, std::string(name_ptr, name_len).c_str(),
+                    dims_len, dims_ptr, quantization,is_variable);
+            })
+        };
+        ensure!(
+            result == bindings::TfLiteStatus::kTfLiteOk,
+            "SetTensorParametersReadWrite failed."
+        );
+        Ok(())
     }
 
     fn tensor_inner(&self, tensor_index: TensorIndex) -> Fallible<&bindings::TfLiteTensor> {
