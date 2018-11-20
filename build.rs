@@ -15,7 +15,7 @@ use std::process::Command;
 
 use failure::Fallible;
 
-const TFLITE_VERSION: &'static str = "1.11.0";
+const TFLITE_VERSION: &'static str = "1.12.0";
 
 fn is_valid_tf_src<P: AsRef<Path>>(filepath: P) -> bool {
     use sha2::{Digest, Sha256};
@@ -23,7 +23,7 @@ fn is_valid_tf_src<P: AsRef<Path>>(filepath: P) -> bool {
     let mut sha256 = Sha256::new();
     sha256.input(&fs::read(filepath).unwrap());
     ::hex::encode(sha256.result())
-        == "f49ce3f1d04cee854bc9f74fa9696991140b34a2e2447f35f01391b72c8bfa9f"
+        == "3c87b81e37d4ed7f3da6200474fa5e656ffd20d8811068572f43610cae97ca92"
 }
 
 fn download<P: reqwest::IntoUrl, P2: AsRef<Path>>(source_url: P, target_file: P2) -> Fallible<()> {
