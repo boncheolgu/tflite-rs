@@ -97,6 +97,25 @@ fn prepare_tensorflow_source() -> PathBuf {
 
         fs::remove_file(tf_src_dir_inner.join("tensorflow/contrib/lite/nnapi_delegate.cc"))
             .expect("Unable to remove nnapi delegate");
+
+        #[cfg(feature = "debug_tflite")]
+        {
+            Command::new("sed")
+                .arg("-i")
+                .arg("54s/.*/CXXFLAGS := -O0 -g -fno-inline/")
+                .arg("tensorflow/contrib/lite/tools/make/Makefile")
+                .current_dir(&tf_src_dir_inner)
+                .status()
+                .expect("failed to edit Makefile.");
+
+            Command::new("sed")
+                .arg("-i")
+                .arg("57s/.*/CFLAGS := -O0 -g -fno-inline/")
+                .arg("tensorflow/contrib/lite/tools/make/Makefile")
+                .current_dir(&tf_src_dir_inner)
+                .status()
+                .expect("failed to edit Makefile.");
+        }
     }
     tf_src_dir_inner
 }
@@ -173,7 +192,8 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .clang_arg(format!(
             "-I{}/tensorflow/contrib/lite/tools/make/downloads/flatbuffers/include",
             tflite.as_ref().to_str().unwrap()
-        )).clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
+        ))
+        .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=c++11")
@@ -200,7 +220,8 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
             tflite
                 .as_ref()
                 .join("tensorflow/contrib/lite/tools/make/downloads/flatbuffers/include"),
-        ).flag("-fPIC")
+        )
+        .flag("-fPIC")
         .flag("-std=c++11")
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)

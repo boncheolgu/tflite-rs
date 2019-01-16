@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-#![cfg_attr(feature = "cargo-clippy", allow(clippy))]
+#![cfg_attr(feature = "cargo-clippy", allow(clippy::all))]
 
 pub(crate) use self::root::tflite::*;
 pub(crate) use self::root::*;

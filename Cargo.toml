@@ -24,3 +24,6 @@ hex = "0.3"
 reqwest = "0.9"
 sha2 = "0.8"
 tar = "0.4"
+
+[features]
+debug_tflite = [] # use "libtensorflow-lite.a" built in debug mode

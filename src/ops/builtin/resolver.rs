@@ -2,7 +2,7 @@ use op_resolver::OpResolver;
 
 use bindings;
 
-cpp!{{
+cpp! {{
     #include "tensorflow/contrib/lite/kernels/register.h"
 
     using namespace tflite::ops::builtin;
@@ -15,7 +15,7 @@ pub struct Resolver {
 impl Drop for Resolver {
     #[cfg_attr(
         feature = "cargo-clippy",
-        allow(useless_transmute, forget_copy)
+        allow(clippy::useless_transmute, clippy::forget_copy)
     )]
     fn drop(&mut self) {
         let handle = self.handle;
@@ -34,7 +34,7 @@ impl OpResolver for Resolver {
 }
 
 impl Default for Resolver {
-    #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
     fn default() -> Self {
         let handle = unsafe {
             cpp!([] -> *mut bindings::OpResolver as "OpResolver*" {
