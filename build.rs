@@ -81,6 +81,7 @@ fn prepare_tensorflow_source() -> PathBuf {
                     .join("tensorflow/contrib/lite/tools/make/targets/linux_makefile.inc"),
             ).expect("Unable to copy linux makefile");
         }
+        // To allow for cross-compiling to aarch64
         if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "aarch64" {
             fs::copy(
                 "data/aarch64_makefile.inc",
@@ -107,9 +108,11 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
     if !tf_lib_name.exists() {
         Command::new("make")
             .arg("-j")
+            // allow parallelism to be overridden
             .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or("3".to_owned()))
             .arg("-f")
             .arg("tensorflow/contrib/lite/tools/make/Makefile")
+            // Use cargo's cross-compilation information while building tensorflow
             .arg(format!("TARGET={}", os))
             .arg(format!("TARGET_ARCH={}", arch))
             .current_dir(&tflite)
@@ -174,6 +177,7 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=c++11")
+        // required to get cross compilation for aarch64 to work because of an issue in flatbuffers
         .clang_arg("-fms-extensions");
 
     let bindings = bindings.generate().expect("Unable to generate bindings");
@@ -212,66 +216,3 @@ fn main() {
     build_inline_cpp(&tflite_src_dir);
 }
 
-//--- /dev/null
-//+++ b/tensorflow/contrib/lite/tools/make/build_armv8.sh
-//@@ -0,0 +1,22 @@
-//+#!/bin/bash -x
-//+# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
-//+#
-//+# Licensed under the Apache License, Version 2.0 (the "License");
-//+# you may not use this file except in compliance with the License.
-//+# You may obtain a copy of the License at
-//+#
-//+#     http://www.apache.org/licenses/LICENSE-2.0
-//+#
-//+# Unless required by applicable law or agreed to in writing, software
-//+# distributed under the License is distributed on an "AS IS" BASIS,
-//+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//+# See the License for the specific language governing permissions and
-//+# limitations under the License.
-//+# ==============================================================================
-//+
-//+set -e
-//+
-//+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-//+cd "$SCRIPT_DIR/../../../../.."
-//+
-//+CC_PREFIX=aarch64-linux-gnu- make -j 3 -f tensorflow/contrib/lite/tools/make/Makefile TARGET=armv8 TARGET_ARCH=armv8l SHELL=/bin/bash
-//diff --git a/tensorflow/contrib/lite/tools/make/targets/armv8_makefile.inc b/tensorflow/contrib/lite/tools/make/targets/armv8_makefile.inc
-//new file mode 100644
-//index 0000000000..1ec6628074
-//--- /dev/null
-//+++ b/tensorflow/contrib/lite/tools/make/targets/armv8_makefile.inc
-//@@ -0,0 +1,32 @@
-//+# Settings for armv8
-//+ifeq ($(TARGET),armv8)
-//+  TARGET_ARCH := armv8l
-//+  TARGET_TOOLCHAIN_PREFIX := aarch64-linux-gnu-
-//+
-//+  ifeq ($(TARGET_ARCH), armv8l)
-//+    CXXFLAGS += \
-//+                       -march=armv8-a \
-//+      -funsafe-math-optimizations \
-//+      -ftree-vectorize \
-//+      -fPIC
-//+
-//+    CCFLAGS += \
-//+      -march=armv8-a \
-//+      -funsafe-math-optimizations \
-//+      -ftree-vectorize \
-//+      -fPIC
-//+
-//+    LDFLAGS := \
-//+      -Wl,--no-export-dynamic \
-//+      -Wl,--exclude-libs,ALL \
-//+      -Wl,--gc-sections \
-//+      -Wl,--as-needed
-//+  endif
-//+
-//+  LIBS := \
-//+    -lstdc++ \
-//+    -lpthread \
-//+    -lm \
-//+    -ldl
-//+
-//+endif
