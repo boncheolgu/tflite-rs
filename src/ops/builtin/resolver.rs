@@ -2,7 +2,7 @@ use op_resolver::OpResolver;
 
 use bindings;
 
-cpp!{{
+cpp! {{
     #include "tensorflow/contrib/lite/kernels/register.h"
 
     using namespace tflite::ops::builtin;

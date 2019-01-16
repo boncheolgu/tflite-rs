@@ -7,7 +7,7 @@ use bindings;
 use interpreter::Interpreter;
 use op_resolver::OpResolver;
 
-cpp!{{
+cpp! {{
     #include "tensorflow/contrib/lite/model.h"
     #include "tensorflow/contrib/lite/kernels/register.h"
 

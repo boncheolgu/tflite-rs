@@ -7,7 +7,7 @@ use libc::{c_int, size_t};
 use bindings;
 use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
 
-cpp!{{
+cpp! {{
     #include "tensorflow/contrib/lite/interpreter.h"
     #include "tensorflow/contrib/lite/optional_debug_tools.h"
 
@@ -298,7 +298,7 @@ impl<'a> Interpreter<'a> {
             ] -> bindings::TfLiteStatus as "TfLiteStatus" {
                 return interpreter->SetTensorParametersReadWrite(
                     tensor_index, element_type, std::string(name_ptr, name_len).c_str(),
-                    dims_len, dims_ptr, quantization,is_variable);
+                    dims_len, dims_ptr, quantization, is_variable);
             })
         };
         ensure!(

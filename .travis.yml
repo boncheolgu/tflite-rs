@@ -6,6 +6,8 @@ rust:
 script:
   - cargo build --release --all --verbose
   - cargo test --release --all --verbose
+  - cargo build --release --all --features debug_tflite --verbose
+  - cargo test --release --all --features debug_tflite --verbose
 matrix:
   allow_failures:
     - rust: nightly
