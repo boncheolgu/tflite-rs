@@ -103,7 +103,7 @@ fn prepare_tensorflow_source() -> PathBuf {
 
 fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
     let tf_lib_name = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtensorflow-lite.a");
-    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unabel to get TARGET_OS");
+    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
     let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("Unable to get TARGET_ARCH");
     if !tf_lib_name.exists() {
         Command::new("make")
