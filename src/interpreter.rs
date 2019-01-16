@@ -27,7 +27,7 @@ impl<'a> Drop for Interpreter<'a> {
 
         #[cfg_attr(
             feature = "cargo-clippy",
-            allow(forget_copy, useless_transmute)
+            allow(clippy::forget_copy, clippy::useless_transmute)
         )]
         unsafe {
             cpp!([handle as "Interpreter*"] {
@@ -44,7 +44,7 @@ impl<'a> Interpreter<'a> {
     pub fn allocate_tensors(&mut self) -> Fallible<()> {
         let interpreter = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let result = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->AllocateTensors() == kTfLiteOk;
@@ -60,7 +60,7 @@ impl<'a> Interpreter<'a> {
 
         #[cfg_attr(
             feature = "cargo-clippy",
-            allow(forget_copy, useless_transmute)
+            allow(clippy::forget_copy, clippy::useless_transmute)
         )]
         unsafe {
             cpp!([interpreter as "Interpreter*"] {
@@ -73,7 +73,7 @@ impl<'a> Interpreter<'a> {
     pub fn invoke(&mut self) -> Fallible<()> {
         let interpreter = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let result = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->Invoke() == kTfLiteOk;
@@ -88,7 +88,7 @@ impl<'a> Interpreter<'a> {
         let interpreter = self.handle;
         let mut count: size_t = 0;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -107,7 +107,7 @@ impl<'a> Interpreter<'a> {
         let interpreter = self.handle;
         let mut count: size_t = 0;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -126,7 +126,7 @@ impl<'a> Interpreter<'a> {
         let interpreter = self.handle;
         let mut count: size_t = 0;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -144,7 +144,7 @@ impl<'a> Interpreter<'a> {
     pub fn tensors_size(&self) -> size_t {
         let interpreter = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         unsafe {
             cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
                 return interpreter->tensors_size();
@@ -156,7 +156,7 @@ impl<'a> Interpreter<'a> {
     pub fn nodes_size(&self) -> size_t {
         let interpreter = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         unsafe {
             cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
                 return interpreter->nodes_size();
@@ -170,7 +170,7 @@ impl<'a> Interpreter<'a> {
         let interpreter = self.handle;
         let mut index: TensorIndex = 0;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -195,7 +195,7 @@ impl<'a> Interpreter<'a> {
         let ptr = inputs.as_ptr();
         let len = inputs.len() as size_t;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -221,7 +221,7 @@ impl<'a> Interpreter<'a> {
         let ptr = outputs.as_ptr();
         let len = outputs.len() as size_t;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -247,7 +247,7 @@ impl<'a> Interpreter<'a> {
         let ptr = variables.as_ptr();
         let len = variables.len() as size_t;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -271,7 +271,7 @@ impl<'a> Interpreter<'a> {
         element_type: ElementKind,
         name: &str,
         dims: &[usize],
-        quantization: QuantizationParams,
+        quantization: &QuantizationParams,
         is_variable: bool,
     ) -> Fallible<()> {
         let interpreter = self.handle;
@@ -283,7 +283,7 @@ impl<'a> Interpreter<'a> {
         let dims_ptr = dims.as_ptr();
         let dims_len = dims.len() as size_t;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -311,7 +311,7 @@ impl<'a> Interpreter<'a> {
     fn tensor_inner(&self, tensor_index: TensorIndex) -> Fallible<&bindings::TfLiteTensor> {
         let interpreter = self.handle;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(forget_copy))]
+        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
