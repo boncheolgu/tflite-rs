@@ -74,45 +74,56 @@ fn prepare_tensorflow_source() -> PathBuf {
             .expect("failed to download tflite dependencies.");
 
         // To compile C files with -fPIC
-        if std::env::consts::OS == "linux" {
+        if env::var("CARGO_CFG_TARGET_OS").unwrap() == "linux" {
             fs::copy(
                 "data/linux_makefile.inc",
                 tf_src_dir_inner
                     .join("tensorflow/contrib/lite/tools/make/targets/linux_makefile.inc"),
-            ).unwrap();
+            ).expect("Unable to copy linux makefile");
+        }
+        if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "aarch64" {
+            fs::copy(
+                "data/aarch64_makefile.inc",
+                tf_src_dir_inner
+                    .join("tensorflow/contrib/lite/tools/make/targets/aarch64_makefile.inc"),
+            ).expect("Unable to copy aarch64 makefile");
         }
 
         // To duplicated implementation error
         fs::remove_file(
             tf_src_dir_inner.join("tensorflow/contrib/lite/mmap_allocation_disabled.cc"),
-        ).unwrap();
+        ).expect("Unable to disable mmap allocation");
 
         fs::remove_file(tf_src_dir_inner.join("tensorflow/contrib/lite/nnapi_delegate.cc"))
-            .unwrap();
+            .expect("Unable to remove nnapi delegate");
     }
     tf_src_dir_inner
 }
 
 fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
     let tf_lib_name = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtensorflow-lite.a");
+    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unabel to get TARGET_OS");
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("Unable to get TARGET_ARCH");
     if !tf_lib_name.exists() {
         Command::new("make")
             .arg("-j")
-            .arg("3")
+            .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or("3".to_owned()))
             .arg("-f")
             .arg("tensorflow/contrib/lite/tools/make/Makefile")
+            .arg(format!("TARGET={}", os))
+            .arg(format!("TARGET_ARCH={}", arch))
             .current_dir(&tflite)
             .status()
-            .expect("failed to download tflite dependencies.");
+            .expect("failed to build tensorflow");
 
         fs::copy(
             tflite.as_ref().join(format!(
                 "tensorflow/contrib/lite/tools/make/gen/{OS}_{ARCH}/lib/libtensorflow-lite.a",
-                OS = std::env::consts::OS,
-                ARCH = std::env::consts::ARCH,
+                OS = os,
+                ARCH = arch,
             )),
             &tf_lib_name,
-        ).unwrap();
+        ).expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
     }
 }
 
@@ -162,7 +173,8 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         )).clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
-        .clang_arg("-std=c++11");
+        .clang_arg("-std=c++11")
+        .clang_arg("-fms-extensions");
 
     let bindings = bindings.generate().expect("Unable to generate bindings");
 
@@ -199,3 +211,67 @@ fn main() {
     import_tflite_types(&tflite_src_dir);
     build_inline_cpp(&tflite_src_dir);
 }
+
+//--- /dev/null
+//+++ b/tensorflow/contrib/lite/tools/make/build_armv8.sh
+//@@ -0,0 +1,22 @@
+//+#!/bin/bash -x
+//+# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
+//+#
+//+# Licensed under the Apache License, Version 2.0 (the "License");
+//+# you may not use this file except in compliance with the License.
+//+# You may obtain a copy of the License at
+//+#
+//+#     http://www.apache.org/licenses/LICENSE-2.0
+//+#
+//+# Unless required by applicable law or agreed to in writing, software
+//+# distributed under the License is distributed on an "AS IS" BASIS,
+//+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//+# See the License for the specific language governing permissions and
+//+# limitations under the License.
+//+# ==============================================================================
+//+
+//+set -e
+//+
+//+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+//+cd "$SCRIPT_DIR/../../../../.."
+//+
+//+CC_PREFIX=aarch64-linux-gnu- make -j 3 -f tensorflow/contrib/lite/tools/make/Makefile TARGET=armv8 TARGET_ARCH=armv8l SHELL=/bin/bash
+//diff --git a/tensorflow/contrib/lite/tools/make/targets/armv8_makefile.inc b/tensorflow/contrib/lite/tools/make/targets/armv8_makefile.inc
+//new file mode 100644
+//index 0000000000..1ec6628074
+//--- /dev/null
+//+++ b/tensorflow/contrib/lite/tools/make/targets/armv8_makefile.inc
+//@@ -0,0 +1,32 @@
+//+# Settings for armv8
+//+ifeq ($(TARGET),armv8)
+//+  TARGET_ARCH := armv8l
+//+  TARGET_TOOLCHAIN_PREFIX := aarch64-linux-gnu-
+//+
+//+  ifeq ($(TARGET_ARCH), armv8l)
+//+    CXXFLAGS += \
+//+                       -march=armv8-a \
+//+      -funsafe-math-optimizations \
+//+      -ftree-vectorize \
+//+      -fPIC
+//+
+//+    CCFLAGS += \
+//+      -march=armv8-a \
+//+      -funsafe-math-optimizations \
+//+      -ftree-vectorize \
+//+      -fPIC
+//+
+//+    LDFLAGS := \
+//+      -Wl,--no-export-dynamic \
+//+      -Wl,--exclude-libs,ALL \
+//+      -Wl,--gc-sections \
+//+      -Wl,--as-needed
+//+  endif
+//+
+//+  LIBS := \
+//+    -lstdc++ \
+//+    -lpthread \
+//+    -lm \
+//+    -ldl
+//+
+//+endif
