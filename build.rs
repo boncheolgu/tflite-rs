@@ -74,23 +74,29 @@ fn prepare_tensorflow_source() -> PathBuf {
             .expect("failed to download tflite dependencies.");
 
         // To compile C files with -fPIC
-        if std::env::consts::OS == "linux" {
+        if env::var("CARGO_CFG_TARGET_OS").unwrap() == "linux" {
             fs::copy(
                 "data/linux_makefile.inc",
                 tf_src_dir_inner
                     .join("tensorflow/contrib/lite/tools/make/targets/linux_makefile.inc"),
-            )
-            .unwrap();
+            ).expect("Unable to copy linux makefile");
+        }
+        // To allow for cross-compiling to aarch64
+        if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "aarch64" {
+            fs::copy(
+                "data/aarch64_makefile.inc",
+                tf_src_dir_inner
+                    .join("tensorflow/contrib/lite/tools/make/targets/aarch64_makefile.inc"),
+            ).expect("Unable to copy aarch64 makefile");
         }
 
         // To duplicated implementation error
         fs::remove_file(
             tf_src_dir_inner.join("tensorflow/contrib/lite/mmap_allocation_disabled.cc"),
-        )
-        .unwrap();
+        ).expect("Unable to disable mmap allocation");
 
         fs::remove_file(tf_src_dir_inner.join("tensorflow/contrib/lite/nnapi_delegate.cc"))
-            .unwrap();
+            .expect("Unable to remove nnapi delegate");
 
         #[cfg(feature = "debug_tflite")]
         {
@@ -116,25 +122,30 @@ fn prepare_tensorflow_source() -> PathBuf {
 
 fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
     let tf_lib_name = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtensorflow-lite.a");
+    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("Unable to get TARGET_ARCH");
     if !tf_lib_name.exists() {
         Command::new("make")
             .arg("-j")
-            .arg("3")
+            // allow parallelism to be overridden
+            .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or("3".to_owned()))
             .arg("-f")
             .arg("tensorflow/contrib/lite/tools/make/Makefile")
+            // Use cargo's cross-compilation information while building tensorflow
+            .arg(format!("TARGET={}", os))
+            .arg(format!("TARGET_ARCH={}", arch))
             .current_dir(&tflite)
             .status()
-            .expect("failed to download tflite dependencies.");
+            .expect("failed to build tensorflow");
 
         fs::copy(
             tflite.as_ref().join(format!(
                 "tensorflow/contrib/lite/tools/make/gen/{OS}_{ARCH}/lib/libtensorflow-lite.a",
-                OS = std::env::consts::OS,
-                ARCH = std::env::consts::ARCH,
+                OS = os,
+                ARCH = arch,
             )),
             &tf_lib_name,
-        )
-        .unwrap();
+        ).expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
     }
 }
 
@@ -185,7 +196,9 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
-        .clang_arg("-std=c++11");
+        .clang_arg("-std=c++11")
+        // required to get cross compilation for aarch64 to work because of an issue in flatbuffers
+        .clang_arg("-fms-extensions");
 
     let bindings = bindings.generate().expect("Unable to generate bindings");
 
@@ -223,3 +236,4 @@ fn main() {
     import_tflite_types(&tflite_src_dir);
     build_inline_cpp(&tflite_src_dir);
 }
+
