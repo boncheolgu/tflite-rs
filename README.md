@@ -3,7 +3,7 @@
 # Rust bindings for TensorFlow Lite
 
 This crates provides TensorFlow Lite APIs.
-Please read the [`API documentation on docs.rs`](https://docs.rs/tflite)
+Please read the [`API documentation on docs.rs`](https://docs.rs/crate/tflite)
 
 ### Using the interpreter from a model file
 
