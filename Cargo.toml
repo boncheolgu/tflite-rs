@@ -15,7 +15,7 @@ failure = "0.1"
 libc = "0.2"
 
 [build-dependencies]
-bindgen = "0.43"
+bindgen = "0.49"
 cpp_build = "0.5"
 curl = "0.4"
 failure = "0.1"

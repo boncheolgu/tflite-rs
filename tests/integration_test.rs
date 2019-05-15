@@ -75,3 +75,16 @@ fn mobilenetv2_mnist() {
     f.read_to_end(&mut buf).unwrap();
     test_mnist(&FlatBufferModel::build_from_buffer(&buf).unwrap()).unwrap();
 }
+
+#[test]
+fn threadsafe_types() {
+    fn send_sync<T: Send + Sync>(_t: &T) {}
+    let model = FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite").expect("Unable to build flatbuffer model");
+    send_sync(&model);
+    let resolver = BuiltinOpResolver::default();
+    send_sync(&resolver);
+    let builder = InterpreterBuilder::new(&model, &resolver).expect("Not able to build builder");
+    send_sync(&builder);
+    let interpreter = builder.build().expect("Not able to build model");
+    send_sync(&interpreter);
+}
