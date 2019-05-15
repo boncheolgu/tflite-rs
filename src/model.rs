@@ -14,18 +14,17 @@ cpp! {{
     using namespace tflite;
 }}
 
+#[derive(Default)]
 pub struct FlatBufferModel {
-    handle: *mut bindings::FlatBufferModel,
+    handle: Box<bindings::FlatBufferModel>,
 }
 
 impl Drop for FlatBufferModel {
     fn drop(&mut self) {
-        let handle = self.handle;
+        let handle = std::mem::replace(&mut self.handle, Default::default());
+        let handle = Box::into_raw(handle);
 
-        #[cfg_attr(
-            feature = "cargo-clippy",
-            allow(clippy::forget_copy, clippy::useless_transmute)
-        )]
+        #[allow(clippy::forget_copy, clippy::useless_transmute)]
         unsafe {
             cpp!([handle as "FlatBufferModel*"] {
                 delete handle;
@@ -39,13 +38,14 @@ impl FlatBufferModel {
         let path_str = CString::new(path.as_ref().to_str().unwrap())?;
         let path = path_str.as_ptr();
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let handle = unsafe {
             cpp!([path as "const char*"] -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
                 return FlatBufferModel::VerifyAndBuildFromFile(path).release();
             })
         };
         ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
+        let handle = unsafe{Box::from_raw(handle)};
         Ok(FlatBufferModel { handle })
     }
 
@@ -53,7 +53,7 @@ impl FlatBufferModel {
         let ptr = buffer.as_ptr();
         let size = buffer.len();
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let handle = unsafe {
             cpp!([ptr as "const char*", size as "size_t"]
                   -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
@@ -61,23 +61,22 @@ impl FlatBufferModel {
             })
         };
         ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
+        let handle = unsafe{Box::from_raw(handle)};
         Ok(FlatBufferModel { handle })
     }
 }
 
 pub struct InterpreterBuilder<'a> {
-    handle: *mut bindings::InterpreterBuilder,
-    phantom: ::std::marker::PhantomData<&'a ()>,
+    handle: Box<bindings::InterpreterBuilder>,
+    _model: &'a FlatBufferModel,
+    _resolver: &'a OpResolver,
 }
 
 impl<'a> Drop for InterpreterBuilder<'a> {
     fn drop(&mut self) {
-        let handle = self.handle;
-
-        #[cfg_attr(
-            feature = "cargo-clippy",
-            allow(clippy::forget_copy, clippy::useless_transmute)
-        )]
+        let handle = std::mem::replace(&mut self.handle, Default::default());
+        let handle = Box::into_raw(handle);
+        #[allow(clippy::forget_copy, clippy::useless_transmute)]
         unsafe {
             cpp!([handle as "InterpreterBuilder*"] {
                 delete handle;
@@ -87,12 +86,13 @@ impl<'a> Drop for InterpreterBuilder<'a> {
 }
 
 impl<'a> InterpreterBuilder<'a> {
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
-    pub fn new<T: OpResolver>(model: &'a FlatBufferModel, resolver: &'a T) -> Fallible<Self> {
-        let model_handle = model.handle;
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(model: &'a FlatBufferModel, resolver: &'a OpResolver) -> Fallible<Self> {
+        use std::ops::Deref;
+        let model_handle = model.handle.deref();
         let resolver_handle = resolver.get_resolver_handle();
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let handle = unsafe {
             cpp!([model_handle as "const FlatBufferModel*",
                   resolver_handle as "const OpResolver*"
@@ -101,27 +101,29 @@ impl<'a> InterpreterBuilder<'a> {
             })
         };
         ensure!(!handle.is_null(), "Creating InterpreterBuilder failed.");
+        let handle = unsafe {Box::from_raw(handle)};
         Ok(Self {
             handle,
-            phantom: Default::default(),
+            _model: model,
+            _resolver: resolver,
         })
     }
 
-    pub fn build(&self) -> Fallible<Interpreter> {
-        let builder = self.handle;
+    pub fn build(mut self) -> Fallible<Interpreter<'a>> {
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
-        let handle = unsafe {
-            cpp!([builder as "InterpreterBuilder*"] -> *mut bindings::Interpreter as "Interpreter*" {
-                std::unique_ptr<Interpreter> interpreter;
-                (*builder)(&interpreter);
-                return interpreter.release();
-            })
+        #[allow(clippy::forget_copy)]
+        let handle = {
+            let builder = &mut *self.handle;
+            unsafe {
+                cpp!([builder as "InterpreterBuilder*"] -> *mut bindings::Interpreter as "Interpreter*" {
+                    std::unique_ptr<Interpreter> interpreter;
+                    (*builder)(&interpreter);
+                    return interpreter.release();
+                })
+            }
         };
         ensure!(!handle.is_null(), "Building Interpreter failed.");
-        Ok(Interpreter {
-            handle,
-            phantom: Default::default(),
-        })
+        let handle = unsafe {Box::from_raw(handle)};
+        Ok(Interpreter::new(handle, self))
     }
 }

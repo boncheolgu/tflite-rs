@@ -1,5 +1,5 @@
 use bindings;
 
-pub trait OpResolver {
-    fn get_resolver_handle(&self) -> *mut bindings::OpResolver;
+pub trait OpResolver: Send + Sync {
+    fn get_resolver_handle(&self) -> &bindings::OpResolver;
 }
