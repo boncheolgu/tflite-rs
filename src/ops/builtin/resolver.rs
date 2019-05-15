@@ -1,6 +1,5 @@
-use op_resolver::OpResolver;
-
-use bindings;
+use crate::op_resolver::OpResolver;
+use crate::bindings;
 
 cpp! {{
     #include "tensorflow/contrib/lite/kernels/register.h"

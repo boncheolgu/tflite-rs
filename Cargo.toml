@@ -8,11 +8,13 @@ keywords = ["tensorflow", "tflite", "bindings"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/boncheolgu/tflite-rs"
 readme = "README.md"
+edition = "2018"
 
 [dependencies]
 cpp = "0.5"
 failure = "0.1"
 libc = "0.2"
+maybe-owned = "0.3"
 
 [build-dependencies]
 bindgen = "0.49"

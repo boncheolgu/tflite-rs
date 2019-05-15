@@ -3,9 +3,10 @@ use std::path::Path;
 
 use failure::Fallible;
 
-use bindings;
-use interpreter::Interpreter;
-use op_resolver::OpResolver;
+use crate::interpreter::Interpreter;
+use crate::op_resolver::OpResolver;
+use crate::bindings;
+use maybe_owned::MaybeOwned;
 
 cpp! {{
     #include "tensorflow/contrib/lite/model.h"
@@ -66,13 +67,15 @@ impl FlatBufferModel {
     }
 }
 
-pub struct InterpreterBuilder<'a> {
+pub struct InterpreterBuilder<'a, Op>
+where Op: OpResolver + 'a {
     handle: Box<bindings::InterpreterBuilder>,
-    _model: &'a FlatBufferModel,
-    _resolver: &'a OpResolver,
+    _model: MaybeOwned<'a, FlatBufferModel>,
+    _resolver: Op,
 }
 
-impl<'a> Drop for InterpreterBuilder<'a> {
+impl<'a, Op> Drop for InterpreterBuilder<'a, Op>
+where Op: OpResolver + 'a {
     fn drop(&mut self) {
         let handle = std::mem::replace(&mut self.handle, Default::default());
         let handle = Box::into_raw(handle);
@@ -85,20 +88,24 @@ impl<'a> Drop for InterpreterBuilder<'a> {
     }
 }
 
-impl<'a> InterpreterBuilder<'a> {
+impl<'a, Op> InterpreterBuilder<'a, Op>
+where Op: OpResolver + 'a {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(model: &'a FlatBufferModel, resolver: &'a OpResolver) -> Fallible<Self> {
+    pub fn new<M: Into<MaybeOwned<'a, FlatBufferModel>>>(model: M, resolver: Op) -> Fallible<Self> {
         use std::ops::Deref;
-        let model_handle = model.handle.deref();
-        let resolver_handle = resolver.get_resolver_handle();
+        let model = model.into();
+        let handle = {
+            let model_handle = model.as_ref().handle.deref();
+            let resolver_handle = resolver.get_resolver_handle();
 
-        #[allow(clippy::forget_copy)]
-        let handle = unsafe {
-            cpp!([model_handle as "const FlatBufferModel*",
-                  resolver_handle as "const OpResolver*"
-            ] -> *mut bindings::InterpreterBuilder as "InterpreterBuilder*" {
-                return new InterpreterBuilder(*model_handle, *resolver_handle);
-            })
+            #[allow(clippy::forget_copy)]
+            unsafe {
+                cpp!([model_handle as "const FlatBufferModel*",
+                    resolver_handle as "const OpResolver*"
+                ] -> *mut bindings::InterpreterBuilder as "InterpreterBuilder*" {
+                    return new InterpreterBuilder(*model_handle, *resolver_handle);
+                })
+            }
         };
         ensure!(!handle.is_null(), "Creating InterpreterBuilder failed.");
         let handle = unsafe {Box::from_raw(handle)};
@@ -109,7 +116,7 @@ impl<'a> InterpreterBuilder<'a> {
         })
     }
 
-    pub fn build(mut self) -> Fallible<Interpreter<'a>> {
+    pub fn build(mut self) -> Fallible<Interpreter<'a, Op>> {
 
         #[allow(clippy::forget_copy)]
         let handle = {

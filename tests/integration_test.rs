@@ -9,6 +9,7 @@ use failure::Fallible;
 
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder};
+use std::sync::Arc;
 
 fn test_mnist(model: &FlatBufferModel) -> Fallible<()> {
     let resolver = BuiltinOpResolver::default();
@@ -81,9 +82,9 @@ fn threadsafe_types() {
     fn send_sync<T: Send + Sync>(_t: &T) {}
     let model = FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite").expect("Unable to build flatbuffer model");
     send_sync(&model);
-    let resolver = BuiltinOpResolver::default();
+    let resolver = Arc::new(BuiltinOpResolver::default());
     send_sync(&resolver);
-    let builder = InterpreterBuilder::new(&model, &resolver).expect("Not able to build builder");
+    let builder = InterpreterBuilder::new(model, resolver).expect("Not able to build builder");
     send_sync(&builder);
     let interpreter = builder.build().expect("Not able to build model");
     send_sync(&interpreter);

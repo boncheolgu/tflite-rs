@@ -2,7 +2,6 @@
 extern crate cpp;
 #[macro_use]
 extern crate failure;
-extern crate libc;
 
 mod bindings;
 pub mod context;

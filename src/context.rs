@@ -1,7 +1,6 @@
 use std::ffi::CStr;
 use std::fmt;
-
-use bindings;
+use crate::bindings;
 
 pub type ElementKind = bindings::TfLiteType;
 pub type QuantizationParams = bindings::TfLiteQuantizationParams;

@@ -4,8 +4,10 @@ use std::slice;
 use failure::Fallible;
 use libc::{c_int, size_t};
 
-use ::{bindings, InterpreterBuilder};
-use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
+use crate::InterpreterBuilder;
+use crate::context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
+use crate::op_resolver::OpResolver;
+use crate::bindings;
 
 cpp! {{
     #include "tensorflow/contrib/lite/interpreter.h"
@@ -16,12 +18,14 @@ cpp! {{
 
 pub type TensorIndex = c_int;
 
-pub struct Interpreter<'a> {
+pub struct Interpreter<'a, Op>
+where Op: OpResolver + 'a {
     handle: Box<bindings::Interpreter>,
-    _builder: InterpreterBuilder<'a>,
+    _builder: InterpreterBuilder<'a, Op>,
 }
 
-impl<'a> Drop for Interpreter<'a> {
+impl<'a, Op> Drop for Interpreter<'a, Op>
+where Op: OpResolver + 'a {
     fn drop(&mut self) {
         let handle = std::mem::replace(&mut self.handle, Default::default());
         let handle = Box::into_raw(handle);
@@ -34,7 +38,8 @@ impl<'a> Drop for Interpreter<'a> {
     }
 }
 
-impl<'a> Interpreter<'a> {
+impl<'a, Op> Interpreter<'a, Op>
+where Op: OpResolver + 'a {
     fn handle(&self) -> &bindings::Interpreter {
         use std::ops::Deref;
         self.handle.deref()
@@ -43,7 +48,7 @@ impl<'a> Interpreter<'a> {
         use std::ops::DerefMut;
         self.handle.deref_mut()
     }
-    pub(crate) fn new(handle: Box<bindings::Interpreter>, builder: InterpreterBuilder<'a>) -> Self {
+    pub(crate) fn new(handle: Box<bindings::Interpreter>, builder: InterpreterBuilder<'a, Op>) -> Self {
         Self {
             handle,
             _builder: builder
