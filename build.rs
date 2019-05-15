@@ -79,7 +79,8 @@ fn prepare_tensorflow_source() -> PathBuf {
                 "data/linux_makefile.inc",
                 tf_src_dir_inner
                     .join("tensorflow/contrib/lite/tools/make/targets/linux_makefile.inc"),
-            ).expect("Unable to copy linux makefile");
+            )
+            .expect("Unable to copy linux makefile");
         }
         // To allow for cross-compiling to aarch64
         if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "aarch64" {
@@ -87,13 +88,15 @@ fn prepare_tensorflow_source() -> PathBuf {
                 "data/aarch64_makefile.inc",
                 tf_src_dir_inner
                     .join("tensorflow/contrib/lite/tools/make/targets/aarch64_makefile.inc"),
-            ).expect("Unable to copy aarch64 makefile");
+            )
+            .expect("Unable to copy aarch64 makefile");
         }
 
         // To duplicated implementation error
         fs::remove_file(
             tf_src_dir_inner.join("tensorflow/contrib/lite/mmap_allocation_disabled.cc"),
-        ).expect("Unable to disable mmap allocation");
+        )
+        .expect("Unable to disable mmap allocation");
 
         fs::remove_file(tf_src_dir_inner.join("tensorflow/contrib/lite/nnapi_delegate.cc"))
             .expect("Unable to remove nnapi delegate");
@@ -145,7 +148,8 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
                 ARCH = arch,
             )),
             &tf_lib_name,
-        ).expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
+        )
+        .expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
     }
 }
 
@@ -236,4 +240,3 @@ fn main() {
     import_tflite_types(&tflite_src_dir);
     build_inline_cpp(&tflite_src_dir);
 }
-

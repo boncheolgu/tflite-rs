@@ -4,10 +4,10 @@ use std::slice;
 use failure::Fallible;
 use libc::{c_int, size_t};
 
-use crate::InterpreterBuilder;
+use crate::bindings;
 use crate::context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
 use crate::op_resolver::OpResolver;
-use crate::bindings;
+use crate::InterpreterBuilder;
 
 cpp! {{
     #include "tensorflow/contrib/lite/interpreter.h"
@@ -19,13 +19,17 @@ cpp! {{
 pub type TensorIndex = c_int;
 
 pub struct Interpreter<'a, Op>
-where Op: OpResolver + 'a {
+where
+    Op: OpResolver,
+{
     handle: Box<bindings::Interpreter>,
     _builder: InterpreterBuilder<'a, Op>,
 }
 
 impl<'a, Op> Drop for Interpreter<'a, Op>
-where Op: OpResolver + 'a {
+where
+    Op: OpResolver,
+{
     fn drop(&mut self) {
         let handle = std::mem::replace(&mut self.handle, Default::default());
         let handle = Box::into_raw(handle);
@@ -39,7 +43,9 @@ where Op: OpResolver + 'a {
 }
 
 impl<'a, Op> Interpreter<'a, Op>
-where Op: OpResolver + 'a {
+where
+    Op: OpResolver,
+{
     fn handle(&self) -> &bindings::Interpreter {
         use std::ops::Deref;
         self.handle.deref()
@@ -48,10 +54,13 @@ where Op: OpResolver + 'a {
         use std::ops::DerefMut;
         self.handle.deref_mut()
     }
-    pub(crate) fn new(handle: Box<bindings::Interpreter>, builder: InterpreterBuilder<'a, Op>) -> Self {
+    pub(crate) fn new(
+        handle: Box<bindings::Interpreter>,
+        builder: InterpreterBuilder<'a, Op>,
+    ) -> Self {
         Self {
             handle,
-            _builder: builder
+            _builder: builder,
         }
     }
     /// Update allocations for all tensors. This will redim dependent tensors using

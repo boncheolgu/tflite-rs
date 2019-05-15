@@ -3,9 +3,9 @@ use std::path::Path;
 
 use failure::Fallible;
 
+use crate::bindings;
 use crate::interpreter::Interpreter;
 use crate::op_resolver::OpResolver;
-use crate::bindings;
 use maybe_owned::MaybeOwned;
 
 cpp! {{
@@ -46,7 +46,7 @@ impl FlatBufferModel {
             })
         };
         ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
-        let handle = unsafe{Box::from_raw(handle)};
+        let handle = unsafe { Box::from_raw(handle) };
         Ok(FlatBufferModel { handle })
     }
 
@@ -62,20 +62,24 @@ impl FlatBufferModel {
             })
         };
         ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
-        let handle = unsafe{Box::from_raw(handle)};
+        let handle = unsafe { Box::from_raw(handle) };
         Ok(FlatBufferModel { handle })
     }
 }
 
 pub struct InterpreterBuilder<'a, Op>
-where Op: OpResolver + 'a {
+where
+    Op: OpResolver,
+{
     handle: Box<bindings::InterpreterBuilder>,
     _model: MaybeOwned<'a, FlatBufferModel>,
     _resolver: Op,
 }
 
 impl<'a, Op> Drop for InterpreterBuilder<'a, Op>
-where Op: OpResolver + 'a {
+where
+    Op: OpResolver,
+{
     fn drop(&mut self) {
         let handle = std::mem::replace(&mut self.handle, Default::default());
         let handle = Box::into_raw(handle);
@@ -89,7 +93,9 @@ where Op: OpResolver + 'a {
 }
 
 impl<'a, Op> InterpreterBuilder<'a, Op>
-where Op: OpResolver + 'a {
+where
+    Op: OpResolver,
+{
     #[allow(clippy::new_ret_no_self)]
     pub fn new<M: Into<MaybeOwned<'a, FlatBufferModel>>>(model: M, resolver: Op) -> Fallible<Self> {
         use std::ops::Deref;
@@ -108,7 +114,7 @@ where Op: OpResolver + 'a {
             }
         };
         ensure!(!handle.is_null(), "Creating InterpreterBuilder failed.");
-        let handle = unsafe {Box::from_raw(handle)};
+        let handle = unsafe { Box::from_raw(handle) };
         Ok(Self {
             handle,
             _model: model,
@@ -117,7 +123,6 @@ where Op: OpResolver + 'a {
     }
 
     pub fn build(mut self) -> Fallible<Interpreter<'a, Op>> {
-
         #[allow(clippy::forget_copy)]
         let handle = {
             let builder = &mut *self.handle;
@@ -130,7 +135,7 @@ where Op: OpResolver + 'a {
             }
         };
         ensure!(!handle.is_null(), "Building Interpreter failed.");
-        let handle = unsafe {Box::from_raw(handle)};
+        let handle = unsafe { Box::from_raw(handle) };
         Ok(Interpreter::new(handle, self))
     }
 }

@@ -1,5 +1,5 @@
-use crate::op_resolver::OpResolver;
 use crate::bindings;
+use crate::op_resolver::OpResolver;
 
 cpp! {{
     #include "tensorflow/contrib/lite/kernels/register.h"
@@ -26,8 +26,7 @@ impl Drop for Resolver {
 
 impl OpResolver for Resolver {
     fn get_resolver_handle(&self) -> &bindings::OpResolver {
-        use std::ops::Deref;
-        self.handle.deref()
+        self.handle.as_ref()
     }
 }
 
@@ -39,7 +38,7 @@ impl Default for Resolver {
                 return new BuiltinOpResolver();
             })
         };
-        let handle = unsafe{Box::from_raw(handle)};
+        let handle = unsafe { Box::from_raw(handle) };
         Self { handle }
     }
 }

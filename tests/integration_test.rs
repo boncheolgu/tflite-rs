@@ -7,9 +7,9 @@ use std::io::Read;
 
 use failure::Fallible;
 
+use std::sync::Arc;
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder};
-use std::sync::Arc;
 
 fn test_mnist(model: &FlatBufferModel) -> Fallible<()> {
     let resolver = BuiltinOpResolver::default();
@@ -80,7 +80,8 @@ fn mobilenetv2_mnist() {
 #[test]
 fn threadsafe_types() {
     fn send_sync<T: Send + Sync>(_t: &T) {}
-    let model = FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite").expect("Unable to build flatbuffer model");
+    let model = FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite")
+        .expect("Unable to build flatbuffer model");
     send_sync(&model);
     let resolver = Arc::new(BuiltinOpResolver::default());
     send_sync(&resolver);
