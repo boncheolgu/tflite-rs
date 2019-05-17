@@ -1,6 +1,5 @@
-use op_resolver::OpResolver;
-
-use bindings;
+use crate::bindings;
+use crate::op_resolver::OpResolver;
 
 cpp! {{
     #include "tensorflow/contrib/lite/kernels/register.h"
@@ -9,16 +8,14 @@ cpp! {{
 }}
 
 pub struct Resolver {
-    handle: *mut bindings::OpResolver,
+    handle: Box<bindings::OpResolver>,
 }
 
 impl Drop for Resolver {
-    #[cfg_attr(
-        feature = "cargo-clippy",
-        allow(clippy::useless_transmute, clippy::forget_copy)
-    )]
+    #[allow(clippy::useless_transmute, clippy::forget_copy)]
     fn drop(&mut self) {
-        let handle = self.handle;
+        let handle = std::mem::replace(&mut self.handle, Default::default());
+        let handle = Box::into_raw(handle);
         unsafe {
             cpp!([handle as "BuiltinOpResolver*"] {
                 delete handle;
@@ -28,19 +25,20 @@ impl Drop for Resolver {
 }
 
 impl OpResolver for Resolver {
-    fn get_resolver_handle(&self) -> *mut bindings::OpResolver {
-        self.handle
+    fn get_resolver_handle(&self) -> &bindings::OpResolver {
+        self.handle.as_ref()
     }
 }
 
 impl Default for Resolver {
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+    #[allow(clippy::forget_copy)]
     fn default() -> Self {
         let handle = unsafe {
             cpp!([] -> *mut bindings::OpResolver as "OpResolver*" {
                 return new BuiltinOpResolver();
             })
         };
+        let handle = unsafe { Box::from_raw(handle) };
         Self { handle }
     }
 }

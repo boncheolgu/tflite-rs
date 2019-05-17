@@ -4,8 +4,10 @@ use std::slice;
 use failure::Fallible;
 use libc::{c_int, size_t};
 
-use bindings;
-use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
+use crate::bindings;
+use crate::context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
+use crate::op_resolver::OpResolver;
+use crate::InterpreterBuilder;
 
 cpp! {{
     #include "tensorflow/contrib/lite/interpreter.h"
@@ -16,19 +18,22 @@ cpp! {{
 
 pub type TensorIndex = c_int;
 
-pub struct Interpreter<'a> {
-    pub(crate) handle: *mut bindings::Interpreter,
-    pub(crate) phantom: ::std::marker::PhantomData<&'a ()>,
+pub struct Interpreter<'a, Op>
+where
+    Op: OpResolver,
+{
+    handle: Box<bindings::Interpreter>,
+    _builder: InterpreterBuilder<'a, Op>,
 }
 
-impl<'a> Drop for Interpreter<'a> {
+impl<'a, Op> Drop for Interpreter<'a, Op>
+where
+    Op: OpResolver,
+{
     fn drop(&mut self) {
-        let handle = self.handle;
-
-        #[cfg_attr(
-            feature = "cargo-clippy",
-            allow(clippy::forget_copy, clippy::useless_transmute)
-        )]
+        let handle = std::mem::replace(&mut self.handle, Default::default());
+        let handle = Box::into_raw(handle);
+        #[allow(clippy::forget_copy, clippy::useless_transmute)]
         unsafe {
             cpp!([handle as "Interpreter*"] {
                 delete handle;
@@ -37,14 +42,34 @@ impl<'a> Drop for Interpreter<'a> {
     }
 }
 
-impl<'a> Interpreter<'a> {
+impl<'a, Op> Interpreter<'a, Op>
+where
+    Op: OpResolver,
+{
+    fn handle(&self) -> &bindings::Interpreter {
+        use std::ops::Deref;
+        self.handle.deref()
+    }
+    fn handle_mut(&mut self) -> &mut bindings::Interpreter {
+        use std::ops::DerefMut;
+        self.handle.deref_mut()
+    }
+    pub(crate) fn new(
+        handle: Box<bindings::Interpreter>,
+        builder: InterpreterBuilder<'a, Op>,
+    ) -> Self {
+        Self {
+            handle,
+            _builder: builder,
+        }
+    }
     /// Update allocations for all tensors. This will redim dependent tensors using
     /// the input tensor dimensionality as given. This is relatively expensive.
     /// If you know that your sizes are not changing, you need not call this.
     pub fn allocate_tensors(&mut self) -> Fallible<()> {
-        let interpreter = self.handle;
+        let interpreter = self.handle_mut();
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let result = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->AllocateTensors() == kTfLiteOk;
@@ -56,12 +81,9 @@ impl<'a> Interpreter<'a> {
 
     /// Prints a dump of what tensors and what nodes are in the interpreter.
     pub fn print_state(&self) {
-        let interpreter = self.handle;
+        let interpreter = self.handle();
 
-        #[cfg_attr(
-            feature = "cargo-clippy",
-            allow(clippy::forget_copy, clippy::useless_transmute)
-        )]
+        #[allow(clippy::forget_copy, clippy::useless_transmute)]
         unsafe {
             cpp!([interpreter as "Interpreter*"] {
                 PrintInterpreterState(interpreter);
@@ -71,9 +93,9 @@ impl<'a> Interpreter<'a> {
 
     /// Invoke the interpreter (run the whole graph in dependency order).
     pub fn invoke(&mut self) -> Fallible<()> {
-        let interpreter = self.handle;
+        let interpreter = self.handle_mut();
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let result = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->Invoke() == kTfLiteOk;
@@ -85,10 +107,10 @@ impl<'a> Interpreter<'a> {
 
     /// Read only access to list of inputs.
     pub fn inputs(&self) -> &[TensorIndex] {
-        let interpreter = self.handle;
+        let interpreter = self.handle();
         let mut count: size_t = 0;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -104,10 +126,10 @@ impl<'a> Interpreter<'a> {
 
     /// Read only access to list of outputs.
     pub fn outputs(&self) -> &[TensorIndex] {
-        let interpreter = self.handle;
+        let interpreter = self.handle();
         let mut count: size_t = 0;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -123,10 +145,10 @@ impl<'a> Interpreter<'a> {
 
     /// Read only access to list of variable tensors.
     pub fn variables(&self) -> &[TensorIndex] {
-        let interpreter = self.handle;
+        let interpreter = self.handle();
         let mut count: size_t = 0;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -142,9 +164,9 @@ impl<'a> Interpreter<'a> {
 
     /// Return the number of tensors in the model.
     pub fn tensors_size(&self) -> size_t {
-        let interpreter = self.handle;
+        let interpreter = self.handle();
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         unsafe {
             cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
                 return interpreter->tensors_size();
@@ -154,9 +176,9 @@ impl<'a> Interpreter<'a> {
 
     /// Return the number of ops in the model.
     pub fn nodes_size(&self) -> size_t {
-        let interpreter = self.handle;
+        let interpreter = self.handle();
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         unsafe {
             cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
                 return interpreter->nodes_size();
@@ -167,10 +189,10 @@ impl<'a> Interpreter<'a> {
     /// Adds `count` tensors, preserving pre-existing Tensor entries.
     /// Return the index of the first new tensor.
     pub fn add_tensors(&mut self, count: size_t) -> Fallible<TensorIndex> {
-        let interpreter = self.handle;
+        let interpreter = self.handle();
         let mut index: TensorIndex = 0;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -191,11 +213,11 @@ impl<'a> Interpreter<'a> {
     /// Each index is bound check and this modifies the consistent_ flag of the
     /// interpreter.
     pub fn set_inputs(&mut self, inputs: &[TensorIndex]) -> Fallible<()> {
-        let interpreter = self.handle;
+        let interpreter = self.handle_mut();
         let ptr = inputs.as_ptr();
         let len = inputs.len() as size_t;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -217,11 +239,11 @@ impl<'a> Interpreter<'a> {
     /// Each index is bound check and this modifies the consistent_ flag of the
     /// interpreter.
     pub fn set_outputs(&mut self, outputs: &[TensorIndex]) -> Fallible<()> {
-        let interpreter = self.handle;
+        let interpreter = self.handle_mut();
         let ptr = outputs.as_ptr();
         let len = outputs.len() as size_t;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -243,11 +265,11 @@ impl<'a> Interpreter<'a> {
     /// Each index is bound check and this modifies the consistent_ flag of the
     /// interpreter.
     pub fn set_variables(&mut self, variables: &[TensorIndex]) -> Fallible<()> {
-        let interpreter = self.handle;
+        let interpreter = self.handle_mut();
         let ptr = variables.as_ptr();
         let len = variables.len() as size_t;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -266,7 +288,7 @@ impl<'a> Interpreter<'a> {
     }
 
     pub fn set_tensor_parameters_read_write(
-        &self,
+        &mut self,
         tensor_index: TensorIndex,
         element_type: ElementKind,
         name: &str,
@@ -274,7 +296,7 @@ impl<'a> Interpreter<'a> {
         quantization: &QuantizationParams,
         is_variable: bool,
     ) -> Fallible<()> {
-        let interpreter = self.handle;
+        let interpreter = self.handle_mut();
 
         let name_ptr = name.as_ptr();
         let name_len = name.len() as size_t;
@@ -283,7 +305,7 @@ impl<'a> Interpreter<'a> {
         let dims_ptr = dims.as_ptr();
         let dims_len = dims.len() as size_t;
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -309,9 +331,9 @@ impl<'a> Interpreter<'a> {
     }
 
     fn tensor_inner(&self, tensor_index: TensorIndex) -> Fallible<&bindings::TfLiteTensor> {
-        let interpreter = self.handle;
+        let interpreter = self.handle();
 
-        #[cfg_attr(feature = "cargo-clippy", allow(clippy::forget_copy))]
+        #[allow(clippy::forget_copy)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
