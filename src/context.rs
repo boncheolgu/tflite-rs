@@ -1,3 +1,4 @@
+use std::ffi::CStr;
 use std::fmt;
 
 use crate::bindings;
@@ -28,7 +29,7 @@ impl ElemKindOf for i32 {
 }
 
 pub struct TensorInfo {
-    // pub name: String,
+    pub name: String,
     pub element_kind: ElementKind,
     pub dims: Vec<usize>,
 }
@@ -36,7 +37,7 @@ pub struct TensorInfo {
 impl fmt::Debug for TensorInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("TensorInfo")
-            // .field("name", &self.name)
+            .field("name", &self.name)
             .field("element_kind", &self.element_kind)
             .field("dims", &self.dims)
             .finish()
@@ -46,11 +47,10 @@ impl fmt::Debug for TensorInfo {
 impl<'a> From<&'a bindings::TfLiteTensor> for TensorInfo {
     fn from(t: &'a bindings::TfLiteTensor) -> Self {
         Self {
-            // FIXME `t.name` causes segmentation fault for some models
-            // name: unsafe { CStr::from_ptr(t.name) }
-            //     .to_str()
-            //     .unwrap()
-            //     .to_string(),
+            name: unsafe { CStr::from_ptr(t.name) }
+                .to_str()
+                .unwrap()
+                .to_string(),
             element_kind: t.type_,
             dims: {
                 let slice = unsafe {
