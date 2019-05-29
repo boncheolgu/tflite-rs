@@ -18,6 +18,7 @@ cpp! {{
 #[derive(Default)]
 pub struct FlatBufferModel {
     handle: Box<bindings::FlatBufferModel>,
+    _model_buffer: Vec<u8>,
 }
 
 impl Drop for FlatBufferModel {
@@ -47,10 +48,13 @@ impl FlatBufferModel {
         };
         ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
         let handle = unsafe { Box::from_raw(handle) };
-        Ok(FlatBufferModel { handle })
+        Ok(FlatBufferModel {
+            handle,
+            _model_buffer: vec![],
+        })
     }
 
-    pub fn build_from_buffer(buffer: &[u8]) -> Fallible<Self> {
+    pub fn build_from_buffer(buffer: Vec<u8>) -> Fallible<Self> {
         let ptr = buffer.as_ptr();
         let size = buffer.len();
 
@@ -63,7 +67,10 @@ impl FlatBufferModel {
         };
         ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
         let handle = unsafe { Box::from_raw(handle) };
-        Ok(FlatBufferModel { handle })
+        Ok(FlatBufferModel {
+            handle,
+            _model_buffer: buffer,
+        })
     }
 }
 

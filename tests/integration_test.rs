@@ -63,7 +63,7 @@ fn mobilenetv1_mnist() {
     let mut f = File::open("data/MNISTnet_uint8_quant.tflite").unwrap();
     let mut buf = Vec::new();
     f.read_to_end(&mut buf).unwrap();
-    test_mnist(&FlatBufferModel::build_from_buffer(&buf).unwrap()).unwrap();
+    test_mnist(&FlatBufferModel::build_from_buffer(buf).unwrap()).unwrap();
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn mobilenetv2_mnist() {
     let mut f = File::open("data/MNISTnet_v2_uint8_quant.tflite").unwrap();
     let mut buf = Vec::new();
     f.read_to_end(&mut buf).unwrap();
-    test_mnist(&FlatBufferModel::build_from_buffer(&buf).unwrap()).unwrap();
+    test_mnist(&FlatBufferModel::build_from_buffer(buf).unwrap()).unwrap();
 }
 
 #[test]
