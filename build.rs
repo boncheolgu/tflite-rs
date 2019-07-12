@@ -190,7 +190,9 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
         .blacklist_type("tflite::Interpreter_State")
-        .default_enum_style(EnumVariation::Rust)
+        .default_enum_style(EnumVariation::Rust {
+            non_exhaustive: false,
+        })
         .header("csrc/tflite_wrapper.hpp")
         .clang_arg(format!("-I{}", tflite.as_ref().to_str().unwrap()))
         .clang_arg(format!(
