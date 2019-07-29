@@ -9,8 +9,8 @@ use crate::op_resolver::OpResolver;
 use maybe_owned::MaybeOwned;
 
 cpp! {{
-    #include "tensorflow/contrib/lite/model.h"
-    #include "tensorflow/contrib/lite/kernels/register.h"
+    #include "tensorflow/lite/model.h"
+    #include "tensorflow/lite/kernels/register.h"
 
     using namespace tflite;
 }}

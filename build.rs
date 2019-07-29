@@ -13,62 +13,26 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use failure::Fallible;
+const TFLITE_SOURCE_ARCHIVE: &'static [u8] = include_bytes!("data/tensorflow-1.13.2.tar.gz");
+const TFLITE_VERSION: &'static str = "1.13.2";
 
-const TFLITE_VERSION: &'static str = "1.12.2";
-
-fn is_valid_tf_src<P: AsRef<Path>>(filepath: P) -> bool {
-    use sha2::{Digest, Sha256};
-
-    let mut sha256 = Sha256::new();
-    sha256.input(&fs::read(filepath).unwrap());
-    ::hex::encode(sha256.result())
-        == "90ffc7cf1df5e4b8385c9108db18d5d5034ec423547c0e167d44f5746a20d06b"
-}
-
-fn download<P: reqwest::IntoUrl, P2: AsRef<Path>>(source_url: P, target_file: P2) -> Fallible<()> {
-    let mut resp = reqwest::get(source_url)?;
-    let f = fs::File::create(&target_file)?;
-    let mut writer = ::std::io::BufWriter::new(f);
-    resp.copy_to(&mut writer)?;
-    Ok(())
-}
-
-fn extract<P: AsRef<Path>, P2: AsRef<Path>>(archive_path: P, extract_to: P2) {
+fn extract<P: AsRef<Path>>(extract_to: P) {
     use flate2::read::GzDecoder;
     use tar::Archive;
 
-    let file = fs::File::open(archive_path).unwrap();
-    let unzipped = GzDecoder::new(file);
+    let unzipped = GzDecoder::new(TFLITE_SOURCE_ARCHIVE);
     let mut a = Archive::new(unzipped);
     a.unpack(extract_to).unwrap();
 }
 
 fn prepare_tensorflow_source() -> PathBuf {
     let tf_src_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("tensorflow");
-    fs::create_dir(&tf_src_dir).unwrap_or_default();
-
-    let tf_src_name = tf_src_dir.join(format!("v{}.tar.gz", TFLITE_VERSION));
-    if !tf_src_name.exists() || !is_valid_tf_src(&tf_src_name) {
-        let tf_src_url = format!(
-            "https://codeload.github.com/tensorflow/tensorflow/tar.gz/v{}",
-            TFLITE_VERSION
-        );
-
-        download(&tf_src_url, &tf_src_name).unwrap();
-
-        assert!(
-            is_valid_tf_src(&tf_src_name),
-            "{} is not valid",
-            tf_src_name.to_str().unwrap()
-        );
-    }
 
     let tf_src_dir_inner = tf_src_dir.join(format!("tensorflow-{}", TFLITE_VERSION));
     if !tf_src_dir_inner.exists() {
-        extract(&tf_src_name, &tf_src_dir);
+        extract(&tf_src_dir);
 
-        Command::new("tensorflow/contrib/lite/tools/make/download_dependencies.sh")
+        Command::new("tensorflow/lite/tools/make/download_dependencies.sh")
             .current_dir(&tf_src_dir_inner)
             .status()
             .expect("failed to download tflite dependencies.");
@@ -77,8 +41,7 @@ fn prepare_tensorflow_source() -> PathBuf {
         if env::var("CARGO_CFG_TARGET_OS").unwrap() == "linux" {
             fs::copy(
                 "data/linux_makefile.inc",
-                tf_src_dir_inner
-                    .join("tensorflow/contrib/lite/tools/make/targets/linux_makefile.inc"),
+                tf_src_dir_inner.join("tensorflow/lite/tools/make/targets/linux_makefile.inc"),
             )
             .expect("Unable to copy linux makefile");
         }
@@ -86,27 +49,17 @@ fn prepare_tensorflow_source() -> PathBuf {
         if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "aarch64" {
             fs::copy(
                 "data/aarch64_makefile.inc",
-                tf_src_dir_inner
-                    .join("tensorflow/contrib/lite/tools/make/targets/aarch64_makefile.inc"),
+                tf_src_dir_inner.join("tensorflow/lite/tools/make/targets/aarch64_makefile.inc"),
             )
             .expect("Unable to copy aarch64 makefile");
         }
-
-        // To duplicated implementation error
-        fs::remove_file(
-            tf_src_dir_inner.join("tensorflow/contrib/lite/mmap_allocation_disabled.cc"),
-        )
-        .expect("Unable to disable mmap allocation");
-
-        fs::remove_file(tf_src_dir_inner.join("tensorflow/contrib/lite/nnapi_delegate.cc"))
-            .expect("Unable to remove nnapi delegate");
 
         #[cfg(feature = "debug_tflite")]
         {
             Command::new("sed")
                 .arg("-i")
                 .arg("54s/.*/CXXFLAGS := -O0 -g -fno-inline/")
-                .arg("tensorflow/contrib/lite/tools/make/Makefile")
+                .arg("tensorflow/lite/tools/make/Makefile")
                 .current_dir(&tf_src_dir_inner)
                 .status()
                 .expect("failed to edit Makefile.");
@@ -114,7 +67,7 @@ fn prepare_tensorflow_source() -> PathBuf {
             Command::new("sed")
                 .arg("-i")
                 .arg("57s/.*/CFLAGS := -O0 -g -fno-inline/")
-                .arg("tensorflow/contrib/lite/tools/make/Makefile")
+                .arg("tensorflow/lite/tools/make/Makefile")
                 .current_dir(&tf_src_dir_inner)
                 .status()
                 .expect("failed to edit Makefile.");
@@ -133,7 +86,7 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
             // allow parallelism to be overridden
             .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or("3".to_owned()))
             .arg("-f")
-            .arg("tensorflow/contrib/lite/tools/make/Makefile")
+            .arg("tensorflow/lite/tools/make/Makefile")
             // Use cargo's cross-compilation information while building tensorflow
             .arg(format!("TARGET={}", os))
             .arg(format!("TARGET_ARCH={}", arch))
@@ -143,7 +96,7 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
 
         fs::copy(
             tflite.as_ref().join(format!(
-                "tensorflow/contrib/lite/tools/make/gen/{OS}_{ARCH}/lib/libtensorflow-lite.a",
+                "tensorflow/lite/tools/make/gen/{OS}_{ARCH}/lib/libtensorflow-lite.a",
                 OS = os,
                 ARCH = arch,
             )),
@@ -196,7 +149,7 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .header("csrc/tflite_wrapper.hpp")
         .clang_arg(format!("-I{}", tflite.as_ref().to_str().unwrap()))
         .clang_arg(format!(
-            "-I{}/tensorflow/contrib/lite/tools/make/downloads/flatbuffers/include",
+            "-I{}/tensorflow/lite/tools/make/downloads/flatbuffers/include",
             tflite.as_ref().to_str().unwrap()
         ))
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
@@ -225,7 +178,7 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
         .include(
             tflite
                 .as_ref()
-                .join("tensorflow/contrib/lite/tools/make/downloads/flatbuffers/include"),
+                .join("tensorflow/lite/tools/make/downloads/flatbuffers/include"),
         )
         .flag("-fPIC")
         .flag("-std=c++11")

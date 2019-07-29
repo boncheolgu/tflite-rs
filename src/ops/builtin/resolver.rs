@@ -2,7 +2,7 @@ use crate::bindings;
 use crate::op_resolver::OpResolver;
 
 cpp! {{
-    #include "tensorflow/contrib/lite/kernels/register.h"
+    #include "tensorflow/lite/kernels/register.h"
 
     using namespace tflite::ops::builtin;
 }}
