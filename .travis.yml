@@ -1,4 +1,3 @@
-dist: bionic
 language: rust
 rust:
   - stable
@@ -10,5 +9,18 @@ script:
   - cargo build --release --all --features debug_tflite --verbose
   - cargo test --release --all --features debug_tflite --verbose
 matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
   allow_failures:
     - rust: nightly
+
+before_install:
+    - eval "${MATRIX_EVAL}"

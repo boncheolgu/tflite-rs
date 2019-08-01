@@ -13,7 +13,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-const TFLITE_SOURCE_ARCHIVE: &'static [u8] = include_bytes!("data/tensorflow-1.13.2.tar.gz");
+const TFLITE_SOURCE_ARCHIVE: &'static [u8] =
+    include_bytes!("data/tensorflow-1.13.2_repacked.tar.gz");
 const TFLITE_VERSION: &'static str = "1.13.2";
 
 fn extract<P: AsRef<Path>>(extract_to: P) {
@@ -31,11 +32,6 @@ fn prepare_tensorflow_source() -> PathBuf {
     let tf_src_dir_inner = tf_src_dir.join(format!("tensorflow-{}", TFLITE_VERSION));
     if !tf_src_dir_inner.exists() {
         extract(&tf_src_dir);
-
-        Command::new("tensorflow/lite/tools/make/download_dependencies.sh")
-            .current_dir(&tf_src_dir_inner)
-            .status()
-            .expect("failed to download tflite dependencies.");
 
         // To compile C files with -fPIC
         if env::var("CARGO_CFG_TARGET_OS").unwrap() == "linux" {
