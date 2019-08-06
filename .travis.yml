@@ -1,26 +1,14 @@
+dist: bionic
 language: rust
 rust:
   - stable
   - beta
   - nightly
 script:
+  - sudo ln -s -f $(which clang) /usr/bin/gcc
+  - sudo ln -s -f $(which clang++) /usr/bin/g++
+  - gcc -v && g++ -v
   - cargo build --release --all --verbose
   - cargo test --release --all --verbose
   - cargo build --release --all --features debug_tflite --verbose
   - cargo test --release --all --features debug_tflite --verbose
-matrix:
-  include:
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-  allow_failures:
-    - rust: nightly
-
-before_install:
-    - eval "${MATRIX_EVAL}"
