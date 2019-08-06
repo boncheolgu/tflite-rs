@@ -1,11 +1,7 @@
 extern crate bindgen;
 extern crate cpp_build;
-extern crate curl;
 extern crate failure;
 extern crate flate2;
-extern crate hex;
-extern crate reqwest;
-extern crate sha2;
 extern crate tar;
 
 use std::env;

@@ -19,12 +19,8 @@ maybe-owned = "0.3"
 [build-dependencies]
 bindgen = "0.50"
 cpp_build = "0.5"
-curl = "0.4"
 failure = "0.1"
 flate2 = "1.0"
-hex = "0.3"
-reqwest = "0.9"
-sha2 = "0.8"
 tar = "0.4"
 
 [features]
