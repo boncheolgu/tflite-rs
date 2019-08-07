@@ -1,13 +1,14 @@
+dist: bionic
 language: rust
 rust:
   - stable
   - beta
   - nightly
 script:
+  - sudo ln -s -f $(which clang) /usr/bin/gcc
+  - sudo ln -s -f $(which clang++) /usr/bin/g++
+  - gcc -v && g++ -v
   - cargo build --release --all --verbose
   - cargo test --release --all --verbose
   - cargo build --release --all --features debug_tflite --verbose
   - cargo test --release --all --features debug_tflite --verbose
-matrix:
-  allow_failures:
-    - rust: nightly
