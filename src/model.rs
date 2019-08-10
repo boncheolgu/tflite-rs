@@ -1,4 +1,5 @@
-use std::ffi::CString;
+use std::fs::File;
+use std::io::Read;
 use std::path::Path;
 
 use failure::Fallible;
@@ -18,7 +19,7 @@ cpp! {{
 #[derive(Default)]
 pub struct FlatBufferModel {
     handle: Box<bindings::FlatBufferModel>,
-    _model_buffer: Vec<u8>,
+    model_buffer: Vec<u8>,
 }
 
 impl Drop for FlatBufferModel {
@@ -37,26 +38,14 @@ impl Drop for FlatBufferModel {
 
 impl FlatBufferModel {
     pub fn build_from_file<P: AsRef<Path>>(path: P) -> Fallible<Self> {
-        let path_str = CString::new(path.as_ref().to_str().unwrap())?;
-        let path = path_str.as_ptr();
-
-        #[allow(clippy::forget_copy)]
-        let handle = unsafe {
-            cpp!([path as "const char*"] -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
-                return FlatBufferModel::VerifyAndBuildFromFile(path).release();
-            })
-        };
-        ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
-        let handle = unsafe { Box::from_raw(handle) };
-        Ok(FlatBufferModel {
-            handle,
-            _model_buffer: vec![],
-        })
+        let mut model_buffer = Vec::new();
+        File::open(path.as_ref())?.read_to_end(&mut model_buffer)?;
+        Self::build_from_buffer(model_buffer)
     }
 
-    pub fn build_from_buffer(buffer: Vec<u8>) -> Fallible<Self> {
-        let ptr = buffer.as_ptr();
-        let size = buffer.len();
+    pub fn build_from_buffer(model_buffer: Vec<u8>) -> Fallible<Self> {
+        let ptr = model_buffer.as_ptr();
+        let size = model_buffer.len();
 
         #[allow(clippy::forget_copy)]
         let handle = unsafe {
@@ -69,8 +58,17 @@ impl FlatBufferModel {
         let handle = unsafe { Box::from_raw(handle) };
         Ok(FlatBufferModel {
             handle,
-            _model_buffer: buffer,
+            model_buffer,
         })
+    }
+
+    pub fn buffer(&self) -> &[u8] {
+        &self.model_buffer
+    }
+
+    pub fn release_buffer(mut self) -> Vec<u8> {
+        use std::mem;
+        mem::replace(&mut self.model_buffer, Vec::new())
     }
 }
 
