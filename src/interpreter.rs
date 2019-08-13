@@ -10,8 +10,8 @@ use crate::op_resolver::OpResolver;
 use crate::InterpreterBuilder;
 
 cpp! {{
-    #include "tensorflow/contrib/lite/interpreter.h"
-    #include "tensorflow/contrib/lite/optional_debug_tools.h"
+    #include "tensorflow/lite/interpreter.h"
+    #include "tensorflow/lite/optional_debug_tools.h"
 
     using namespace tflite;
 }}
