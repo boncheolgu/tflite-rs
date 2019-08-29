@@ -293,7 +293,7 @@ where
         element_type: ElementKind,
         name: &str,
         dims: &[usize],
-        quantization: &QuantizationParams,
+        quantization: QuantizationParams,
         is_variable: bool,
     ) -> Fallible<()> {
         let interpreter = self.handle_mut();
