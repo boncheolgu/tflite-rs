@@ -1,4 +1,4 @@
-use crate::bindings;
+use crate::bindings::tflite as bindings;
 use crate::interpreter::op_resolver::OpResolver;
 
 cpp! {{

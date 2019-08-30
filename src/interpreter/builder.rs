@@ -4,7 +4,7 @@ use maybe_owned::MaybeOwned;
 use super::op_resolver::OpResolver;
 use super::FlatBufferModel;
 use super::Interpreter;
-use crate::bindings;
+use crate::bindings::tflite as bindings;
 
 cpp! {{
     #include "tensorflow/lite/model.h"

@@ -12,9 +12,7 @@ use cpp_stl::vector::{
 use failure::Fallible;
 use libc::size_t;
 
-use crate::bindings::{
-    BuiltinOperator, BuiltinOptionsUnion, CustomOptionsFormat, QuantizationDetails, TensorType,
-};
+pub use crate::bindings::tflite::*;
 
 cpp! {{
     #include "tensorflow/lite/schema/schema_generated.h"
@@ -59,6 +57,111 @@ pub struct TensorT {
     pub name: StlString,
     pub quantization: UniquePtr<QuantizationParametersT>,
     pub is_variable: bool,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct BuiltinOptionsUnion {
+    pub type_: BuiltinOptions,
+    pub value: *mut c_void,
+}
+
+macro_rules! add_impl_options {
+    ($($t:ty,)*) => ($(
+        impl AsRef<$t> for BuiltinOptionsUnion {
+            fn as_ref(&self) -> & $t {
+                unsafe { (self.value as *const $t).as_ref().unwrap() }
+            }
+        }
+
+        impl AsMut<$t> for BuiltinOptionsUnion {
+            fn as_mut(&mut self) -> &mut $t {
+                unsafe { (self.value as *mut $t).as_mut().unwrap() }
+            }
+        }
+    )*)
+}
+
+add_impl_options! {
+    Conv2DOptionsT,
+    DepthwiseConv2DOptionsT,
+    ConcatEmbeddingsOptionsT,
+    LSHProjectionOptionsT,
+    Pool2DOptionsT,
+    SVDFOptionsT,
+    RNNOptionsT,
+    FullyConnectedOptionsT,
+    SoftmaxOptionsT,
+    ConcatenationOptionsT,
+    AddOptionsT,
+    L2NormOptionsT,
+    LocalResponseNormalizationOptionsT,
+    LSTMOptionsT,
+    ResizeBilinearOptionsT,
+    CallOptionsT,
+    ReshapeOptionsT,
+    SkipGramOptionsT,
+    SpaceToDepthOptionsT,
+    EmbeddingLookupSparseOptionsT,
+    MulOptionsT,
+    PadOptionsT,
+    GatherOptionsT,
+    BatchToSpaceNDOptionsT,
+    SpaceToBatchNDOptionsT,
+    TransposeOptionsT,
+    ReducerOptionsT,
+    SubOptionsT,
+    DivOptionsT,
+    SqueezeOptionsT,
+    SequenceRNNOptionsT,
+    StridedSliceOptionsT,
+    ExpOptionsT,
+    TopKV2OptionsT,
+    SplitOptionsT,
+    LogSoftmaxOptionsT,
+    CastOptionsT,
+    DequantizeOptionsT,
+    MaximumMinimumOptionsT,
+    ArgMaxOptionsT,
+    LessOptionsT,
+    NegOptionsT,
+    PadV2OptionsT,
+    GreaterOptionsT,
+    GreaterEqualOptionsT,
+    LessEqualOptionsT,
+    SelectOptionsT,
+    SliceOptionsT,
+    TransposeConvOptionsT,
+    SparseToDenseOptionsT,
+    TileOptionsT,
+    ExpandDimsOptionsT,
+    EqualOptionsT,
+    NotEqualOptionsT,
+    ShapeOptionsT,
+    PowOptionsT,
+    ArgMinOptionsT,
+    FakeQuantOptionsT,
+    PackOptionsT,
+    LogicalOrOptionsT,
+    OneHotOptionsT,
+    LogicalAndOptionsT,
+    LogicalNotOptionsT,
+    UnpackOptionsT,
+    FloorDivOptionsT,
+    SquareOptionsT,
+    ZerosLikeOptionsT,
+    FillOptionsT,
+    BidirectionalSequenceLSTMOptionsT,
+    BidirectionalSequenceRNNOptionsT,
+    UnidirectionalSequenceLSTMOptionsT,
+    FloorModOptionsT,
+    RangeOptionsT,
+    ResizeNearestNeighborOptionsT,
+    LeakyReluOptionsT,
+    SquaredDifferenceOptionsT,
+    MirrorPadOptionsT,
+    AbsOptionsT,
+    SplitVOptionsT,
 }
 
 #[repr(C)]
@@ -183,58 +286,5 @@ impl ModelT {
                 self->operator_codes.erase(self->operator_codes.begin() + index);
             });
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use cpp_stl::vector::VectorSlice;
-    use failure::Fallible;
-
-    use crate::bindings;
-
-    #[test]
-    fn unittest_layout() {
-        use std::mem::{align_of, size_of};
-
-        assert_eq!(size_of::<ModelT>(), size_of::<bindings::ModelT>());
-        assert_eq!(align_of::<ModelT>(), align_of::<bindings::ModelT>());
-
-        assert_eq!(size_of::<SubGraphT>(), size_of::<bindings::SubGraphT>());
-        assert_eq!(align_of::<SubGraphT>(), align_of::<bindings::SubGraphT>());
-
-        assert_eq!(
-            size_of::<OperatorCodeT>(),
-            size_of::<bindings::OperatorCodeT>()
-        );
-        assert_eq!(
-            align_of::<OperatorCodeT>(),
-            align_of::<bindings::OperatorCodeT>()
-        );
-    }
-
-    #[test]
-    fn unittest_tflite_models() -> Fallible<()> {
-        let mut model = ModelT::from_file("data/MNISTnet_uint8_quant.tflite")?;
-        assert_eq!(model.version, 3);
-        assert_eq!(model.operator_codes.size(), 5);
-        dbg!(&model);
-        assert_eq!(model.subgraphs.size(), 1);
-        let subgraph = &mut model.subgraphs[0];
-        assert_eq!(subgraph.operators.size(), 9);
-        assert_eq!(subgraph.inputs[0], subgraph.operators[0].inputs[0]);
-
-        subgraph.outputs[0] = 4;
-
-        let buffer = model.to_buffer();
-        let model = ModelT::from_buffer(&buffer);
-        assert_eq!(model.version, 3);
-        assert_eq!(model.operator_codes.size(), 5);
-        dbg!(&model);
-        assert_eq!(model.subgraphs.size(), 1);
-        assert_eq!(model.subgraphs[0].outputs[0], 4);
-        Ok(())
     }
 }

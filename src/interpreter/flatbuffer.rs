@@ -4,7 +4,7 @@ use std::path::Path;
 
 use failure::Fallible;
 
-use crate::bindings;
+use crate::bindings::tflite as bindings;
 
 cpp! {{
     #include "tensorflow/lite/model.h"

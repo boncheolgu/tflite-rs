@@ -29,7 +29,7 @@ pub struct Interpreter<'a, Op>
 where
     Op: OpResolver,
 {
-    handle: Box<bindings::Interpreter>,
+    handle: Box<bindings::tflite::Interpreter>,
     _builder: InterpreterBuilder<'a, Op>,
 }
 
@@ -53,16 +53,16 @@ impl<'a, Op> Interpreter<'a, Op>
 where
     Op: OpResolver,
 {
-    fn handle(&self) -> &bindings::Interpreter {
+    fn handle(&self) -> &bindings::tflite::Interpreter {
         use std::ops::Deref;
         self.handle.deref()
     }
-    fn handle_mut(&mut self) -> &mut bindings::Interpreter {
+    fn handle_mut(&mut self) -> &mut bindings::tflite::Interpreter {
         use std::ops::DerefMut;
         self.handle.deref_mut()
     }
     pub(crate) fn new(
-        handle: Box<bindings::Interpreter>,
+        handle: Box<bindings::tflite::Interpreter>,
         builder: InterpreterBuilder<'a, Op>,
     ) -> Self {
         Self {
