@@ -37,7 +37,7 @@ pub struct QuantizationDetailsUnion {
 #[repr(C)]
 #[derive(Debug)]
 pub struct BufferT {
-    data: VectorOfU8,
+    pub data: VectorOfU8,
 }
 
 #[repr(C)]
@@ -64,13 +64,13 @@ pub struct TensorT {
 #[repr(C)]
 #[derive(Debug)]
 pub struct OperatorT {
-    opcode_index: u32,
-    inputs: VectorOfI32,
-    outputs: VectorOfI32,
-    builtin_options: BuiltinOptionsUnion,
-    custom_options: VectorOfU8,
-    custom_options_format: CustomOptionsFormat,
-    mutating_variable_inputs: VectorOfBool,
+    pub opcode_index: u32,
+    pub inputs: VectorOfI32,
+    pub outputs: VectorOfI32,
+    pub builtin_options: BuiltinOptionsUnion,
+    pub custom_options: VectorOfU8,
+    pub custom_options_format: CustomOptionsFormat,
+    pub mutating_variable_inputs: VectorOfBool,
 }
 
 #[repr(C)]
@@ -84,11 +84,11 @@ pub struct OperatorCodeT {
 #[repr(C)]
 #[derive(Debug)]
 pub struct SubGraphT {
-    tensors: VectorOfUniquePtr<TensorT>,
-    inputs: VectorOfI32,
-    outputs: VectorOfI32,
-    operators: VectorOfUniquePtr<OperatorT>,
-    name: StlString,
+    pub tensors: VectorOfUniquePtr<TensorT>,
+    pub inputs: VectorOfI32,
+    pub outputs: VectorOfI32,
+    pub operators: VectorOfUniquePtr<OperatorT>,
+    pub name: StlString,
 }
 
 impl SubGraphT {
