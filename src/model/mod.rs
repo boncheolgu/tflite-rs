@@ -100,37 +100,11 @@ impl SubGraphT {
         }
     }
 
-    pub fn retain_tensors(&mut self, pred: fn(usize, &TensorT) -> bool) {
-        let removed: Vec<_> = self
-            .tensors
-            .iter()
-            .enumerate()
-            .filter_map(|(i, op)| if pred(i, op) { None } else { Some(i) })
-            .collect();
-
-        for i in removed.into_iter().rev() {
-            self.remove_tensor(i);
-        }
-    }
-
     pub fn remove_operator(&mut self, operator_index: usize) {
         unsafe {
             cpp!([self as "SubGraphT*", operator_index as "size_t"] {
                 self->operators.erase(self->operators.begin() + operator_index);
             });
-        }
-    }
-
-    pub fn retain_operators(&mut self, pred: fn(usize, &OperatorT) -> bool) {
-        let removed: Vec<_> = self
-            .operators
-            .iter()
-            .enumerate()
-            .filter_map(|(i, op)| if pred(i, op) { None } else { Some(i) })
-            .collect();
-
-        for i in removed.into_iter().rev() {
-            self.remove_operator(i);
         }
     }
 }
@@ -185,6 +159,30 @@ impl ModelT {
     pub fn to_file<P: AsRef<Path>>(&self, filepath: P) -> Fallible<()> {
         File::create(filepath.as_ref())?.write_all(&mut self.to_buffer())?;
         Ok(())
+    }
+
+    pub fn remove_buffer(&mut self, index: usize) {
+        unsafe {
+            cpp!([self as "ModelT*", index as "size_t"] {
+                self->buffers.erase(self->buffers.begin() + index);
+            });
+        }
+    }
+
+    pub fn remove_subgraph(&mut self, index: usize) {
+        unsafe {
+            cpp!([self as "ModelT*", index as "size_t"] {
+                self->subgraphs.erase(self->subgraphs.begin() + index);
+            });
+        }
+    }
+
+    pub fn remove_operator_code(&mut self, index: usize) {
+        unsafe {
+            cpp!([self as "ModelT*", index as "size_t"] {
+                self->operator_codes.erase(self->operator_codes.begin() + index);
+            });
+        }
     }
 }
 
