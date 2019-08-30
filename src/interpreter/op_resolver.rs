@@ -1,5 +1,6 @@
-use crate::bindings::OpResolver as SysOpResolver;
 use std::sync::Arc;
+
+use crate::bindings::OpResolver as SysOpResolver;
 
 pub trait OpResolver: Send + Sync {
     fn get_resolver_handle(&self) -> &SysOpResolver;

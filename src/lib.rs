@@ -7,12 +7,7 @@ extern crate cpp_stl;
 extern crate failure;
 
 mod bindings;
-pub mod context;
-pub mod interpreter;
+mod interpreter;
 pub mod model;
-pub mod op_resolver;
-pub mod ops;
-pub mod schema;
 
-pub use interpreter::Interpreter;
-pub use model::{FlatBufferModel, InterpreterBuilder};
+pub use interpreter::*;

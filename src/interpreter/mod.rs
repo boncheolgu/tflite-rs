@@ -1,3 +1,9 @@
+mod builder;
+pub mod context;
+mod flatbuffer;
+pub mod op_resolver;
+pub mod ops;
+
 use std::mem::size_of;
 use std::slice;
 
@@ -5,9 +11,10 @@ use failure::Fallible;
 use libc::{c_int, size_t};
 
 use crate::bindings;
-use crate::context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
-use crate::op_resolver::OpResolver;
-use crate::InterpreterBuilder;
+pub use builder::InterpreterBuilder;
+use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
+pub use flatbuffer::Model as FlatBufferModel;
+use op_resolver::OpResolver;
 
 cpp! {{
     #include "tensorflow/lite/interpreter.h"
