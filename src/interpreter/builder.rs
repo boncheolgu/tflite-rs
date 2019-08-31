@@ -1,12 +1,10 @@
-use std::ffi::CString;
-use std::path::Path;
-
 use failure::Fallible;
-
-use crate::bindings;
-use crate::interpreter::Interpreter;
-use crate::op_resolver::OpResolver;
 use maybe_owned::MaybeOwned;
+
+use super::op_resolver::OpResolver;
+use super::FlatBufferModel;
+use super::Interpreter;
+use crate::bindings::tflite as bindings;
 
 cpp! {{
     #include "tensorflow/lite/model.h"
@@ -14,65 +12,6 @@ cpp! {{
 
     using namespace tflite;
 }}
-
-#[derive(Default)]
-pub struct FlatBufferModel {
-    handle: Box<bindings::FlatBufferModel>,
-    _model_buffer: Vec<u8>,
-}
-
-impl Drop for FlatBufferModel {
-    fn drop(&mut self) {
-        let handle = std::mem::replace(&mut self.handle, Default::default());
-        let handle = Box::into_raw(handle);
-
-        #[allow(clippy::forget_copy, clippy::useless_transmute)]
-        unsafe {
-            cpp!([handle as "FlatBufferModel*"] {
-                delete handle;
-            });
-        }
-    }
-}
-
-impl FlatBufferModel {
-    pub fn build_from_file<P: AsRef<Path>>(path: P) -> Fallible<Self> {
-        let path_str = CString::new(path.as_ref().to_str().unwrap())?;
-        let path = path_str.as_ptr();
-
-        #[allow(clippy::forget_copy)]
-        let handle = unsafe {
-            cpp!([path as "const char*"] -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
-                return FlatBufferModel::VerifyAndBuildFromFile(path).release();
-            })
-        };
-        ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
-        let handle = unsafe { Box::from_raw(handle) };
-        Ok(FlatBufferModel {
-            handle,
-            _model_buffer: vec![],
-        })
-    }
-
-    pub fn build_from_buffer(buffer: Vec<u8>) -> Fallible<Self> {
-        let ptr = buffer.as_ptr();
-        let size = buffer.len();
-
-        #[allow(clippy::forget_copy)]
-        let handle = unsafe {
-            cpp!([ptr as "const char*", size as "size_t"]
-                  -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
-                return FlatBufferModel::BuildFromBuffer(ptr, size).release();
-            })
-        };
-        ensure!(!handle.is_null(), "Building FlatBufferModel failed.");
-        let handle = unsafe { Box::from_raw(handle) };
-        Ok(FlatBufferModel {
-            handle,
-            _model_buffer: buffer,
-        })
-    }
-}
 
 pub struct InterpreterBuilder<'a, Op>
 where

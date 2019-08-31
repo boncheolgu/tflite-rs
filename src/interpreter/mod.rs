@@ -1,3 +1,9 @@
+mod builder;
+pub mod context;
+mod flatbuffer;
+pub mod op_resolver;
+pub mod ops;
+
 use std::mem::size_of;
 use std::slice;
 
@@ -5,9 +11,10 @@ use failure::Fallible;
 use libc::{c_int, size_t};
 
 use crate::bindings;
-use crate::context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
-use crate::op_resolver::OpResolver;
-use crate::InterpreterBuilder;
+pub use builder::InterpreterBuilder;
+use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
+pub use flatbuffer::Model as FlatBufferModel;
+use op_resolver::OpResolver;
 
 cpp! {{
     #include "tensorflow/lite/interpreter.h"
@@ -22,7 +29,7 @@ pub struct Interpreter<'a, Op>
 where
     Op: OpResolver,
 {
-    handle: Box<bindings::Interpreter>,
+    handle: Box<bindings::tflite::Interpreter>,
     _builder: InterpreterBuilder<'a, Op>,
 }
 
@@ -46,16 +53,16 @@ impl<'a, Op> Interpreter<'a, Op>
 where
     Op: OpResolver,
 {
-    fn handle(&self) -> &bindings::Interpreter {
+    fn handle(&self) -> &bindings::tflite::Interpreter {
         use std::ops::Deref;
         self.handle.deref()
     }
-    fn handle_mut(&mut self) -> &mut bindings::Interpreter {
+    fn handle_mut(&mut self) -> &mut bindings::tflite::Interpreter {
         use std::ops::DerefMut;
         self.handle.deref_mut()
     }
     pub(crate) fn new(
-        handle: Box<bindings::Interpreter>,
+        handle: Box<bindings::tflite::Interpreter>,
         builder: InterpreterBuilder<'a, Op>,
     ) -> Self {
         Self {

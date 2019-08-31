@@ -147,13 +147,18 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
     use bindgen::*;
 
     let bindings = Builder::default()
-        .whitelist_recursively(false)
+        .whitelist_recursively(true)
         .prepend_enum_name(false)
         .impl_debug(true)
         .with_codegen_config(CodegenConfig::TYPES)
         .layout_tests(false)
         .enable_cxx_namespaces()
         .derive_default(true)
+        // for model APIs
+        .whitelist_type("tflite::ModelT")
+        .whitelist_type(".+OptionsT")
+        .blacklist_type(".+_TableType")
+        // for interpreter
         .whitelist_type("tflite::FlatBufferModel")
         .opaque_type("tflite::FlatBufferModel")
         .whitelist_type("tflite::InterpreterBuilder")
@@ -165,17 +170,6 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .whitelist_type("tflite::OpResolver")
         .opaque_type("tflite::OpResolver")
         .whitelist_type("TfLiteTensor")
-        .whitelist_type("TfLiteType")
-        .whitelist_type("TfLitePtrUnion")
-        .whitelist_type("TfLiteIntArray")
-        .whitelist_type("TfLiteQuantizationParams")
-        .whitelist_type("TfLiteAllocationType")
-        .whitelist_type("TfLiteDelegate")
-        .opaque_type("TfLiteDelegate")
-        .whitelist_type("TfLiteBufferHandle")
-        .whitelist_type("TfLiteComplex64")
-        .whitelist_type("TfLiteStatus")
-        .whitelist_type("TfLiteQuantizationParams")
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
         .blacklist_type("tflite::Interpreter_State")
@@ -221,7 +215,7 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
         .debug(true)
-        .opt_level(2)
+        .opt_level(if cfg!(debug_assertions) { 0 } else { 2 })
         .build("src/lib.rs");
 }
 

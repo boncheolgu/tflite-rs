@@ -12,6 +12,7 @@ edition = "2018"
 
 [dependencies]
 cpp = "0.5"
+cpp_stl = { path = "cpp_stl" }
 failure = "0.1"
 libc = "0.2"
 maybe-owned = "0.3"
