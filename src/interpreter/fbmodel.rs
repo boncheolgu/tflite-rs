@@ -5,6 +5,7 @@ use std::path::Path;
 use failure::Fallible;
 
 use crate::bindings::tflite as bindings;
+use crate::model::Model;
 
 cpp! {{
     #include "tensorflow/lite/model.h"
@@ -14,26 +15,26 @@ cpp! {{
 }}
 
 #[derive(Default)]
-pub struct Model {
+pub struct FlatBufferModel {
     pub(crate) handle: Box<bindings::FlatBufferModel>,
     model_buffer: Vec<u8>,
 }
 
-impl Drop for Model {
+impl Drop for FlatBufferModel {
     fn drop(&mut self) {
         let handle = std::mem::replace(&mut self.handle, Default::default());
         let handle = Box::into_raw(handle);
 
         #[allow(clippy::forget_copy, clippy::useless_transmute)]
         unsafe {
-            cpp!([handle as "Model*"] {
+            cpp!([handle as "FlatBufferModel*"] {
                 delete handle;
             });
         }
     }
 }
 
-impl Model {
+impl FlatBufferModel {
     pub fn build_from_file<P: AsRef<Path>>(path: P) -> Fallible<Self> {
         let mut model_buffer = Vec::new();
         File::open(path.as_ref())?.read_to_end(&mut model_buffer)?;
@@ -53,10 +54,14 @@ impl Model {
         };
         ensure!(!handle.is_null(), "Building Model failed.");
         let handle = unsafe { Box::from_raw(handle) };
-        Ok(Model {
+        Ok(Self {
             handle,
             model_buffer,
         })
+    }
+
+    pub fn build_from_model(model: &Model) -> Fallible<Self> {
+        FlatBufferModel::build_from_buffer(model.to_buffer())
     }
 
     pub fn buffer(&self) -> &[u8] {

@@ -10,7 +10,7 @@ use failure::Fallible;
 
 use std::sync::Arc;
 use tflite::model::stl::vector::{VectorInsert, VectorRemove, VectorSlice};
-use tflite::model::{BuiltinOperator, BuiltinOptions, ModelT, SoftmaxOptionsT};
+use tflite::model::{BuiltinOperator, BuiltinOptions, Model, SoftmaxOptionsT};
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder};
 
@@ -96,7 +96,7 @@ fn threadsafe_types() {
 
 #[test]
 fn flatbuffer_model_apis_inspect() {
-    let model = ModelT::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+    let model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
     assert_eq!(model.version, 3);
     assert_eq!(model.operator_codes.size(), 5);
     assert_eq!(model.subgraphs.size(), 1);
@@ -154,7 +154,7 @@ fn flatbuffer_model_apis_inspect() {
 
 #[test]
 fn flatbuffer_model_apis_mutate() {
-    let mut model = ModelT::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+    let mut model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
     model.version = 2;
     model.operator_codes.erase(4);
     model.buffers.erase(22);
@@ -170,7 +170,7 @@ fn flatbuffer_model_apis_mutate() {
     }
 
     let model_buffer = model.to_buffer();
-    let model = ModelT::from_buffer(&model_buffer);
+    let model = Model::from_buffer(&model_buffer);
     assert_eq!(model.version, 2);
     assert_eq!(model.operator_codes.size(), 4);
     assert_eq!(model.subgraphs.size(), 1);

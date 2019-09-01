@@ -3,8 +3,9 @@ pub mod stl;
 use std::ffi::c_void;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::ops::{Deref, DerefMut};
 use std::path::Path;
-use std::slice;
+use std::{fmt, slice};
 
 use failure::Fallible;
 use libc::size_t;
@@ -194,18 +195,73 @@ pub struct ModelT {
     pub metadata_buffer: Vector<i32>,
 }
 
-impl ModelT {
-    pub fn from_buffer(buffer: &[u8]) -> Box<Self> {
-        let buffer = buffer.as_ptr();
+pub struct Model {
+    ptr: *mut ModelT,
+}
+
+unsafe impl Sync for Model {}
+unsafe impl Send for Model {}
+
+impl Drop for Model {
+    fn drop(&mut self) {
+        let model_ptr = self.ptr;
         unsafe {
-            Box::from_raw(cpp!([buffer as "const void*"] -> *mut ModelT as "ModelT*" {
-                auto model = tflite::GetModel(buffer)->UnPack();
-                return model;
-            }))
+            cpp!([model_ptr as "ModelT*"] {
+                delete model_ptr;
+            })
         }
     }
+}
 
-    pub fn from_file<P: AsRef<Path>>(filepath: P) -> Fallible<Box<Self>> {
+impl Default for Model {
+    fn default() -> Self {
+        let ptr = unsafe {
+            cpp!([] -> *mut ModelT as "ModelT*" {
+                return new ModelT();
+            })
+        };
+        Self { ptr }
+    }
+}
+
+impl Clone for Model {
+    fn clone(&self) -> Self {
+        Self::from_buffer(&self.to_buffer())
+    }
+}
+
+impl Deref for Model {
+    type Target = ModelT;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { self.ptr.as_ref().unwrap() }
+    }
+}
+
+impl DerefMut for Model {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { self.ptr.as_mut().unwrap() }
+    }
+}
+
+impl fmt::Debug for Model {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.deref())
+    }
+}
+
+impl Model {
+    pub fn from_buffer(buffer: &[u8]) -> Self {
+        let buffer = buffer.as_ptr();
+        let ptr = unsafe {
+            cpp!([buffer as "const void*"] -> *mut ModelT as "ModelT*" {
+                return tflite::GetModel(buffer)->UnPack();
+            })
+        };
+        Self { ptr }
+    }
+
+    pub fn from_file<P: AsRef<Path>>(filepath: P) -> Fallible<Self> {
         let mut buf = Vec::new();
         File::open(filepath.as_ref())?.read_to_end(&mut buf)?;
 
@@ -215,10 +271,11 @@ impl ModelT {
     pub fn to_buffer(&self) -> Vec<u8> {
         let mut buffer = Vec::new();
         let buffer_ptr = &mut buffer;
+        let model_ptr = self.ptr;
         unsafe {
-            cpp!([self as "const ModelT*", buffer_ptr as "void*"] {
+            cpp!([model_ptr as "ModelT*", buffer_ptr as "void*"] {
                 flatbuffers::FlatBufferBuilder fbb;
-                auto model = Model::Pack(fbb, self);
+                auto model = Model::Pack(fbb, model_ptr);
                 FinishModelBuffer(fbb, model);
                 uint8_t* ptr = fbb.GetBufferPointer();
                 size_t size = fbb.GetSize();

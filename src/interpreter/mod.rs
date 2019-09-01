@@ -1,6 +1,6 @@
 mod builder;
 pub mod context;
-mod flatbuffer;
+mod fbmodel;
 pub mod op_resolver;
 pub mod ops;
 
@@ -13,7 +13,7 @@ use libc::{c_int, size_t};
 use crate::bindings;
 pub use builder::InterpreterBuilder;
 use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
-pub use flatbuffer::Model as FlatBufferModel;
+pub use fbmodel::FlatBufferModel;
 use op_resolver::OpResolver;
 
 cpp! {{
