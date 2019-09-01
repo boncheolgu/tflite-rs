@@ -123,7 +123,7 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
         Command::new("make")
             .arg("-j")
             // allow parallelism to be overridden
-            .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or("3".to_owned()))
+            .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or(num_cpus::get().to_string()))
             .arg("-f")
             .arg("tensorflow/lite/tools/make/Makefile")
             // Use cargo's cross-compilation information while building tensorflow
