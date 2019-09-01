@@ -84,10 +84,11 @@ fn mobilenetv2_mnist() {
 
 This crate also provides a limited set of FlatBuffers model APIs.
 
-```
+```rust
 use tflite::model::stl::vector::{VectorInsert, VectorRemove, VectorSlice};
 use tflite::model::{BuiltinOperator, BuiltinOptions, ModelT, SoftmaxOptionsT};
 
+#[test]
 fn flatbuffer_model_apis_inspect() {
     let model = ModelT::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
     assert_eq!(model.version, 3);
@@ -145,6 +146,7 @@ fn flatbuffer_model_apis_inspect() {
     assert_eq!(softmax_options.beta, 1.);
 }
 
+#[test]
 fn flatbuffer_model_apis_mutate() {
     let mut model = ModelT::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
     model.version = 2;
