@@ -129,6 +129,7 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
             // Use cargo's cross-compilation information while building tensorflow
             .arg(format!("TARGET={}", os))
             .arg(format!("TARGET_ARCH={}", arch))
+            .arg("micro")
             .current_dir(&tflite)
             .status()
             .expect("failed to build tensorflow");
@@ -249,7 +250,7 @@ fn import_stl_types() {
         .expect("Couldn't write bindings!");
 }
 
-fn impl_stl_types() -> Fallible<()> {
+fn generate_vector_impl() -> Fallible<()> {
     let mut file = File::create("src/model/stl/vector_impl.rs")?;
     writeln!(
         &mut file,
@@ -269,8 +270,15 @@ cpp! {{{{
     )?;
 
     #[derive(BartDisplay)]
-    #[template = "data/vector_impl.rs.template"]
-    struct Vector<'a> {
+    #[template = "data/vector_basic_impl.rs.template"]
+    struct VectorBasicImpl<'a> {
+        cpp_type: &'a str,
+        rust_type: &'a str,
+    }
+
+    #[derive(BartDisplay)]
+    #[template = "data/vector_insert_impl.rs.template"]
+    struct VectorInsertImpl<'a> {
         cpp_type: &'a str,
         rust_type: &'a str,
     }
@@ -285,34 +293,46 @@ cpp! {{{{
     for (cpp_type, rust_type) in vector_types {
         writeln!(
             &mut file,
-            "{}",
-            &Vector {
+            "{}\n{}",
+            &VectorBasicImpl {
+                cpp_type,
+                rust_type,
+            },
+            &VectorInsertImpl {
                 cpp_type,
                 rust_type,
             }
         )?;
     }
 
-    #[derive(BartDisplay)]
-    #[template = "data/vector_unique_ptr_impl.rs.template"]
-    struct VectorUniquePtr<'a> {
-        cpp_type: &'a str,
-        rust_type: &'a str,
-    }
-
-    let vector_unique_ptr_types = vec![
-        ("OperatorCodeT", "crate::model::OperatorCodeT"),
-        ("TensorT", "crate::model::TensorT"),
-        ("OperatorT", "crate::model::OperatorT"),
-        ("SubGraphT", "crate::model::SubGraphT"),
-        ("BufferT", "crate::model::BufferT"),
+    let vector_types = vec![
+        (
+            "std::unique_ptr<OperatorCodeT>",
+            "UniquePtr<crate::model::OperatorCodeT>",
+        ),
+        (
+            "std::unique_ptr<TensorT>",
+            "UniquePtr<crate::model::TensorT>",
+        ),
+        (
+            "std::unique_ptr<OperatorT>",
+            "UniquePtr<crate::model::OperatorT>",
+        ),
+        (
+            "std::unique_ptr<SubGraphT>",
+            "UniquePtr<crate::model::SubGraphT>",
+        ),
+        (
+            "std::unique_ptr<BufferT>",
+            "UniquePtr<crate::model::BufferT>",
+        ),
     ];
 
-    for (cpp_type, rust_type) in vector_unique_ptr_types {
+    for (cpp_type, rust_type) in vector_types {
         writeln!(
             &mut file,
             "{}",
-            &VectorUniquePtr {
+            &VectorBasicImpl {
                 cpp_type,
                 rust_type,
             }
@@ -323,7 +343,9 @@ cpp! {{{{
 
 fn main() {
     import_stl_types();
-    impl_stl_types().unwrap();
+    if cfg!(feature = "generate_model_apis") {
+        generate_vector_impl().unwrap();
+    }
 
     let tflite_src_dir = prepare_tensorflow_source();
     prepare_tensorflow_library(&tflite_src_dir);

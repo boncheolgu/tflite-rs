@@ -40,14 +40,4 @@ impl VectorRemove for Vector<{{{rust_type}}}> {
     }
 }
 
-impl VectorInsert<{{{rust_type}}}> for Vector<{{{rust_type}}}> {
-    fn push_back(&mut self, v: Self::Item) {
-        unsafe {
-            cpp!([self as "std::vector<{{{cpp_type}}}>*", v as "{{{cpp_type}}}"] {
-                self->push_back(v);
-            })
-        }
-    }
-}
-
 add_impl!(Vector<{{{rust_type}}}>);

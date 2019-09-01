@@ -132,7 +132,10 @@ pub trait VectorRemove: VectorSlice {
     }
 }
 
-pub trait VectorInsert<T>: VectorRemove {
+pub trait VectorInsert<T>: VectorRemove
+where
+    T: Copy,
+{
     fn push_back(&mut self, v: T);
 
     fn assign<I: IntoIterator<Item = T>>(&mut self, vs: I) {

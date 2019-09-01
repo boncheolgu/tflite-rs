@@ -2,7 +2,6 @@
 name = "tflite"
 version = "0.5.0"
 authors = ["Boncheol Gu <boncheol.gu@gmail.com>"]
-exclude = ["src/model/stl/vector_impl.rs"]
 
 description = "Rust bindings for TensorFlow Lite"
 keywords = ["tensorflow", "tflite", "bindings"]
@@ -13,7 +12,6 @@ edition = "2018"
 
 [dependencies]
 cpp = "0.5"
-# cpp_stl = { path = "./cpp_stl", version = "0.1" }
 failure = "0.1"
 libc = "0.2"
 maybe-owned = "0.3"
@@ -33,3 +31,4 @@ tar = "0.4"
 
 [features]
 debug_tflite = [] # use "libtensorflow-lite.a" built in debug mode
+generate_model_apis = []

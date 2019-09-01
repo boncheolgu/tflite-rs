@@ -53,6 +53,8 @@ impl VectorRemove for Vector<u8> {
     }
 }
 
+add_impl!(Vector<u8>);
+
 impl VectorInsert<u8> for Vector<u8> {
     fn push_back(&mut self, v: Self::Item) {
         unsafe {
@@ -62,8 +64,6 @@ impl VectorInsert<u8> for Vector<u8> {
         }
     }
 }
-
-add_impl!(Vector<u8>);
 
 impl VectorSlice for Vector<i32> {
     type Item = i32;
@@ -107,6 +107,8 @@ impl VectorRemove for Vector<i32> {
     }
 }
 
+add_impl!(Vector<i32>);
+
 impl VectorInsert<i32> for Vector<i32> {
     fn push_back(&mut self, v: Self::Item) {
         unsafe {
@@ -116,8 +118,6 @@ impl VectorInsert<i32> for Vector<i32> {
         }
     }
 }
-
-add_impl!(Vector<i32>);
 
 impl VectorSlice for Vector<i64> {
     type Item = i64;
@@ -161,6 +161,8 @@ impl VectorRemove for Vector<i64> {
     }
 }
 
+add_impl!(Vector<i64>);
+
 impl VectorInsert<i64> for Vector<i64> {
     fn push_back(&mut self, v: Self::Item) {
         unsafe {
@@ -170,8 +172,6 @@ impl VectorInsert<i64> for Vector<i64> {
         }
     }
 }
-
-add_impl!(Vector<i64>);
 
 impl VectorSlice for Vector<f32> {
     type Item = f32;
@@ -215,6 +215,8 @@ impl VectorRemove for Vector<f32> {
     }
 }
 
+add_impl!(Vector<f32>);
+
 impl VectorInsert<f32> for Vector<f32> {
     fn push_back(&mut self, v: Self::Item) {
         unsafe {
@@ -224,8 +226,6 @@ impl VectorInsert<f32> for Vector<f32> {
         }
     }
 }
-
-add_impl!(Vector<f32>);
 
 impl VectorSlice for Vector<UniquePtr<crate::model::OperatorCodeT>> {
     type Item = UniquePtr<crate::model::OperatorCodeT>;
