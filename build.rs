@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate bart_derive;
 extern crate bindgen;
 extern crate cpp_build;
 extern crate curl;
@@ -9,7 +11,8 @@ extern crate sha2;
 extern crate tar;
 
 use std::env;
-use std::fs;
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -219,7 +222,109 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
         .build("src/lib.rs");
 }
 
+fn import_stl_types() {
+    use bindgen::*;
+
+    let bindings = Builder::default()
+        .enable_cxx_namespaces()
+        .whitelist_type("std::string")
+        .opaque_type("std::string")
+        .whitelist_type("rust::.+")
+        .opaque_type("rust::.+")
+        .blacklist_type("std")
+        .header("csrc/stl_wrapper.hpp")
+        .layout_tests(false)
+        .clang_arg("-x")
+        .clang_arg("c++")
+        .clang_arg("-std=c++11");
+
+    let bindings = bindings
+        .generate()
+        .expect("Unable to generate STL bindings");
+
+    // Write the bindings to the $OUT_DIR/tflite_types.rs file.
+    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("stl_types.rs");
+    bindings
+        .write_to_file(out_path)
+        .expect("Couldn't write bindings!");
+}
+
+fn impl_stl_types() -> Fallible<()> {
+    let mut file = File::create("src/model/stl/vector_impl.rs")?;
+    writeln!(
+        &mut file,
+        r#"
+use std::{{fmt, slice}};
+use std::ops::{{Deref, DerefMut, Index, IndexMut}};
+
+use libc::size_t;
+
+use super::memory::UniquePtr;
+use super::vector::{{Vector, VectorInsert, VectorRemove, VectorSlice}};
+
+cpp! {{{{
+    #include <vector>
+}}}}
+"#
+    )?;
+
+    #[derive(BartDisplay)]
+    #[template = "data/vector_impl.rs.template"]
+    struct Vector<'a> {
+        cpp_type: &'a str,
+        rust_type: &'a str,
+    }
+
+    let vector_types = vec![
+        ("uint8_t", "u8"),
+        ("int32_t", "i32"),
+        ("int64_t", "i64"),
+        ("float", "f32"),
+    ];
+
+    for (cpp_type, rust_type) in vector_types {
+        writeln!(
+            &mut file,
+            "{}",
+            &Vector {
+                cpp_type,
+                rust_type,
+            }
+        )?;
+    }
+
+    #[derive(BartDisplay)]
+    #[template = "data/vector_unique_ptr_impl.rs.template"]
+    struct VectorUniquePtr<'a> {
+        cpp_type: &'a str,
+        rust_type: &'a str,
+    }
+
+    let vector_unique_ptr_types = vec![
+        ("OperatorCodeT", "crate::model::OperatorCodeT"),
+        ("TensorT", "crate::model::TensorT"),
+        ("OperatorT", "crate::model::OperatorT"),
+        ("SubGraphT", "crate::model::SubGraphT"),
+        ("BufferT", "crate::model::BufferT"),
+    ];
+
+    for (cpp_type, rust_type) in vector_unique_ptr_types {
+        writeln!(
+            &mut file,
+            "{}",
+            &VectorUniquePtr {
+                cpp_type,
+                rust_type,
+            }
+        )?;
+    }
+    Ok(())
+}
+
 fn main() {
+    import_stl_types();
+    impl_stl_types().unwrap();
+
     let tflite_src_dir = prepare_tensorflow_source();
     prepare_tensorflow_library(&tflite_src_dir);
     import_tflite_types(&tflite_src_dir);

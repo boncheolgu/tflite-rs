@@ -8,8 +8,8 @@ use std::io::Read;
 
 use failure::Fallible;
 
-use cpp_stl::vector::{VectorInsert, VectorRemove, VectorSlice};
 use std::sync::Arc;
+use tflite::model::stl::vector::{VectorInsert, VectorRemove, VectorSlice};
 use tflite::model::{BuiltinOperator, BuiltinOptions, ModelT, SoftmaxOptionsT};
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder};
@@ -156,9 +156,9 @@ fn flatbuffer_model_apis_inspect() {
 fn flatbuffer_model_apis_mutate() {
     let mut model = ModelT::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
     model.version = 2;
-    model.remove_operator_code(4);
-    model.remove_buffer(22);
-    model.remove_buffer(23);
+    model.operator_codes.erase(4);
+    model.buffers.erase(22);
+    model.buffers.erase(23);
     model
         .description
         .assign(CString::new("flatbuffer").unwrap());

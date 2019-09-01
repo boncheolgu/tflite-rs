@@ -1,0 +1,53 @@
+impl VectorSlice for Vector<{{{rust_type}}}> {
+    type Item = {{{rust_type}}};
+
+    fn get_ptr(&self) -> *const Self::Item {
+        unsafe {
+            cpp!([self as "const std::vector<{{{cpp_type}}}>*"]
+                  -> *const {{{rust_type}}} as "const {{{cpp_type}}}*" {
+                return self->data();
+            })
+        }
+    }
+
+    fn get_mut_ptr(&mut self) -> *mut Self::Item {
+        unsafe {
+            cpp!([self as "std::vector<{{{cpp_type}}}>*"]
+                  -> *mut {{{rust_type}}} as "{{{cpp_type}}}*" {
+                return self->data();
+            })
+        }
+    }
+
+    fn size(&self) -> usize {
+        unsafe {
+            cpp!([self as "const std::vector<{{{cpp_type}}}>*"] -> size_t as "size_t" {
+                return self->size();
+            })
+        }
+    }
+}
+
+impl VectorRemove for Vector<{{{rust_type}}}> {
+    fn erase_range(&mut self, offset: usize, size: usize) {
+        let begin = offset as size_t;
+        let end = offset + size as size_t;
+        unsafe {
+            cpp!([self as "std::vector<{{{cpp_type}}}>*", begin as "size_t", end as "size_t"] {
+                self->erase(self->begin() + begin, self->begin() + end);
+            });
+        }
+    }
+}
+
+impl VectorInsert<{{{rust_type}}}> for Vector<{{{rust_type}}}> {
+    fn push_back(&mut self, v: Self::Item) {
+        unsafe {
+            cpp!([self as "std::vector<{{{cpp_type}}}>*", v as "{{{cpp_type}}}"] {
+                self->push_back(v);
+            })
+        }
+    }
+}
+
+add_impl!(Vector<{{{rust_type}}}>);
