@@ -120,7 +120,11 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
     let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
     let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("Unable to get TARGET_ARCH");
     if !tf_lib_name.exists() {
-        Command::new("make")
+        let mut make = Command::new("make");
+        if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
+            make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
+        };
+        make
             .arg("-j")
             // allow parallelism to be overridden
             .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or(num_cpus::get().to_string()))
