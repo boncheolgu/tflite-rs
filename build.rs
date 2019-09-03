@@ -124,8 +124,7 @@ fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
         if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
             make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
         };
-        make
-            .arg("-j")
+        make.arg("-j")
             // allow parallelism to be overridden
             .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or(num_cpus::get().to_string()))
             .arg("-f")
@@ -178,6 +177,7 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .whitelist_type("tflite::OpResolver")
         .opaque_type("tflite::OpResolver")
         .whitelist_type("TfLiteTensor")
+        .opaque_type("std::string")
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
         .blacklist_type("tflite::Interpreter_State")

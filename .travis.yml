@@ -1,4 +1,6 @@
-dist: bionic
+os:
+  - osx
+  - linux
 language: rust
 rust:
   - stable
