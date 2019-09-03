@@ -11,6 +11,6 @@ script:
   - sudo ln -s -f $(which clang++) /usr/bin/g++
   - gcc -v && g++ -v
   - cargo build --verbose
-  - cargo test -- --nocapture
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test -- --nocapture ; fi
   - cargo build --verbose --features debug_tflite
-  - cargo test --features debug_tflite -- --nocapture
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test --features debug_tflite -- --nocapture ; fi
