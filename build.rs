@@ -97,7 +97,7 @@ fn prepare_tensorflow_source() -> PathBuf {
         {
             Command::new("sed")
                 .arg("-i")
-                .arg("54s/.*/CXXFLAGS := -O0 -g -fno-inline/")
+                .arg("54s/.*/CXXFLAGS := -O0 -g/")
                 .arg("tensorflow/lite/tools/make/Makefile")
                 .current_dir(&tf_src_dir_inner)
                 .status()
@@ -105,7 +105,7 @@ fn prepare_tensorflow_source() -> PathBuf {
 
             Command::new("sed")
                 .arg("-i")
-                .arg("57s/.*/CFLAGS := -O0 -g -fno-inline/")
+                .arg("58s/.*/CFLAGS := -O0 -g/")
                 .arg("tensorflow/lite/tools/make/Makefile")
                 .current_dir(&tf_src_dir_inner)
                 .status()
