@@ -7,8 +7,8 @@ rust:
   - beta
   - nightly
 script:
-  - sudo ln -s -f $(which clang) /usr/bin/gcc
-  - sudo ln -s -f $(which clang++) /usr/bin/g++
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ln -s -f $(which clang) /usr/bin/gcc ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ln -s -f $(which clang++) /usr/bin/g++ ; fi
   - gcc -v && g++ -v
   - cargo build --verbose
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test -- --nocapture ; fi
