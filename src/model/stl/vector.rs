@@ -113,7 +113,10 @@ pub trait VectorRemove: VectorSlice {
         self.erase_range(0, self.size());
     }
 
-    fn retain(&mut self, pred: fn(usize, &Self::Item) -> bool) {
+    fn retain<F>(&mut self, pred: F) -> usize
+    where
+        F: Fn(usize, &Self::Item) -> bool,
+    {
         let removed: Vec<_> = self
             .as_slice()
             .iter()
@@ -121,9 +124,10 @@ pub trait VectorRemove: VectorSlice {
             .filter_map(|(i, op)| if pred(i, op) { None } else { Some(i) })
             .collect();
 
-        for i in removed.into_iter().rev() {
+        for &i in removed.iter().rev() {
             self.erase(i);
         }
+        removed.len()
     }
 
     fn truncate(&mut self, size: usize) {
@@ -142,6 +146,12 @@ where
         self.clear();
         for v in vs {
             self.push_back(v);
+        }
+    }
+
+    fn append<I: IntoIterator<Item = T>>(&mut self, items: I) {
+        for item in items.into_iter() {
+            self.push_back(item);
         }
     }
 }
