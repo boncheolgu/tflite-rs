@@ -28,7 +28,7 @@ impl VectorSlice for Vector<{{{rust_type}}}> {
     }
 }
 
-impl VectorRemove for Vector<{{{rust_type}}}> {
+impl VectorErase for Vector<{{{rust_type}}}> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -37,6 +37,32 @@ impl VectorRemove for Vector<{{{rust_type}}}> {
                 self->erase(self->begin() + begin, self->begin() + end);
             });
         }
+    }
+}
+
+impl VectorInsert<{{{rust_type}}}> for Vector<{{{rust_type}}}> {
+    fn push_back(&mut self, mut v: Self::Item) {
+        let vref = &mut v;
+        unsafe {
+            cpp!([self as "std::vector<{{{cpp_type}}}>*", vref as "{{{cpp_type}}}*"] {
+                self->push_back(std::move(*vref));
+            })
+        }
+        mem::forget(v);
+    }
+}
+
+impl VectorExtract<{{{rust_type}}}> for Vector<{{{rust_type}}}> {
+    fn extract(&mut self, index: usize) -> {{{rust_type}}} {
+        assert!(index < self.size());
+        let mut v: {{{rust_type}}} = unsafe { mem::zeroed() };
+        let vref = &mut v;
+        unsafe {
+            cpp!([self as "std::vector<{{{cpp_type}}}>*", index as "size_t", vref as "{{{cpp_type}}}*"] {
+                *vref = std::move((*self)[index]);
+            })
+        }
+        v
     }
 }
 

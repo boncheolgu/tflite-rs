@@ -93,7 +93,7 @@ macro_rules! add_impl {
     )*)
 }
 
-pub trait VectorRemove: VectorSlice {
+pub trait VectorErase: VectorSlice {
     fn erase_range(&mut self, offset: usize, len: usize) {
         for i in (offset..offset + len).rev() {
             self.erase(i);
@@ -136,10 +136,7 @@ pub trait VectorRemove: VectorSlice {
     }
 }
 
-pub trait VectorInsert<T>: VectorRemove
-where
-    T: Copy,
-{
+pub trait VectorInsert<T>: VectorErase {
     fn push_back(&mut self, v: T);
 
     fn assign<I: IntoIterator<Item = T>>(&mut self, vs: I) {
@@ -153,6 +150,16 @@ where
         for item in items.into_iter() {
             self.push_back(item);
         }
+    }
+}
+
+pub trait VectorExtract<T>: VectorErase {
+    fn extract(&mut self, index: usize) -> T;
+
+    fn extract_remove(&mut self, index: usize) -> T {
+        let item = self.extract(index);
+        self.erase(index);
+        item
     }
 }
 

@@ -259,13 +259,13 @@ fn generate_vector_impl() -> Fallible<()> {
     writeln!(
         &mut file,
         r#"
-use std::{{fmt, slice}};
+use std::{{fmt, mem, slice}};
 use std::ops::{{Deref, DerefMut, Index, IndexMut}};
 
 use libc::size_t;
 
 use super::memory::UniquePtr;
-use super::vector::{{Vector, VectorInsert, VectorRemove, VectorSlice}};
+use super::vector::{{Vector, VectorErase, VectorExtract, VectorInsert, VectorSlice}};
 
 cpp! {{{{
     #include <vector>
@@ -280,36 +280,11 @@ cpp! {{{{
         rust_type: &'a str,
     }
 
-    #[derive(BartDisplay)]
-    #[template = "data/vector_insert_impl.rs.template"]
-    struct VectorInsertImpl<'a> {
-        cpp_type: &'a str,
-        rust_type: &'a str,
-    }
-
     let vector_types = vec![
         ("uint8_t", "u8"),
         ("int32_t", "i32"),
         ("int64_t", "i64"),
         ("float", "f32"),
-    ];
-
-    for (cpp_type, rust_type) in vector_types {
-        writeln!(
-            &mut file,
-            "{}\n{}",
-            &VectorBasicImpl {
-                cpp_type,
-                rust_type,
-            },
-            &VectorInsertImpl {
-                cpp_type,
-                rust_type,
-            }
-        )?;
-    }
-
-    let vector_types = vec![
         (
             "std::unique_ptr<OperatorCodeT>",
             "UniquePtr<crate::model::OperatorCodeT>",
@@ -335,11 +310,11 @@ cpp! {{{{
     for (cpp_type, rust_type) in vector_types {
         writeln!(
             &mut file,
-            "{}",
+            "{}\n",
             &VectorBasicImpl {
                 cpp_type,
                 rust_type,
-            }
+            },
         )?;
     }
     Ok(())

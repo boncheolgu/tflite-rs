@@ -85,7 +85,7 @@ fn mobilenetv2_mnist() {
 This crate also provides a limited set of FlatBuffers model APIs.
 
 ```rust
-use tflite::model::stl::vector::{VectorInsert, VectorRemove, VectorSlice};
+use tflite::model::stl::vector::{VectorInsert, VectorErase, VectorSlice};
 use tflite::model::{BuiltinOperator, BuiltinOptions, Model, SoftmaxOptionsT};
 
 #[test]

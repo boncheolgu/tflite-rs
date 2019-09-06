@@ -28,6 +28,13 @@ where
     }
 }
 
+impl<T> Drop for UniquePtr<T> {
+    fn drop(&mut self) {
+        // this will leak memory
+        panic!("Do not drop `UniquePtr`!");
+    }
+}
+
 impl<T> Deref for UniquePtr<T> {
     type Target = T;
 

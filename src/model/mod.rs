@@ -298,7 +298,7 @@ mod tests {
     use super::*;
     use std::ffi::CString;
 
-    use crate::model::stl::vector::{VectorInsert, VectorRemove, VectorSlice};
+    use crate::model::stl::vector::{VectorErase, VectorExtract, VectorInsert, VectorSlice};
 
     #[test]
     fn flatbuffer_model_apis_inspect() {
@@ -389,5 +389,20 @@ mod tests {
         assert_eq!(subgraph.operators.size(), 9);
         assert!(subgraph.inputs.as_slice().is_empty());
         assert_eq!(subgraph.outputs.as_slice(), &[1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn flatbuffer_model_apis_insert_extract() {
+        let mut model1 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+        let mut model2 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+
+        let num_buffers = model1.buffers.size();
+
+        let data = model1.buffers[0].data.to_vec();
+        let buffer = model1.buffers.extract(0);
+        model2.buffers.push_back(buffer);
+        assert_eq!(model2.buffers.size(), num_buffers + 1);
+
+        assert_eq!(model2.buffers[num_buffers].data.to_vec(), data);
     }
 }
