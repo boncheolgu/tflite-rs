@@ -5,7 +5,7 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 use libc::size_t;
 
 use super::memory::UniquePtr;
-use super::vector::{Vector, VectorExtract, VectorInsert, VectorErase, VectorSlice};
+use super::vector::{Vector, VectorErase, VectorExtract, VectorInsert, VectorSlice};
 
 cpp! {{
     #include <vector>

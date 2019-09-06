@@ -76,6 +76,15 @@ fn prepare_tensorflow_source() -> PathBuf {
             .status()
             .expect("failed to download tflite dependencies.");
 
+        // To make `NativaTable` polymorphic
+        Command::new("sed")
+            .arg("-i")
+            .arg("s/struct NativeTable {};/struct NativeTable { virtual ~NativeTable() {} };/g")
+            .arg("tensorflow/lite/tools/make/downloads/flatbuffers/include/flatbuffers/flatbuffers.h")
+            .current_dir(&tf_src_dir_inner)
+            .status()
+            .expect("failed to edit flatbuffers.h.");
+
         // To compile C files with -fPIC
         if env::var("CARGO_CFG_TARGET_OS").unwrap() == "linux" {
             fs::copy(
@@ -178,6 +187,7 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .opaque_type("tflite::OpResolver")
         .whitelist_type("TfLiteTensor")
         .opaque_type("std::string")
+        .opaque_type("flatbuffers::NativeTable")
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
         .blacklist_type("tflite::Interpreter_State")
@@ -219,7 +229,7 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
                 .join("tensorflow/lite/tools/make/downloads/flatbuffers/include"),
         )
         .flag("-fPIC")
-        .flag("-std=c++11")
+        .flag("-std=c++14")
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
         .debug(true)
@@ -239,9 +249,10 @@ fn import_stl_types() {
         .blacklist_type("std")
         .header("csrc/stl_wrapper.hpp")
         .layout_tests(false)
+        .derive_partialeq(true)
         .clang_arg("-x")
         .clang_arg("c++")
-        .clang_arg("-std=c++11");
+        .clang_arg("-std=c++14");
 
     let bindings = bindings
         .generate()
@@ -252,6 +263,50 @@ fn import_stl_types() {
     bindings
         .write_to_file(out_path)
         .expect("Couldn't write bindings!");
+}
+
+fn generate_memory_impl() -> Fallible<()> {
+    let mut file = File::create("src/model/stl/memory_impl.rs")?;
+    writeln!(
+        &mut file,
+        r#"
+use std::{{fmt, mem}};
+use std::ops::{{Deref, DerefMut}};
+
+use crate::model::stl::memory::UniquePtr;
+"#
+    )?;
+
+    #[derive(BartDisplay)]
+    #[template = "data/memory_basic_impl.rs.template"]
+    struct MemoryBasicImpl<'a> {
+        cpp_type: &'a str,
+        rust_type: &'a str,
+    }
+
+    let memory_types = vec![
+        ("OperatorCodeT", "crate::model::OperatorCodeT"),
+        ("TensorT", "crate::model::TensorT"),
+        ("OperatorT", "crate::model::OperatorT"),
+        ("SubGraphT", "crate::model::SubGraphT"),
+        ("BufferT", "crate::model::BufferT"),
+        (
+            "QuantizationParametersT",
+            "crate::model::QuantizationParametersT",
+        ),
+    ];
+
+    for (cpp_type, rust_type) in memory_types {
+        writeln!(
+            &mut file,
+            "{}\n",
+            &MemoryBasicImpl {
+                cpp_type,
+                rust_type,
+            },
+        )?;
+    }
+    Ok(())
 }
 
 fn generate_vector_impl() -> Fallible<()> {
@@ -323,6 +378,7 @@ cpp! {{{{
 fn main() {
     import_stl_types();
     if cfg!(feature = "generate_model_apis") {
+        generate_memory_impl().unwrap();
         generate_vector_impl().unwrap();
     }
 

@@ -13,6 +13,7 @@ use stl::memory::UniquePtr;
 use stl::string::String as StlString;
 use stl::vector::{Vector, VectorOfBool};
 
+pub use crate::bindings::flatbuffers::NativeTable;
 pub use crate::bindings::tflite::*;
 
 #[repr(C)]
@@ -25,12 +26,14 @@ pub struct QuantizationDetailsUnion {
 #[repr(C)]
 #[derive(Debug)]
 pub struct BufferT {
+    _vtable: NativeTable,
     pub data: Vector<u8>,
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct QuantizationParametersT {
+    _vtable: NativeTable,
     pub min: Vector<f32>,
     pub max: Vector<f32>,
     pub scale: Vector<f32>,
@@ -41,6 +44,7 @@ pub struct QuantizationParametersT {
 #[repr(C)]
 #[derive(Debug)]
 pub struct TensorT {
+    _vtable: NativeTable,
     pub shape: Vector<i32>,
     pub typ_: TensorType,
     pub buffer: u32,
@@ -157,6 +161,7 @@ add_impl_options! {
 #[repr(C)]
 #[derive(Debug)]
 pub struct OperatorT {
+    _vtable: NativeTable,
     pub opcode_index: u32,
     pub inputs: Vector<i32>,
     pub outputs: Vector<i32>,
@@ -169,6 +174,7 @@ pub struct OperatorT {
 #[repr(C)]
 #[derive(Debug)]
 pub struct OperatorCodeT {
+    _vtable: NativeTable,
     pub builtin_code: BuiltinOperator,
     pub custom_code: StlString,
     pub version: i32,
@@ -177,6 +183,7 @@ pub struct OperatorCodeT {
 #[repr(C)]
 #[derive(Debug)]
 pub struct SubGraphT {
+    _vtable: NativeTable,
     pub tensors: Vector<UniquePtr<TensorT>>,
     pub inputs: Vector<i32>,
     pub outputs: Vector<i32>,
@@ -187,6 +194,7 @@ pub struct SubGraphT {
 #[repr(C)]
 #[derive(Debug)]
 pub struct ModelT {
+    _vtable: NativeTable,
     pub version: u32,
     pub operator_codes: Vector<UniquePtr<OperatorCodeT>>,
     pub subgraphs: Vector<UniquePtr<SubGraphT>>,
@@ -368,7 +376,7 @@ mod tests {
         model.buffers.erase(23);
         model
             .description
-            .assign(CString::new("flatbuffer").unwrap());
+            .assign(&CString::new("flatbuffer").unwrap());
 
         {
             let subgraph = &mut model.subgraphs[0];
@@ -392,7 +400,7 @@ mod tests {
     }
 
     #[test]
-    fn flatbuffer_model_apis_insert_extract() {
+    fn flatbuffer_model_apis_insert() {
         let mut model1 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
         let mut model2 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
 
@@ -404,5 +412,92 @@ mod tests {
         assert_eq!(model2.buffers.size(), num_buffers + 1);
 
         assert_eq!(model2.buffers[num_buffers].data.to_vec(), data);
+    }
+
+    #[test]
+    fn flatbuffer_model_apis_extract() {
+        let mut source_model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+
+        let mut operator = source_model.subgraphs[0].operators.extract(0);
+        let buffers: Vec<_> = operator
+            .inputs
+            .iter()
+            .chain(operator.outputs.iter())
+            .map(|&tensor_index| source_model.subgraphs[0].tensors[tensor_index as usize].buffer)
+            .collect();
+
+        let mut model = Model::default();
+        model.version = source_model.version;
+        model.description.assign(&source_model.description);
+        for buffer_index in buffers {
+            model
+                .buffers
+                .push_back(source_model.buffers.extract(buffer_index as usize));
+        }
+
+        model.subgraphs.push_back(UniquePtr::default());
+        assert_eq!(model.subgraphs.len(), 1);
+        let subgraph = &model.subgraphs[0];
+        assert_eq!(subgraph.inputs.len(), 0);
+        assert_eq!(subgraph.outputs.len(), 0);
+
+        for &tensor_index in operator.inputs.iter().chain(operator.outputs.iter()) {
+            model.subgraphs[0].tensors.push_back(
+                source_model.subgraphs[0]
+                    .tensors
+                    .extract(tensor_index as usize),
+            );
+        }
+
+        let num_inputs = operator.inputs.len() as i32;
+        let num_outputs = operator.outputs.len() as i32;
+        operator.inputs.assign(0..num_inputs);
+        for tensor_index in 0..num_inputs {
+            if model.buffers[tensor_index as usize].data.is_empty() {
+                model.subgraphs[0].inputs.push_back(tensor_index);
+            }
+        }
+        assert_eq!(operator.inputs.len(), num_inputs as usize);
+
+        operator
+            .outputs
+            .assign(num_inputs..num_inputs + num_outputs);
+        assert_eq!(operator.outputs.len(), num_outputs as usize);
+
+        model.subgraphs[0]
+            .outputs
+            .assign(num_inputs..num_inputs + num_outputs);
+        assert_eq!(model.subgraphs[0].outputs.len(), num_outputs as usize);
+
+        assert_eq!(model.subgraphs[0].operators.len(), 0);
+        model.subgraphs[0].operators.push_back(operator);
+        assert_eq!(model.subgraphs[0].operators.len(), 1);
+
+        for i in 0..source_model.operator_codes.len() {
+            model
+                .operator_codes
+                .push_back(source_model.operator_codes.extract(i));
+        }
+        assert_eq!(
+            model.operator_codes.len(),
+            source_model.operator_codes.len()
+        );
+
+        for (i, tensor) in model.subgraphs[0].tensors.iter_mut().enumerate() {
+            tensor.buffer = i as u32;
+        }
+
+        let subgraph = &model.subgraphs[0];
+        for operator in &subgraph.operators {
+            println!("{:?}", operator);
+        }
+
+        for tensor in &subgraph.tensors {
+            println!("{:?}", tensor);
+        }
+
+        println!("{:?}", subgraph.inputs);
+        println!("{:?}", subgraph.outputs);
+        model.to_file("test.tflite").unwrap();
     }
 }

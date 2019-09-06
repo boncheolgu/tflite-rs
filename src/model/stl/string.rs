@@ -19,6 +19,13 @@ cpp! {{
 #[repr(C)]
 pub struct String(string);
 
+impl Drop for String {
+    fn drop(&mut self) {
+        // this will leak memory
+        panic!("Do not drop `String`!");
+    }
+}
+
 impl fmt::Display for String {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.c_str().to_string_lossy())
@@ -28,6 +35,12 @@ impl fmt::Display for String {
 impl fmt::Debug for String {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.c_str().to_string_lossy())
+    }
+}
+
+impl AsRef<CStr> for String {
+    fn as_ref(&self) -> &CStr {
+        self.c_str()
     }
 }
 
@@ -49,7 +62,7 @@ impl String {
         }
     }
 
-    pub fn assign<S: AsRef<CStr>>(&mut self, s: S) {
+    pub fn assign<S: AsRef<CStr>>(&mut self, s: &S) {
         let s = s.as_ref();
         let ptr = s.as_ptr();
         unsafe {
@@ -84,7 +97,9 @@ mod tests {
         assert_eq!(x.first_name.c_str().to_string_lossy(), "boncheol");
         assert_eq!(x.last_name.c_str().to_string_lossy(), "gu");
 
-        x.first_name.assign(CString::new("junmo").unwrap());
+        x.first_name.assign(&CString::new("junmo").unwrap());
         assert_eq!(x.first_name.c_str().to_string_lossy(), "junmo");
+
+        x.last_name.assign(&x.first_name);
     }
 }

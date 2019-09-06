@@ -1,11 +1,7 @@
 use std::marker::PhantomData;
-use std::ops::{Index, IndexMut};
 use std::slice;
 
-use libc::size_t;
-
 use super::bindings::root::rust::*;
-use super::memory::UniquePtr;
 
 #[repr(C)]
 pub struct Vector<T>(dummy_vector, PhantomData<T>);
@@ -170,36 +166,3 @@ pub struct VectorOfBool(vector_of_bool);
 #[repr(C)]
 #[derive(Debug)]
 pub struct VectorOfUniquePtr<T>(dummy_vector, PhantomData<T>);
-
-#[derive(Debug)]
-pub struct InnerIndex(pub usize);
-
-impl<T> Index<InnerIndex> for Vector<UniquePtr<T>> {
-    type Output = T;
-
-    fn index(&self, index: InnerIndex) -> &Self::Output {
-        let index = index.0 as size_t;
-        unsafe {
-            let ptr = cpp!([self as "const std::vector<std::unique_ptr<void>>*", index as "size_t"]
-                            -> *const crate::model::OperatorCodeT as "const void*" {
-                return (*self)[index].get();
-            }) as *const Self::Output;
-
-            ptr.as_ref().unwrap()
-        }
-    }
-}
-
-impl<T> IndexMut<InnerIndex> for Vector<UniquePtr<T>> {
-    fn index_mut(&mut self, index: InnerIndex) -> &mut Self::Output {
-        let index = index.0 as size_t;
-        unsafe {
-            let ptr = cpp!([self as "std::vector<std::unique_ptr<void>>*", index as "size_t"]
-                            -> *mut crate::model::OperatorCodeT as "void*" {
-                return (*self)[index].get();
-            }) as *mut Self::Output;
-
-            ptr.as_mut().unwrap()
-        }
-    }
-}
