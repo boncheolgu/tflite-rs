@@ -2,19 +2,11 @@ use std::marker::PhantomData;
 
 use super::bindings::root::rust::*;
 
-cpp! {{
-    #include <memory>
-
-    struct class_with_unique_ptr {
-        std::string desc;
-        std::unique_ptr<int32_t> value;
-
-        class_with_unique_ptr(int32_t v, const char* s): desc(s), value(new int32_t(v)) {}
-    };
-}}
-
 #[repr(C)]
 pub struct UniquePtr<T>(unique_ptr_of_void, PhantomData<T>);
+
+unsafe impl<T> Sync for UniquePtr<T> {}
+unsafe impl<T> Send for UniquePtr<T> {}
 
 impl<T> Drop for UniquePtr<T> {
     fn drop(&mut self) {

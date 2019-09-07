@@ -1,4 +1,7 @@
-impl Default for VectorOf{{{rust_type}}} {
+#[repr(C)]
+pub struct VectorOf{{{RustType}}}(dummy_vector);
+
+impl Default for VectorOf{{{RustType}}} {
     fn default() -> Self {
         let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
@@ -11,7 +14,30 @@ impl Default for VectorOf{{{rust_type}}} {
     }
 }
 
-impl VectorSlice for VectorOf{{{rust_type}}} {
+impl Drop for VectorOf{{{RustType}}} {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<{{{cpp_type}}}>*"] {
+                self->~vector<{{{cpp_type}}}>();
+            })
+        }
+    }
+}
+
+impl Clone for VectorOf{{{RustType}}} {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
+        unsafe {
+            cpp!([self as "const std::vector<{{{cpp_type}}}>*", cloned_ref as "std::vector<{{{cpp_type}}}>*"] {
+                new (cloned_ref) std::vector<{{{cpp_type}}}>(*self);
+            });
+        }
+        cloned
+    }
+}
+
+impl VectorSlice for VectorOf{{{RustType}}} {
     type Item = {{{rust_type}}};
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -41,7 +67,7 @@ impl VectorSlice for VectorOf{{{rust_type}}} {
     }
 }
 
-impl VectorErase for VectorOf{{{rust_type}}} {
+impl VectorErase for VectorOf{{{RustType}}} {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -53,7 +79,7 @@ impl VectorErase for VectorOf{{{rust_type}}} {
     }
 }
 
-impl VectorInsert<{{{rust_type}}}> for VectorOf{{{rust_type}}} {
+impl VectorInsert<{{{rust_type}}}> for VectorOf{{{RustType}}} {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -65,7 +91,7 @@ impl VectorInsert<{{{rust_type}}}> for VectorOf{{{rust_type}}} {
     }
 }
 
-impl VectorExtract<{{{rust_type}}}> for VectorOf{{{rust_type}}} {
+impl VectorExtract<{{{rust_type}}}> for VectorOf{{{RustType}}} {
     fn extract(&mut self, index: usize) -> {{{rust_type}}} {
         assert!(index < self.size());
         let mut v: {{{rust_type}}} = unsafe { mem::zeroed() };
@@ -79,4 +105,4 @@ impl VectorExtract<{{{rust_type}}}> for VectorOf{{{rust_type}}} {
     }
 }
 
-add_impl!(VectorOf{{{rust_type}}});
+add_impl!(VectorOf{{{RustType}}});

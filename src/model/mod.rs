@@ -5,13 +5,16 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use std::path::Path;
-use std::{fmt, slice};
+use std::{fmt, mem, slice};
 
 use failure::Fallible;
 use libc::size_t;
 use stl::memory::UniquePtr;
 use stl::string::String as StlString;
-use stl::vector::{Vector, VectorOfBool};
+use stl::vector::{
+    VectorInsert, VectorOfBool, VectorOfF32, VectorOfI32, VectorOfI64, VectorOfU8,
+    VectorOfUniquePtr,
+};
 
 pub use crate::bindings::flatbuffers::NativeTable;
 pub use crate::bindings::tflite::*;
@@ -27,17 +30,17 @@ pub struct QuantizationDetailsUnion {
 #[derive(Debug)]
 pub struct BufferT {
     _vtable: NativeTable,
-    pub data: Vector<u8>,
+    pub data: VectorOfU8,
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct QuantizationParametersT {
     _vtable: NativeTable,
-    pub min: Vector<f32>,
-    pub max: Vector<f32>,
-    pub scale: Vector<f32>,
-    pub zero_point: Vector<i64>,
+    pub min: VectorOfF32,
+    pub max: VectorOfF32,
+    pub scale: VectorOfF32,
+    pub zero_point: VectorOfI64,
     pub details: QuantizationDetailsUnion,
 }
 
@@ -45,8 +48,8 @@ pub struct QuantizationParametersT {
 #[derive(Debug)]
 pub struct TensorT {
     _vtable: NativeTable,
-    pub shape: Vector<i32>,
-    pub typ_: TensorType,
+    pub shape: VectorOfI32,
+    pub typ: TensorType,
     pub buffer: u32,
     pub name: StlString,
     pub quantization: UniquePtr<QuantizationParametersT>,
@@ -56,7 +59,7 @@ pub struct TensorT {
 #[repr(C)]
 #[derive(Debug)]
 pub struct BuiltinOptionsUnion {
-    pub type_: BuiltinOptions,
+    pub typ: BuiltinOptions,
     pub value: *mut c_void,
 }
 
@@ -163,10 +166,10 @@ add_impl_options! {
 pub struct OperatorT {
     _vtable: NativeTable,
     pub opcode_index: u32,
-    pub inputs: Vector<i32>,
-    pub outputs: Vector<i32>,
+    pub inputs: VectorOfI32,
+    pub outputs: VectorOfI32,
     pub builtin_options: BuiltinOptionsUnion,
-    pub custom_options: Vector<u8>,
+    pub custom_options: VectorOfU8,
     pub custom_options_format: CustomOptionsFormat,
     pub mutating_variable_inputs: VectorOfBool,
 }
@@ -184,10 +187,10 @@ pub struct OperatorCodeT {
 #[derive(Debug)]
 pub struct SubGraphT {
     _vtable: NativeTable,
-    pub tensors: Vector<UniquePtr<TensorT>>,
-    pub inputs: Vector<i32>,
-    pub outputs: Vector<i32>,
-    pub operators: Vector<UniquePtr<OperatorT>>,
+    pub tensors: VectorOfUniquePtr<TensorT>,
+    pub inputs: VectorOfI32,
+    pub outputs: VectorOfI32,
+    pub operators: VectorOfUniquePtr<OperatorT>,
     pub name: StlString,
 }
 
@@ -196,41 +199,94 @@ pub struct SubGraphT {
 pub struct ModelT {
     _vtable: NativeTable,
     pub version: u32,
-    pub operator_codes: Vector<UniquePtr<OperatorCodeT>>,
-    pub subgraphs: Vector<UniquePtr<SubGraphT>>,
+    pub operator_codes: VectorOfUniquePtr<OperatorCodeT>,
+    pub subgraphs: VectorOfUniquePtr<SubGraphT>,
     pub description: StlString,
-    pub buffers: Vector<UniquePtr<BufferT>>,
-    pub metadata_buffer: Vector<i32>,
+    pub buffers: VectorOfUniquePtr<BufferT>,
+    pub metadata_buffer: VectorOfI32,
 }
 
-pub struct Model {
-    ptr: *mut ModelT,
-}
-
-unsafe impl Sync for Model {}
-unsafe impl Send for Model {}
-
-impl Drop for Model {
-    fn drop(&mut self) {
-        let model_ptr = self.ptr;
+impl Clone for BuiltinOptionsUnion {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
         unsafe {
-            cpp!([model_ptr as "ModelT*"] {
-                delete model_ptr;
-            })
+            cpp!([self as "const BuiltinOptionsUnion*", cloned_ref as "BuiltinOptionsUnion*"] {
+                new (cloned_ref) BuiltinOptionsUnion(*self);
+            });
         }
+        cloned
     }
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        let ptr = unsafe {
-            cpp!([] -> *mut ModelT as "ModelT*" {
-                return new ModelT();
-            })
-        };
-        Self { ptr }
+impl Clone for UniquePtr<BufferT> {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
+        unsafe {
+            cpp!([self as "const std::unique_ptr<BufferT>*", cloned_ref as "std::unique_ptr<BufferT>*"] {
+                new (cloned_ref) std::unique_ptr<BufferT>(new BufferT(**self));
+            });
+        }
+        cloned
     }
 }
+
+impl Clone for UniquePtr<OperatorCodeT> {
+    fn clone(&self) -> Self {
+        let mut cloned: UniquePtr<OperatorCodeT> = Default::default();
+        cloned.builtin_code = self.builtin_code;
+        cloned.custom_code.assign(&self.custom_code);
+        cloned.version = self.version;
+        cloned
+    }
+}
+
+impl Clone for UniquePtr<QuantizationParametersT> {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
+        unsafe {
+            cpp!([self as "const std::unique_ptr<QuantizationParametersT>*", cloned_ref as "std::unique_ptr<QuantizationParametersT>*"] {
+                new (cloned_ref) std::unique_ptr<QuantizationParametersT>(new QuantizationParametersT(**self));
+            });
+        }
+        cloned
+    }
+}
+
+impl Clone for UniquePtr<TensorT> {
+    fn clone(&self) -> Self {
+        let mut cloned: UniquePtr<TensorT> = Default::default();
+        cloned.shape.assign(self.shape.iter().cloned());
+        cloned.typ = self.typ;
+        cloned.buffer = self.buffer;
+        cloned.name.assign(&self.name);
+        cloned.quantization = self.quantization.clone();
+        cloned.is_variable = self.is_variable;
+        cloned
+    }
+}
+
+impl Clone for UniquePtr<OperatorT> {
+    fn clone(&self) -> Self {
+        let mut cloned: UniquePtr<OperatorT> = Default::default();
+        cloned.opcode_index = self.opcode_index;
+        cloned.inputs.assign(self.inputs.iter().cloned());
+        cloned.outputs.assign(self.outputs.iter().cloned());
+        cloned.builtin_options = self.builtin_options.clone();
+        cloned
+            .custom_options
+            .assign(self.custom_options.iter().cloned());
+        cloned.custom_options_format = self.custom_options_format;
+        cloned.mutating_variable_inputs = self.mutating_variable_inputs.clone();
+        cloned
+    }
+}
+
+#[repr(transparent)]
+#[derive(Default)]
+pub struct Model(UniquePtr<ModelT>);
 
 impl Clone for Model {
     fn clone(&self) -> Self {
@@ -239,34 +295,37 @@ impl Clone for Model {
 }
 
 impl Deref for Model {
-    type Target = ModelT;
+    type Target = UniquePtr<ModelT>;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { self.ptr.as_ref().unwrap() }
+        &self.0
     }
 }
 
 impl DerefMut for Model {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.ptr.as_mut().unwrap() }
+        &mut self.0
     }
 }
 
 impl fmt::Debug for Model {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.deref())
+        write!(f, "{:?}", self.0)
     }
 }
 
 impl Model {
     pub fn from_buffer(buffer: &[u8]) -> Self {
         let buffer = buffer.as_ptr();
-        let ptr = unsafe {
-            cpp!([buffer as "const void*"] -> *mut ModelT as "ModelT*" {
-                return tflite::GetModel(buffer)->UnPack();
-            })
-        };
-        Self { ptr }
+        let mut model = unsafe { mem::zeroed() };
+        let model_ref = &mut model;
+        unsafe {
+            cpp!([buffer as "const void*", model_ref as "std::unique_ptr<ModelT>*"] {
+                auto model = tflite::GetModel(buffer)->UnPack();
+                new (model_ref) std::unique_ptr<ModelT>(model);
+            });
+        }
+        Self(model)
     }
 
     pub fn from_file<P: AsRef<Path>>(filepath: P) -> Fallible<Self> {
@@ -279,11 +338,11 @@ impl Model {
     pub fn to_buffer(&self) -> Vec<u8> {
         let mut buffer = Vec::new();
         let buffer_ptr = &mut buffer;
-        let model_ptr = self.ptr;
+        let model_ref = &self.0;
         unsafe {
-            cpp!([model_ptr as "ModelT*", buffer_ptr as "void*"] {
+            cpp!([model_ref as "const std::unique_ptr<ModelT>*", buffer_ptr as "void*"] {
                 flatbuffers::FlatBufferBuilder fbb;
-                auto model = Model::Pack(fbb, model_ptr);
+                auto model = Model::Pack(fbb, model_ref->get());
                 FinishModelBuffer(fbb, model);
                 uint8_t* ptr = fbb.GetBufferPointer();
                 size_t size = fbb.GetSize();
@@ -358,7 +417,7 @@ mod tests {
         assert_eq!(subgraph.operators[softmax].inputs.as_slice(), &[4]);
         assert_eq!(subgraph.operators[softmax].outputs.as_slice(), &[21]);
         assert_eq!(
-            subgraph.operators[softmax].builtin_options.type_,
+            subgraph.operators[softmax].builtin_options.typ,
             BuiltinOptions::BuiltinOptions_SoftmaxOptions
         );
 
@@ -416,78 +475,51 @@ mod tests {
 
     #[test]
     fn flatbuffer_model_apis_extract() {
-        let mut source_model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+        let source_model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+        let source_subgraph = &source_model.subgraphs[0];
+        let source_operator = &source_subgraph.operators[0];
 
-        let mut operator = source_model.subgraphs[0].operators.extract(0);
-        let buffers: Vec<_> = operator
+        let tensors = source_operator
             .inputs
             .iter()
-            .chain(operator.outputs.iter())
-            .map(|&tensor_index| source_model.subgraphs[0].tensors[tensor_index as usize].buffer)
-            .collect();
+            .chain(source_operator.outputs.iter())
+            .map(|&tensor_index| source_subgraph.tensors[tensor_index as usize].clone());
 
         let mut model = Model::default();
         model.version = source_model.version;
         model.description.assign(&source_model.description);
-        for buffer_index in buffers {
-            model
-                .buffers
-                .push_back(source_model.buffers.extract(buffer_index as usize));
-        }
+        model.buffers.assign(
+            tensors
+                .clone()
+                .map(|tensor| source_model.buffers[tensor.buffer as usize].clone()),
+        );
+        model
+            .operator_codes
+            .push_back(source_model.operator_codes[source_operator.opcode_index as usize].clone());
 
-        model.subgraphs.push_back(UniquePtr::default());
-        assert_eq!(model.subgraphs.len(), 1);
-        let subgraph = &model.subgraphs[0];
-        assert_eq!(subgraph.inputs.len(), 0);
-        assert_eq!(subgraph.outputs.len(), 0);
-
-        for &tensor_index in operator.inputs.iter().chain(operator.outputs.iter()) {
-            model.subgraphs[0].tensors.push_back(
-                source_model.subgraphs[0]
-                    .tensors
-                    .extract(tensor_index as usize),
-            );
-        }
-
+        let mut subgraph: UniquePtr<SubGraphT> = Default::default();
+        subgraph.tensors.assign(tensors);
+        let mut operator = source_operator.clone();
+        operator.opcode_index = 0;
         let num_inputs = operator.inputs.len() as i32;
         let num_outputs = operator.outputs.len() as i32;
         operator.inputs.assign(0..num_inputs);
-        for tensor_index in 0..num_inputs {
-            if model.buffers[tensor_index as usize].data.is_empty() {
-                model.subgraphs[0].inputs.push_back(tensor_index);
-            }
-        }
-        assert_eq!(operator.inputs.len(), num_inputs as usize);
-
         operator
             .outputs
             .assign(num_inputs..num_inputs + num_outputs);
-        assert_eq!(operator.outputs.len(), num_outputs as usize);
-
-        model.subgraphs[0]
+        subgraph.operators.push_back(operator);
+        subgraph
+            .inputs
+            .assign((0..num_inputs).filter(|&i| model.buffers[i as usize].data.is_empty()));
+        subgraph
             .outputs
             .assign(num_inputs..num_inputs + num_outputs);
-        assert_eq!(model.subgraphs[0].outputs.len(), num_outputs as usize);
-
-        assert_eq!(model.subgraphs[0].operators.len(), 0);
-        model.subgraphs[0].operators.push_back(operator);
-        assert_eq!(model.subgraphs[0].operators.len(), 1);
-
-        for i in 0..source_model.operator_codes.len() {
-            model
-                .operator_codes
-                .push_back(source_model.operator_codes.extract(i));
-        }
-        assert_eq!(
-            model.operator_codes.len(),
-            source_model.operator_codes.len()
-        );
-
-        for (i, tensor) in model.subgraphs[0].tensors.iter_mut().enumerate() {
-            tensor.buffer = i as u32;
-        }
+        model.subgraphs.push_back(subgraph);
 
         let subgraph = &model.subgraphs[0];
+        println!("{:?}", subgraph.inputs);
+        println!("{:?}", subgraph.outputs);
+
         for operator in &subgraph.operators {
             println!("{:?}", operator);
         }
@@ -496,8 +528,66 @@ mod tests {
             println!("{:?}", tensor);
         }
 
-        println!("{:?}", subgraph.inputs);
-        println!("{:?}", subgraph.outputs);
+        for buffer in &model.buffers {
+            println!("{:?}", buffer);
+        }
         model.to_file("test.tflite").unwrap();
+    }
+
+    #[test]
+    fn unittest_buffer_clone() {
+        let (buffer1, buffer2) = {
+            let model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+            let buffer = &model.buffers[0];
+            (buffer.clone(), buffer.clone())
+        };
+        assert_eq!(buffer1.data.as_slice(), buffer2.data.as_slice());
+    }
+
+    #[test]
+    fn unittest_tensor_clone() {
+        let (tensor1, tensor2) = {
+            let model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+            let tensor = &model.subgraphs[0].tensors[0];
+            (tensor.clone(), tensor.clone())
+        };
+
+        assert_eq!(tensor1.shape.as_slice(), tensor2.shape.as_slice());
+        assert_eq!(tensor1.typ, tensor2.typ);
+        assert_eq!(tensor1.buffer, tensor2.buffer);
+        assert_eq!(tensor1.name.c_str(), tensor2.name.c_str());
+        assert_eq!(tensor1.is_variable, tensor2.is_variable);
+    }
+
+    #[test]
+    fn unittest_operator_clone() {
+        let (operator1, operator2) = {
+            let model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+            let operator = &model.subgraphs[0].operators[0];
+            (operator.clone(), operator.clone())
+        };
+
+        assert_eq!(operator1.opcode_index, operator2.opcode_index);
+        assert_eq!(operator1.inputs.as_slice(), operator2.inputs.as_slice());
+        assert_eq!(operator1.outputs.as_slice(), operator2.outputs.as_slice());
+        assert_eq!(operator1.builtin_options.typ, operator2.builtin_options.typ);
+        assert_eq!(
+            operator1.custom_options.as_slice(),
+            operator2.custom_options.as_slice()
+        );
+        assert_eq!(
+            operator1.custom_options_format,
+            operator2.custom_options_format
+        );
+        assert_eq!(
+            operator1
+                .mutating_variable_inputs
+                .iter()
+                .collect::<Vec<_>>(),
+            operator2
+                .mutating_variable_inputs
+                .iter()
+                .collect::<Vec<_>>()
+        );
     }
 }

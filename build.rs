@@ -17,6 +17,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use failure::Fallible;
+use heck::CamelCase;
 
 const TFLITE_VERSION: &'static str = "1.13.2";
 
@@ -294,6 +295,7 @@ use crate::model::stl::memory::UniquePtr;
             "QuantizationParametersT",
             "crate::model::QuantizationParametersT",
         ),
+        ("ModelT", "crate::model::ModelT"),
     ];
 
     for (cpp_type, rust_type) in memory_types {
@@ -320,13 +322,43 @@ use std::ops::{{Deref, DerefMut, Index, IndexMut}};
 use libc::size_t;
 
 use super::memory::UniquePtr;
-use super::vector::{{Vector, VectorErase, VectorExtract, VectorInsert, VectorSlice}};
+use super::vector::{{VectorOfUniquePtr, VectorErase, VectorExtract, VectorInsert, VectorSlice}};
+use crate::model::stl::bindings::root::rust::dummy_vector;
 
 cpp! {{{{
     #include <vector>
 }}}}
 "#
     )?;
+
+    #[derive(BartDisplay)]
+    #[template = "data/vector_primitive_impl.rs.template"]
+    #[allow(non_snake_case)]
+    struct VectorPrimitiveImpl<'a> {
+        cpp_type: &'a str,
+        rust_type: &'a str,
+        RustType: &'a str,
+    }
+
+    let vector_types = vec![
+        ("uint8_t", "u8"),
+        ("int32_t", "i32"),
+        ("int64_t", "i64"),
+        ("float", "f32"),
+    ];
+
+    for (cpp_type, rust_type) in vector_types {
+        let rust_type_camel_case = rust_type.to_camel_case();
+        writeln!(
+            &mut file,
+            "{}\n",
+            &VectorPrimitiveImpl {
+                cpp_type,
+                rust_type,
+                RustType: &rust_type_camel_case,
+            },
+        )?;
+    }
 
     #[derive(BartDisplay)]
     #[template = "data/vector_basic_impl.rs.template"]
@@ -336,10 +368,6 @@ cpp! {{{{
     }
 
     let vector_types = vec![
-        ("uint8_t", "u8"),
-        ("int32_t", "i32"),
-        ("int64_t", "i64"),
-        ("float", "f32"),
         (
             "std::unique_ptr<OperatorCodeT>",
             "UniquePtr<crate::model::OperatorCodeT>",

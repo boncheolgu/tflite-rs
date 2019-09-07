@@ -5,13 +5,53 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 use libc::size_t;
 
 use super::memory::UniquePtr;
-use super::vector::{Vector, VectorErase, VectorExtract, VectorInsert, VectorSlice};
+use super::vector::{VectorOfUniquePtr, VectorErase, VectorExtract, VectorInsert, VectorSlice};
+use crate::model::stl::bindings::root::rust::dummy_vector;
 
 cpp! {{
     #include <vector>
 }}
 
-impl VectorSlice for Vector<u8> {
+#[repr(C)]
+pub struct VectorOfU8(dummy_vector);
+
+impl Default for VectorOfU8 {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<uint8_t>*"] {
+                new (this_ref) const std::vector<uint8_t>;
+            })
+        }
+        this
+    }
+}
+
+impl Drop for VectorOfU8 {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<uint8_t>*"] {
+                self->~vector<uint8_t>();
+            })
+        }
+    }
+}
+
+impl Clone for VectorOfU8 {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
+        unsafe {
+            cpp!([self as "const std::vector<uint8_t>*", cloned_ref as "std::vector<uint8_t>*"] {
+                new (cloned_ref) std::vector<uint8_t>(*self);
+            });
+        }
+        cloned
+    }
+}
+
+impl VectorSlice for VectorOfU8 {
     type Item = u8;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -41,7 +81,7 @@ impl VectorSlice for Vector<u8> {
     }
 }
 
-impl VectorErase for Vector<u8> {
+impl VectorErase for VectorOfU8 {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -53,7 +93,7 @@ impl VectorErase for Vector<u8> {
     }
 }
 
-impl VectorInsert<u8> for Vector<u8> {
+impl VectorInsert<u8> for VectorOfU8 {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -65,7 +105,7 @@ impl VectorInsert<u8> for Vector<u8> {
     }
 }
 
-impl VectorExtract<u8> for Vector<u8> {
+impl VectorExtract<u8> for VectorOfU8 {
     fn extract(&mut self, index: usize) -> u8 {
         assert!(index < self.size());
         let mut v: u8 = unsafe { mem::zeroed() };
@@ -79,10 +119,49 @@ impl VectorExtract<u8> for Vector<u8> {
     }
 }
 
-add_impl!(Vector<u8>);
+add_impl!(VectorOfU8);
 
 
-impl VectorSlice for Vector<i32> {
+#[repr(C)]
+pub struct VectorOfI32(dummy_vector);
+
+impl Default for VectorOfI32 {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<int32_t>*"] {
+                new (this_ref) const std::vector<int32_t>;
+            })
+        }
+        this
+    }
+}
+
+impl Drop for VectorOfI32 {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<int32_t>*"] {
+                self->~vector<int32_t>();
+            })
+        }
+    }
+}
+
+impl Clone for VectorOfI32 {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
+        unsafe {
+            cpp!([self as "const std::vector<int32_t>*", cloned_ref as "std::vector<int32_t>*"] {
+                new (cloned_ref) std::vector<int32_t>(*self);
+            });
+        }
+        cloned
+    }
+}
+
+impl VectorSlice for VectorOfI32 {
     type Item = i32;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -112,7 +191,7 @@ impl VectorSlice for Vector<i32> {
     }
 }
 
-impl VectorErase for Vector<i32> {
+impl VectorErase for VectorOfI32 {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -124,7 +203,7 @@ impl VectorErase for Vector<i32> {
     }
 }
 
-impl VectorInsert<i32> for Vector<i32> {
+impl VectorInsert<i32> for VectorOfI32 {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -136,7 +215,7 @@ impl VectorInsert<i32> for Vector<i32> {
     }
 }
 
-impl VectorExtract<i32> for Vector<i32> {
+impl VectorExtract<i32> for VectorOfI32 {
     fn extract(&mut self, index: usize) -> i32 {
         assert!(index < self.size());
         let mut v: i32 = unsafe { mem::zeroed() };
@@ -150,10 +229,49 @@ impl VectorExtract<i32> for Vector<i32> {
     }
 }
 
-add_impl!(Vector<i32>);
+add_impl!(VectorOfI32);
 
 
-impl VectorSlice for Vector<i64> {
+#[repr(C)]
+pub struct VectorOfI64(dummy_vector);
+
+impl Default for VectorOfI64 {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<int64_t>*"] {
+                new (this_ref) const std::vector<int64_t>;
+            })
+        }
+        this
+    }
+}
+
+impl Drop for VectorOfI64 {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<int64_t>*"] {
+                self->~vector<int64_t>();
+            })
+        }
+    }
+}
+
+impl Clone for VectorOfI64 {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
+        unsafe {
+            cpp!([self as "const std::vector<int64_t>*", cloned_ref as "std::vector<int64_t>*"] {
+                new (cloned_ref) std::vector<int64_t>(*self);
+            });
+        }
+        cloned
+    }
+}
+
+impl VectorSlice for VectorOfI64 {
     type Item = i64;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -183,7 +301,7 @@ impl VectorSlice for Vector<i64> {
     }
 }
 
-impl VectorErase for Vector<i64> {
+impl VectorErase for VectorOfI64 {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -195,7 +313,7 @@ impl VectorErase for Vector<i64> {
     }
 }
 
-impl VectorInsert<i64> for Vector<i64> {
+impl VectorInsert<i64> for VectorOfI64 {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -207,7 +325,7 @@ impl VectorInsert<i64> for Vector<i64> {
     }
 }
 
-impl VectorExtract<i64> for Vector<i64> {
+impl VectorExtract<i64> for VectorOfI64 {
     fn extract(&mut self, index: usize) -> i64 {
         assert!(index < self.size());
         let mut v: i64 = unsafe { mem::zeroed() };
@@ -221,10 +339,49 @@ impl VectorExtract<i64> for Vector<i64> {
     }
 }
 
-add_impl!(Vector<i64>);
+add_impl!(VectorOfI64);
 
 
-impl VectorSlice for Vector<f32> {
+#[repr(C)]
+pub struct VectorOfF32(dummy_vector);
+
+impl Default for VectorOfF32 {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<float>*"] {
+                new (this_ref) const std::vector<float>;
+            })
+        }
+        this
+    }
+}
+
+impl Drop for VectorOfF32 {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<float>*"] {
+                self->~vector<float>();
+            })
+        }
+    }
+}
+
+impl Clone for VectorOfF32 {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
+        unsafe {
+            cpp!([self as "const std::vector<float>*", cloned_ref as "std::vector<float>*"] {
+                new (cloned_ref) std::vector<float>(*self);
+            });
+        }
+        cloned
+    }
+}
+
+impl VectorSlice for VectorOfF32 {
     type Item = f32;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -254,7 +411,7 @@ impl VectorSlice for Vector<f32> {
     }
 }
 
-impl VectorErase for Vector<f32> {
+impl VectorErase for VectorOfF32 {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -266,7 +423,7 @@ impl VectorErase for Vector<f32> {
     }
 }
 
-impl VectorInsert<f32> for Vector<f32> {
+impl VectorInsert<f32> for VectorOfF32 {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -278,7 +435,7 @@ impl VectorInsert<f32> for Vector<f32> {
     }
 }
 
-impl VectorExtract<f32> for Vector<f32> {
+impl VectorExtract<f32> for VectorOfF32 {
     fn extract(&mut self, index: usize) -> f32 {
         assert!(index < self.size());
         let mut v: f32 = unsafe { mem::zeroed() };
@@ -292,10 +449,23 @@ impl VectorExtract<f32> for Vector<f32> {
     }
 }
 
-add_impl!(Vector<f32>);
+add_impl!(VectorOfF32);
 
 
-impl VectorSlice for Vector<UniquePtr<crate::model::OperatorCodeT>> {
+impl Default for VectorOfUniquePtr<crate::model::OperatorCodeT> {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<std::unique_ptr<OperatorCodeT>>*"] {
+                new (this_ref) const std::vector<std::unique_ptr<OperatorCodeT>>;
+            })
+        }
+        this
+    }
+}
+
+impl VectorSlice for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     type Item = UniquePtr<crate::model::OperatorCodeT>;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -325,7 +495,7 @@ impl VectorSlice for Vector<UniquePtr<crate::model::OperatorCodeT>> {
     }
 }
 
-impl VectorErase for Vector<UniquePtr<crate::model::OperatorCodeT>> {
+impl VectorErase for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -337,7 +507,7 @@ impl VectorErase for Vector<UniquePtr<crate::model::OperatorCodeT>> {
     }
 }
 
-impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>> for Vector<UniquePtr<crate::model::OperatorCodeT>> {
+impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -349,7 +519,7 @@ impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>> for Vector<UniquePtr<c
     }
 }
 
-impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>> for Vector<UniquePtr<crate::model::OperatorCodeT>> {
+impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::OperatorCodeT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::OperatorCodeT> = unsafe { mem::zeroed() };
@@ -363,10 +533,23 @@ impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>> for Vector<UniquePtr<
     }
 }
 
-add_impl!(Vector<UniquePtr<crate::model::OperatorCodeT>>);
+add_impl!(VectorOfUniquePtr<crate::model::OperatorCodeT>);
 
 
-impl VectorSlice for Vector<UniquePtr<crate::model::TensorT>> {
+impl Default for VectorOfUniquePtr<crate::model::TensorT> {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<std::unique_ptr<TensorT>>*"] {
+                new (this_ref) const std::vector<std::unique_ptr<TensorT>>;
+            })
+        }
+        this
+    }
+}
+
+impl VectorSlice for VectorOfUniquePtr<crate::model::TensorT> {
     type Item = UniquePtr<crate::model::TensorT>;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -396,7 +579,7 @@ impl VectorSlice for Vector<UniquePtr<crate::model::TensorT>> {
     }
 }
 
-impl VectorErase for Vector<UniquePtr<crate::model::TensorT>> {
+impl VectorErase for VectorOfUniquePtr<crate::model::TensorT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -408,7 +591,7 @@ impl VectorErase for Vector<UniquePtr<crate::model::TensorT>> {
     }
 }
 
-impl VectorInsert<UniquePtr<crate::model::TensorT>> for Vector<UniquePtr<crate::model::TensorT>> {
+impl VectorInsert<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate::model::TensorT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -420,7 +603,7 @@ impl VectorInsert<UniquePtr<crate::model::TensorT>> for Vector<UniquePtr<crate::
     }
 }
 
-impl VectorExtract<UniquePtr<crate::model::TensorT>> for Vector<UniquePtr<crate::model::TensorT>> {
+impl VectorExtract<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate::model::TensorT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::TensorT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::TensorT> = unsafe { mem::zeroed() };
@@ -434,10 +617,23 @@ impl VectorExtract<UniquePtr<crate::model::TensorT>> for Vector<UniquePtr<crate:
     }
 }
 
-add_impl!(Vector<UniquePtr<crate::model::TensorT>>);
+add_impl!(VectorOfUniquePtr<crate::model::TensorT>);
 
 
-impl VectorSlice for Vector<UniquePtr<crate::model::OperatorT>> {
+impl Default for VectorOfUniquePtr<crate::model::OperatorT> {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<std::unique_ptr<OperatorT>>*"] {
+                new (this_ref) const std::vector<std::unique_ptr<OperatorT>>;
+            })
+        }
+        this
+    }
+}
+
+impl VectorSlice for VectorOfUniquePtr<crate::model::OperatorT> {
     type Item = UniquePtr<crate::model::OperatorT>;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -467,7 +663,7 @@ impl VectorSlice for Vector<UniquePtr<crate::model::OperatorT>> {
     }
 }
 
-impl VectorErase for Vector<UniquePtr<crate::model::OperatorT>> {
+impl VectorErase for VectorOfUniquePtr<crate::model::OperatorT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -479,7 +675,7 @@ impl VectorErase for Vector<UniquePtr<crate::model::OperatorT>> {
     }
 }
 
-impl VectorInsert<UniquePtr<crate::model::OperatorT>> for Vector<UniquePtr<crate::model::OperatorT>> {
+impl VectorInsert<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crate::model::OperatorT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -491,7 +687,7 @@ impl VectorInsert<UniquePtr<crate::model::OperatorT>> for Vector<UniquePtr<crate
     }
 }
 
-impl VectorExtract<UniquePtr<crate::model::OperatorT>> for Vector<UniquePtr<crate::model::OperatorT>> {
+impl VectorExtract<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crate::model::OperatorT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::OperatorT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::OperatorT> = unsafe { mem::zeroed() };
@@ -505,10 +701,23 @@ impl VectorExtract<UniquePtr<crate::model::OperatorT>> for Vector<UniquePtr<crat
     }
 }
 
-add_impl!(Vector<UniquePtr<crate::model::OperatorT>>);
+add_impl!(VectorOfUniquePtr<crate::model::OperatorT>);
 
 
-impl VectorSlice for Vector<UniquePtr<crate::model::SubGraphT>> {
+impl Default for VectorOfUniquePtr<crate::model::SubGraphT> {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<std::unique_ptr<SubGraphT>>*"] {
+                new (this_ref) const std::vector<std::unique_ptr<SubGraphT>>;
+            })
+        }
+        this
+    }
+}
+
+impl VectorSlice for VectorOfUniquePtr<crate::model::SubGraphT> {
     type Item = UniquePtr<crate::model::SubGraphT>;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -538,7 +747,7 @@ impl VectorSlice for Vector<UniquePtr<crate::model::SubGraphT>> {
     }
 }
 
-impl VectorErase for Vector<UniquePtr<crate::model::SubGraphT>> {
+impl VectorErase for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -550,7 +759,7 @@ impl VectorErase for Vector<UniquePtr<crate::model::SubGraphT>> {
     }
 }
 
-impl VectorInsert<UniquePtr<crate::model::SubGraphT>> for Vector<UniquePtr<crate::model::SubGraphT>> {
+impl VectorInsert<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -562,7 +771,7 @@ impl VectorInsert<UniquePtr<crate::model::SubGraphT>> for Vector<UniquePtr<crate
     }
 }
 
-impl VectorExtract<UniquePtr<crate::model::SubGraphT>> for Vector<UniquePtr<crate::model::SubGraphT>> {
+impl VectorExtract<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::SubGraphT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::SubGraphT> = unsafe { mem::zeroed() };
@@ -576,10 +785,23 @@ impl VectorExtract<UniquePtr<crate::model::SubGraphT>> for Vector<UniquePtr<crat
     }
 }
 
-add_impl!(Vector<UniquePtr<crate::model::SubGraphT>>);
+add_impl!(VectorOfUniquePtr<crate::model::SubGraphT>);
 
 
-impl VectorSlice for Vector<UniquePtr<crate::model::BufferT>> {
+impl Default for VectorOfUniquePtr<crate::model::BufferT> {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<std::unique_ptr<BufferT>>*"] {
+                new (this_ref) const std::vector<std::unique_ptr<BufferT>>;
+            })
+        }
+        this
+    }
+}
+
+impl VectorSlice for VectorOfUniquePtr<crate::model::BufferT> {
     type Item = UniquePtr<crate::model::BufferT>;
 
     fn get_ptr(&self) -> *const Self::Item {
@@ -609,7 +831,7 @@ impl VectorSlice for Vector<UniquePtr<crate::model::BufferT>> {
     }
 }
 
-impl VectorErase for Vector<UniquePtr<crate::model::BufferT>> {
+impl VectorErase for VectorOfUniquePtr<crate::model::BufferT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
         let end = offset + size as size_t;
@@ -621,7 +843,7 @@ impl VectorErase for Vector<UniquePtr<crate::model::BufferT>> {
     }
 }
 
-impl VectorInsert<UniquePtr<crate::model::BufferT>> for Vector<UniquePtr<crate::model::BufferT>> {
+impl VectorInsert<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate::model::BufferT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -633,7 +855,7 @@ impl VectorInsert<UniquePtr<crate::model::BufferT>> for Vector<UniquePtr<crate::
     }
 }
 
-impl VectorExtract<UniquePtr<crate::model::BufferT>> for Vector<UniquePtr<crate::model::BufferT>> {
+impl VectorExtract<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate::model::BufferT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::BufferT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::BufferT> = unsafe { mem::zeroed() };
@@ -647,6 +869,6 @@ impl VectorExtract<UniquePtr<crate::model::BufferT>> for Vector<UniquePtr<crate:
     }
 }
 
-add_impl!(Vector<UniquePtr<crate::model::BufferT>>);
+add_impl!(VectorOfUniquePtr<crate::model::BufferT>);
 
 

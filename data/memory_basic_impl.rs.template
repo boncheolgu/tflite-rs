@@ -43,4 +43,3 @@ impl fmt::Debug for UniquePtr<{{{rust_type}}}>
         write!(f, "({:?})", self.deref())
     }
 }
-

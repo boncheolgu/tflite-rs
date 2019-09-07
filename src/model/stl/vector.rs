@@ -1,7 +1,8 @@
 use std::marker::PhantomData;
-use std::slice;
+use std::{mem, slice};
 
 use super::bindings::root::rust::*;
+pub use super::vector_impl::{VectorOfF32, VectorOfI32, VectorOfI64, VectorOfU8};
 
 #[repr(C)]
 pub struct Vector<T>(dummy_vector, PhantomData<T>);
@@ -163,6 +164,116 @@ pub trait VectorExtract<T>: VectorErase {
 #[derive(Debug)]
 pub struct VectorOfBool(vector_of_bool);
 
+impl Default for VectorOfBool {
+    fn default() -> Self {
+        let mut this = unsafe { mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<bool>*"] {
+                new (this_ref) const std::vector<bool>;
+            })
+        }
+        this
+    }
+}
+
+impl Drop for VectorOfBool {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<bool>*"] {
+                self->~vector<bool>();
+            })
+        }
+    }
+}
+
+impl Clone for VectorOfBool {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
+        unsafe {
+            cpp!([self as "const std::vector<bool>*", cloned_ref as "std::vector<bool>*"] {
+                new (cloned_ref) std::vector<bool>(*self);
+            });
+        }
+        cloned
+    }
+}
+
+impl VectorOfBool {
+    pub fn get(&self, index: usize) -> bool {
+        unsafe {
+            cpp!([self as "const std::vector<bool>*", index as "size_t"] -> bool as "bool" {
+                return (*self)[index];
+            })
+        }
+    }
+
+    pub fn set(&mut self, index: usize, v: bool) {
+        unsafe {
+            cpp!([self as "std::vector<bool>*", index as "size_t", v as "bool"] {
+                (*self)[index] = v;
+            })
+        }
+    }
+
+    pub fn size(&self) -> usize {
+        unsafe {
+            cpp!([self as "const std::vector<bool>*"] -> usize as "size_t" {
+                return self->size();
+            })
+        }
+    }
+
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = bool> + 'a {
+        (0..self.size()).map(move |i| self.get(i))
+    }
+}
+
 #[repr(C)]
-#[derive(Debug)]
 pub struct VectorOfUniquePtr<T>(dummy_vector, PhantomData<T>);
+
+impl<T> Drop for VectorOfUniquePtr<T> {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<std::unique_ptr<flatbuffers::NativeTable>>*"] {
+                self->~vector<std::unique_ptr<flatbuffers::NativeTable>>();
+            })
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::model::stl::memory::UniquePtr;
+    use crate::model::BufferT;
+
+    #[test]
+    fn unittest_vector_default() {
+        let mut vs = VectorOfU8::default();
+        assert_eq!(vs.size(), 0);
+
+        vs.push_back(9);
+        vs.push_back(10);
+        assert_eq!(vs.size(), 2);
+        assert_eq!(vs.as_slice(), &[9u8, 10]);
+
+        let mut vs: VectorOfUniquePtr<BufferT> = VectorOfUniquePtr::default();
+        vs.push_back(UniquePtr::default());
+        vs.push_back(UniquePtr::default());
+        vs.push_back(UniquePtr::default());
+        assert_eq!(vs.size(), 3);
+    }
+
+    #[test]
+    fn unittest_vector_clone() {
+        let mut vs = VectorOfU8::default();
+        vs.assign(0u8..6);
+        assert_eq!(vs.size(), 6);
+
+        let cloned = vs.clone();
+        assert_eq!(vs.as_slice(), cloned.as_slice());
+    }
+}

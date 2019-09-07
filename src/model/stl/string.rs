@@ -17,11 +17,13 @@ cpp! {{
 }}
 
 #[repr(C)]
+/// This should be used as only (mutable) references.
+/// Small string optimization makes unsafe to move `String` instances.
+/// `String::drop` is also prohibited for this reason.
 pub struct String(string);
 
 impl Drop for String {
     fn drop(&mut self) {
-        // this will leak memory
         panic!("Do not drop `String`!");
     }
 }
