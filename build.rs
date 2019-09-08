@@ -77,7 +77,7 @@ fn prepare_tensorflow_source() -> PathBuf {
             .status()
             .expect("failed to download tflite dependencies.");
 
-        // To make `NativaTable` polymorphic
+        // To make `NativeTable` polymorphic
         Command::new("sed")
             .arg("-i")
             .arg("s/struct NativeTable {};/struct NativeTable { virtual ~NativeTable() {} };/g")
@@ -195,6 +195,8 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .default_enum_style(EnumVariation::Rust {
             non_exhaustive: false,
         })
+        .derive_partialeq(true)
+        .derive_eq(true)
         .header("csrc/tflite_wrapper.hpp")
         .clang_arg(format!("-I{}", tflite.as_ref().to_str().unwrap()))
         .clang_arg(format!(
@@ -251,6 +253,7 @@ fn import_stl_types() {
         .header("csrc/stl_wrapper.hpp")
         .layout_tests(false)
         .derive_partialeq(true)
+        .derive_eq(true)
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=c++14");

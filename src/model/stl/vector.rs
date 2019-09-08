@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 use std::{mem, slice};
 
 use super::bindings::root::rust::*;
+use super::memory::UniquePtr;
 pub use super::vector_impl::{VectorOfF32, VectorOfI32, VectorOfI64, VectorOfU8};
 
 #[repr(C)]
@@ -200,6 +201,17 @@ impl Clone for VectorOfBool {
     }
 }
 
+impl PartialEq for VectorOfBool {
+    fn eq(&self, other: &Self) -> bool {
+        if self.size() != other.size() {
+            return false;
+        }
+        self.iter().zip(other.iter()).all(|(x, y)| x == y)
+    }
+}
+
+impl Eq for VectorOfBool {}
+
 impl VectorOfBool {
     pub fn get(&self, index: usize) -> bool {
         unsafe {
@@ -232,6 +244,23 @@ impl VectorOfBool {
 
 #[repr(C)]
 pub struct VectorOfUniquePtr<T>(dummy_vector, PhantomData<T>);
+
+impl<T> PartialEq for VectorOfUniquePtr<T>
+where
+    Self: VectorSlice<Item = UniquePtr<T>>,
+    UniquePtr<T>: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl<T> Eq for VectorOfUniquePtr<T>
+where
+    Self: VectorSlice<Item = UniquePtr<T>>,
+    UniquePtr<T>: Eq,
+{
+}
 
 impl<T> Drop for VectorOfUniquePtr<T> {
     fn drop(&mut self) {

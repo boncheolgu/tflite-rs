@@ -22,6 +22,14 @@ cpp! {{
 /// `String::drop` is also prohibited for this reason.
 pub struct String(string);
 
+impl PartialEq for String {
+    fn eq(&self, other: &Self) -> bool {
+        self.c_str() == other.c_str()
+    }
+}
+
+impl Eq for String {}
+
 impl Drop for String {
     fn drop(&mut self) {
         panic!("Do not drop `String`!");

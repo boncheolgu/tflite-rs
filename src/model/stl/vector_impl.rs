@@ -51,6 +51,14 @@ impl Clone for VectorOfU8 {
     }
 }
 
+impl PartialEq for VectorOfU8 {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl Eq for VectorOfU8 {}
+
 impl VectorSlice for VectorOfU8 {
     type Item = u8;
 
@@ -160,6 +168,14 @@ impl Clone for VectorOfI32 {
         cloned
     }
 }
+
+impl PartialEq for VectorOfI32 {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl Eq for VectorOfI32 {}
 
 impl VectorSlice for VectorOfI32 {
     type Item = i32;
@@ -271,6 +287,14 @@ impl Clone for VectorOfI64 {
     }
 }
 
+impl PartialEq for VectorOfI64 {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl Eq for VectorOfI64 {}
+
 impl VectorSlice for VectorOfI64 {
     type Item = i64;
 
@@ -380,6 +404,14 @@ impl Clone for VectorOfF32 {
         cloned
     }
 }
+
+impl PartialEq for VectorOfF32 {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl Eq for VectorOfF32 {}
 
 impl VectorSlice for VectorOfF32 {
     type Item = f32;

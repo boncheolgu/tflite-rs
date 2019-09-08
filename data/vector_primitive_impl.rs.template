@@ -37,6 +37,14 @@ impl Clone for VectorOf{{{RustType}}} {
     }
 }
 
+impl PartialEq for VectorOf{{{RustType}}} {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl Eq for VectorOf{{{RustType}}} {}
+
 impl VectorSlice for VectorOf{{{RustType}}} {
     type Item = {{{rust_type}}};
 

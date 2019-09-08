@@ -26,15 +26,22 @@ pub struct QuantizationDetailsUnion {
     pub value: *mut c_void,
 }
 
+impl PartialEq for QuantizationDetailsUnion {
+    fn eq(&self, other: &Self) -> bool {
+        self.typ == QuantizationDetails::QuantizationDetails_NONE
+            && other.typ == QuantizationDetails::QuantizationDetails_NONE
+    }
+}
+
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct BufferT {
     _vtable: NativeTable,
     pub data: VectorOfU8,
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct QuantizationParametersT {
     _vtable: NativeTable,
     pub min: VectorOfF32,
@@ -45,7 +52,7 @@ pub struct QuantizationParametersT {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TensorT {
     _vtable: NativeTable,
     pub shape: VectorOfI32,
@@ -62,6 +69,261 @@ pub struct BuiltinOptionsUnion {
     pub typ: BuiltinOptions,
     pub value: *mut c_void,
 }
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq)]
+pub struct ConcatEmbeddingsOptionsT {
+    _vtable: NativeTable,
+    pub num_channels: i32,
+    pub num_columns_per_channel: VectorOfI32,
+    pub embedding_dim_per_channel: VectorOfI32,
+}
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq)]
+pub struct ReshapeOptionsT {
+    _vtable: NativeTable,
+    pub new_shape: VectorOfI32,
+}
+
+#[repr(C)]
+#[derive(Debug, PartialEq, Eq)]
+pub struct SqueezeOptionsT {
+    _vtable: NativeTable,
+    pub squeeze_dims: VectorOfI32,
+}
+
+impl PartialEq for BuiltinOptionsUnion {
+    fn eq(&self, other: &Self) -> bool {
+        macro_rules! compare {
+            ($e:expr, $t:ty) => {
+                if self.typ == $e
+                    && other.typ == $e
+                    && AsRef::<$t>::as_ref(self) == AsRef::<$t>::as_ref(other)
+                {
+                    return true;
+                }
+            };
+        }
+
+        if self.typ == BuiltinOptions::BuiltinOptions_NONE
+            && other.typ == BuiltinOptions::BuiltinOptions_NONE
+        {
+            return true;
+        }
+        compare!(BuiltinOptions::BuiltinOptions_Conv2DOptions, Conv2DOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_DepthwiseConv2DOptions,
+            DepthwiseConv2DOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_ConcatEmbeddingsOptions,
+            ConcatEmbeddingsOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_LSHProjectionOptions,
+            LSHProjectionOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_Pool2DOptions, Pool2DOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_SVDFOptions, SVDFOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_RNNOptions, RNNOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_FullyConnectedOptions,
+            FullyConnectedOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_SoftmaxOptions,
+            SoftmaxOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_ConcatenationOptions,
+            ConcatenationOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_AddOptions, AddOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_L2NormOptions, L2NormOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_LocalResponseNormalizationOptions,
+            LocalResponseNormalizationOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_LSTMOptions, LSTMOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_ResizeBilinearOptions,
+            ResizeBilinearOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_CallOptions, CallOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_ReshapeOptions,
+            ReshapeOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_SkipGramOptions,
+            SkipGramOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_SpaceToDepthOptions,
+            SpaceToDepthOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_EmbeddingLookupSparseOptions,
+            EmbeddingLookupSparseOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_MulOptions, MulOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_PadOptions, PadOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_GatherOptions, GatherOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_BatchToSpaceNDOptions,
+            BatchToSpaceNDOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_SpaceToBatchNDOptions,
+            SpaceToBatchNDOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_TransposeOptions,
+            TransposeOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_ReducerOptions,
+            ReducerOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_SubOptions, SubOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_DivOptions, DivOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_SqueezeOptions,
+            SqueezeOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_SequenceRNNOptions,
+            SequenceRNNOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_StridedSliceOptions,
+            StridedSliceOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_ExpOptions, ExpOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_TopKV2Options, TopKV2OptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_SplitOptions, SplitOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_LogSoftmaxOptions,
+            LogSoftmaxOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_CastOptions, CastOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_DequantizeOptions,
+            DequantizeOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_MaximumMinimumOptions,
+            MaximumMinimumOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_ArgMaxOptions, ArgMaxOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_LessOptions, LessOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_NegOptions, NegOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_PadV2Options, PadV2OptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_GreaterOptions,
+            GreaterOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_GreaterEqualOptions,
+            GreaterEqualOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_LessEqualOptions,
+            LessEqualOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_SelectOptions, SelectOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_SliceOptions, SliceOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_TransposeConvOptions,
+            TransposeConvOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_SparseToDenseOptions,
+            SparseToDenseOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_TileOptions, TileOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_ExpandDimsOptions,
+            ExpandDimsOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_EqualOptions, EqualOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_NotEqualOptions,
+            NotEqualOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_ShapeOptions, ShapeOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_PowOptions, PowOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_ArgMinOptions, ArgMinOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_FakeQuantOptions,
+            FakeQuantOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_PackOptions, PackOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_LogicalOrOptions,
+            LogicalOrOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_OneHotOptions, OneHotOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_LogicalAndOptions,
+            LogicalAndOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_LogicalNotOptions,
+            LogicalNotOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_UnpackOptions, UnpackOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_FloorDivOptions,
+            FloorDivOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_SquareOptions, SquareOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_ZerosLikeOptions,
+            ZerosLikeOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_FillOptions, FillOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_BidirectionalSequenceLSTMOptions,
+            BidirectionalSequenceLSTMOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_BidirectionalSequenceRNNOptions,
+            BidirectionalSequenceRNNOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_UnidirectionalSequenceLSTMOptions,
+            UnidirectionalSequenceLSTMOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_FloorModOptions,
+            FloorModOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_RangeOptions, RangeOptionsT);
+        compare!(
+            BuiltinOptions::BuiltinOptions_ResizeNearestNeighborOptions,
+            ResizeNearestNeighborOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_LeakyReluOptions,
+            LeakyReluOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_SquaredDifferenceOptions,
+            SquaredDifferenceOptionsT
+        );
+        compare!(
+            BuiltinOptions::BuiltinOptions_MirrorPadOptions,
+            MirrorPadOptionsT
+        );
+        compare!(BuiltinOptions::BuiltinOptions_AbsOptions, AbsOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_SplitVOptions, SplitVOptionsT);
+        return false;
+    }
+}
+
+impl Eq for BuiltinOptionsUnion {}
 
 macro_rules! add_impl_options {
     ($($t:ty,)*) => ($(
@@ -162,7 +424,7 @@ add_impl_options! {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct OperatorT {
     _vtable: NativeTable,
     pub opcode_index: u32,
@@ -175,7 +437,7 @@ pub struct OperatorT {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct OperatorCodeT {
     _vtable: NativeTable,
     pub builtin_code: BuiltinOperator,
@@ -290,7 +552,7 @@ pub struct Model(UniquePtr<ModelT>);
 
 impl Clone for Model {
     fn clone(&self) -> Self {
-        Self::from_buffer(&self.to_buffer())
+        Self::from_buffer(&self.to_buffer()).unwrap()
     }
 }
 
@@ -315,9 +577,9 @@ impl fmt::Debug for Model {
 }
 
 impl Model {
-    pub fn from_buffer(buffer: &[u8]) -> Self {
+    pub fn from_buffer(buffer: &[u8]) -> Option<Self> {
         let buffer = buffer.as_ptr();
-        let mut model = unsafe { mem::zeroed() };
+        let mut model: UniquePtr<ModelT> = unsafe { mem::zeroed() };
         let model_ref = &mut model;
         unsafe {
             cpp!([buffer as "const void*", model_ref as "std::unique_ptr<ModelT>*"] {
@@ -325,14 +587,18 @@ impl Model {
                 new (model_ref) std::unique_ptr<ModelT>(model);
             });
         }
-        Self(model)
+        if model.is_valid() {
+            Some(Self(model))
+        } else {
+            None
+        }
     }
 
     pub fn from_file<P: AsRef<Path>>(filepath: P) -> Fallible<Self> {
         let mut buf = Vec::new();
         File::open(filepath.as_ref())?.read_to_end(&mut buf)?;
 
-        Ok(Self::from_buffer(&buf))
+        Ok(Self::from_buffer(&buf).ok_or_else(|| format_err!("unpacking model failed."))?)
     }
 
     pub fn to_buffer(&self) -> Vec<u8> {
@@ -444,7 +710,7 @@ mod tests {
         }
 
         let model_buffer = model.to_buffer();
-        let model = Model::from_buffer(&model_buffer);
+        let model = Model::from_buffer(&model_buffer).unwrap();
         assert_eq!(model.version, 2);
         assert_eq!(model.operator_codes.size(), 4);
         assert_eq!(model.subgraphs.size(), 1);
@@ -485,53 +751,109 @@ mod tests {
             .chain(source_operator.outputs.iter())
             .map(|&tensor_index| source_subgraph.tensors[tensor_index as usize].clone());
 
-        let mut model = Model::default();
-        model.version = source_model.version;
-        model.description.assign(&source_model.description);
-        model.buffers.assign(
-            tensors
-                .clone()
-                .map(|tensor| source_model.buffers[tensor.buffer as usize].clone()),
-        );
-        model
-            .operator_codes
-            .push_back(source_model.operator_codes[source_operator.opcode_index as usize].clone());
+        let model_buffer = {
+            let mut model = Model::default();
+            model.version = source_model.version;
+            model.description.assign(&source_model.description);
+            model.buffers.assign(
+                tensors
+                    .clone()
+                    .map(|tensor| source_model.buffers[tensor.buffer as usize].clone()),
+            );
+            model.operator_codes.push_back(
+                source_model.operator_codes[source_operator.opcode_index as usize].clone(),
+            );
 
-        let mut subgraph: UniquePtr<SubGraphT> = Default::default();
-        subgraph.tensors.assign(tensors);
-        let mut operator = source_operator.clone();
-        operator.opcode_index = 0;
-        let num_inputs = operator.inputs.len() as i32;
-        let num_outputs = operator.outputs.len() as i32;
-        operator.inputs.assign(0..num_inputs);
-        operator
-            .outputs
-            .assign(num_inputs..num_inputs + num_outputs);
-        subgraph.operators.push_back(operator);
-        subgraph
-            .inputs
-            .assign((0..num_inputs).filter(|&i| model.buffers[i as usize].data.is_empty()));
-        subgraph
-            .outputs
-            .assign(num_inputs..num_inputs + num_outputs);
-        model.subgraphs.push_back(subgraph);
+            let mut subgraph: UniquePtr<SubGraphT> = Default::default();
+            subgraph.tensors.assign(tensors);
+            for (i, tensor) in subgraph.tensors.iter_mut().enumerate() {
+                tensor.buffer = i as u32;
+            }
+            let mut operator = source_operator.clone();
+            operator.opcode_index = 0;
+            let num_inputs = operator.inputs.len() as i32;
+            let num_outputs = operator.outputs.len() as i32;
+            operator.inputs.assign(0..num_inputs);
+            operator
+                .outputs
+                .assign(num_inputs..num_inputs + num_outputs);
+            subgraph.operators.push_back(operator);
+            subgraph
+                .inputs
+                .assign((0..num_inputs).filter(|&i| model.buffers[i as usize].data.is_empty()));
+            subgraph
+                .outputs
+                .assign(num_inputs..num_inputs + num_outputs);
+            model.subgraphs.push_back(subgraph);
 
+            let subgraph = &model.subgraphs[0];
+            println!("{:?}", subgraph.inputs);
+            println!("{:?}", subgraph.outputs);
+
+            for operator in &subgraph.operators {
+                println!("{:?}", operator);
+            }
+
+            for tensor in &subgraph.tensors {
+                println!("{:?}", tensor);
+            }
+
+            for buffer in &model.buffers {
+                println!("{:?}", buffer);
+            }
+            model.to_buffer()
+        };
+
+        let model = Model::from_buffer(&model_buffer).unwrap();
         let subgraph = &model.subgraphs[0];
-        println!("{:?}", subgraph.inputs);
-        println!("{:?}", subgraph.outputs);
+        let operator = &subgraph.operators[0];
+        assert_eq!(model.version, 3);
+        assert_eq!(model.description, source_model.description);
+        assert_eq!(subgraph.inputs.as_slice(), &[0i32]);
+        assert_eq!(subgraph.outputs.as_slice(), &[3i32]);
+        assert_eq!(operator.inputs.as_slice(), &[0i32, 1, 2]);
+        assert_eq!(operator.outputs.as_slice(), &[3i32]);
+        assert_eq!(
+            model.operator_codes[operator.opcode_index as usize],
+            source_model.operator_codes[source_operator.opcode_index as usize]
+        );
+        assert_eq!(operator.builtin_options, source_operator.builtin_options);
+        assert_eq!(operator.custom_options, source_operator.custom_options);
+        assert_eq!(
+            operator.custom_options_format,
+            source_operator.custom_options_format
+        );
+        assert_eq!(
+            operator.mutating_variable_inputs,
+            source_operator.mutating_variable_inputs
+        );
 
-        for operator in &subgraph.operators {
-            println!("{:?}", operator);
-        }
+        let tensors: Vec<_> = operator
+            .inputs
+            .iter()
+            .chain(operator.outputs.iter())
+            .map(|&tensor_index| &subgraph.tensors[tensor_index as usize])
+            .collect();
 
-        for tensor in &subgraph.tensors {
-            println!("{:?}", tensor);
-        }
+        let source_tensors: Vec<_> = source_operator
+            .inputs
+            .iter()
+            .chain(source_operator.outputs.iter())
+            .map(|&tensor_index| &source_subgraph.tensors[tensor_index as usize])
+            .collect();
 
-        for buffer in &model.buffers {
-            println!("{:?}", buffer);
+        assert_eq!(tensors.len(), source_tensors.len());
+        for (tensor, source_tensor) in tensors.into_iter().zip(source_tensors.into_iter()) {
+            assert_eq!(tensor.shape, source_tensor.shape);
+            assert_eq!(tensor.typ, source_tensor.typ);
+            assert_eq!(tensor.name, source_tensor.name);
+            assert_eq!(tensor.quantization, source_tensor.quantization);
+            assert_eq!(tensor.is_variable, source_tensor.is_variable);
+            assert_eq!(
+                model.buffers[tensor.buffer as usize],
+                source_model.buffers[source_tensor.buffer as usize]
+            );
         }
-        model.to_file("test.tflite").unwrap();
     }
 
     #[test]
