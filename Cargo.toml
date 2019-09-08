@@ -33,4 +33,11 @@ tar = "0.4"
 
 [features]
 debug_tflite = [] # use "libtensorflow-lite.a" built in debug mode
+build_doc = []
 generate_model_apis = []
+
+[package.metadata.docs.rs]
+features = ["build_doc"]
+all-features = false
+no-default-features = true
+default-target = "x86_64-unknown-linux-gnu"

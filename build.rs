@@ -414,6 +414,7 @@ fn main() {
     }
 
     let tflite_src_dir = prepare_tensorflow_source();
+    #[cfg(not(feature = "build_doc"))]
     prepare_tensorflow_library(&tflite_src_dir);
     import_tflite_types(&tflite_src_dir);
     build_inline_cpp(&tflite_src_dir);
