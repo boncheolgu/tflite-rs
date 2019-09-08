@@ -406,11 +406,115 @@ cpp! {{{{
     Ok(())
 }
 
+fn generate_builtin_options_impl() -> Fallible<()> {
+    let mut file = File::create("src/model/builtin_options_impl.rs")?;
+    writeln!(
+        &mut file,
+        r#"
+use super::{{BuiltinOptions, BuiltinOptionsUnion, NativeTable}};
+"#
+    )?;
+
+    #[derive(BartDisplay)]
+    #[template = "data/builtin_options_impl.rs.template"]
+    struct BuiltinOptionsImpl<'a> {
+        name: &'a str,
+    }
+
+    let option_names = vec![
+        "Conv2DOptions",
+        "DepthwiseConv2DOptions",
+        "ConcatEmbeddingsOptions",
+        "LSHProjectionOptions",
+        "Pool2DOptions",
+        "SVDFOptions",
+        "RNNOptions",
+        "FullyConnectedOptions",
+        "SoftmaxOptions",
+        "ConcatenationOptions",
+        "AddOptions",
+        "L2NormOptions",
+        "LocalResponseNormalizationOptions",
+        "LSTMOptions",
+        "ResizeBilinearOptions",
+        "CallOptions",
+        "ReshapeOptions",
+        "SkipGramOptions",
+        "SpaceToDepthOptions",
+        "EmbeddingLookupSparseOptions",
+        "MulOptions",
+        "PadOptions",
+        "GatherOptions",
+        "BatchToSpaceNDOptions",
+        "SpaceToBatchNDOptions",
+        "TransposeOptions",
+        "ReducerOptions",
+        "SubOptions",
+        "DivOptions",
+        "SqueezeOptions",
+        "SequenceRNNOptions",
+        "StridedSliceOptions",
+        "ExpOptions",
+        "TopKV2Options",
+        "SplitOptions",
+        "LogSoftmaxOptions",
+        "CastOptions",
+        "DequantizeOptions",
+        "MaximumMinimumOptions",
+        "ArgMaxOptions",
+        "LessOptions",
+        "NegOptions",
+        "PadV2Options",
+        "GreaterOptions",
+        "GreaterEqualOptions",
+        "LessEqualOptions",
+        "SelectOptions",
+        "SliceOptions",
+        "TransposeConvOptions",
+        "SparseToDenseOptions",
+        "TileOptions",
+        "ExpandDimsOptions",
+        "EqualOptions",
+        "NotEqualOptions",
+        "ShapeOptions",
+        "PowOptions",
+        "ArgMinOptions",
+        "FakeQuantOptions",
+        "PackOptions",
+        "LogicalOrOptions",
+        "OneHotOptions",
+        "LogicalAndOptions",
+        "LogicalNotOptions",
+        "UnpackOptions",
+        "FloorDivOptions",
+        "SquareOptions",
+        "ZerosLikeOptions",
+        "FillOptions",
+        "BidirectionalSequenceLSTMOptions",
+        "BidirectionalSequenceRNNOptions",
+        "UnidirectionalSequenceLSTMOptions",
+        "FloorModOptions",
+        "RangeOptions",
+        "ResizeNearestNeighborOptions",
+        "LeakyReluOptions",
+        "SquaredDifferenceOptions",
+        "MirrorPadOptions",
+        "AbsOptions",
+        "SplitVOptions",
+    ];
+
+    for name in option_names {
+        writeln!(&mut file, "{}\n", &BuiltinOptionsImpl { name },)?;
+    }
+    Ok(())
+}
+
 fn main() {
     import_stl_types();
     if cfg!(feature = "generate_model_apis") {
         generate_memory_impl().unwrap();
         generate_vector_impl().unwrap();
+        generate_builtin_options_impl().unwrap();
     }
 
     let tflite_src_dir = prepare_tensorflow_source();
