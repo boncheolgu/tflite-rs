@@ -17,6 +17,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use failure::Fallible;
+use heck::CamelCase;
 
 const TFLITE_VERSION: &'static str = "1.13.2";
 
@@ -75,6 +76,15 @@ fn prepare_tensorflow_source() -> PathBuf {
             .current_dir(&tf_src_dir_inner)
             .status()
             .expect("failed to download tflite dependencies.");
+
+        // To make `NativeTable` polymorphic
+        Command::new("sed")
+            .arg("-i")
+            .arg("s/struct NativeTable {};/struct NativeTable { virtual ~NativeTable() {} };/g")
+            .arg("tensorflow/lite/tools/make/downloads/flatbuffers/include/flatbuffers/flatbuffers.h")
+            .current_dir(&tf_src_dir_inner)
+            .status()
+            .expect("failed to edit flatbuffers.h.");
 
         // To compile C files with -fPIC
         if env::var("CARGO_CFG_TARGET_OS").unwrap() == "linux" {
@@ -178,12 +188,15 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .opaque_type("tflite::OpResolver")
         .whitelist_type("TfLiteTensor")
         .opaque_type("std::string")
+        .opaque_type("flatbuffers::NativeTable")
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
         .blacklist_type("tflite::Interpreter_State")
         .default_enum_style(EnumVariation::Rust {
             non_exhaustive: false,
         })
+        .derive_partialeq(true)
+        .derive_eq(true)
         .header("csrc/tflite_wrapper.hpp")
         .clang_arg(format!("-I{}", tflite.as_ref().to_str().unwrap()))
         .clang_arg(format!(
@@ -219,7 +232,7 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
                 .join("tensorflow/lite/tools/make/downloads/flatbuffers/include"),
         )
         .flag("-fPIC")
-        .flag("-std=c++11")
+        .flag("-std=c++14")
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
         .debug(true)
@@ -239,9 +252,11 @@ fn import_stl_types() {
         .blacklist_type("std")
         .header("csrc/stl_wrapper.hpp")
         .layout_tests(false)
+        .derive_partialeq(true)
+        .derive_eq(true)
         .clang_arg("-x")
         .clang_arg("c++")
-        .clang_arg("-std=c++11");
+        .clang_arg("-std=c++14");
 
     let bindings = bindings
         .generate()
@@ -252,6 +267,51 @@ fn import_stl_types() {
     bindings
         .write_to_file(out_path)
         .expect("Couldn't write bindings!");
+}
+
+fn generate_memory_impl() -> Fallible<()> {
+    let mut file = File::create("src/model/stl/memory_impl.rs")?;
+    writeln!(
+        &mut file,
+        r#"
+use std::{{fmt, mem}};
+use std::ops::{{Deref, DerefMut}};
+
+use crate::model::stl::memory::UniquePtr;
+"#
+    )?;
+
+    #[derive(BartDisplay)]
+    #[template = "data/memory_basic_impl.rs.template"]
+    struct MemoryBasicImpl<'a> {
+        cpp_type: &'a str,
+        rust_type: &'a str,
+    }
+
+    let memory_types = vec![
+        ("OperatorCodeT", "crate::model::OperatorCodeT"),
+        ("TensorT", "crate::model::TensorT"),
+        ("OperatorT", "crate::model::OperatorT"),
+        ("SubGraphT", "crate::model::SubGraphT"),
+        ("BufferT", "crate::model::BufferT"),
+        (
+            "QuantizationParametersT",
+            "crate::model::QuantizationParametersT",
+        ),
+        ("ModelT", "crate::model::ModelT"),
+    ];
+
+    for (cpp_type, rust_type) in memory_types {
+        writeln!(
+            &mut file,
+            "{}\n",
+            &MemoryBasicImpl {
+                cpp_type,
+                rust_type,
+            },
+        )?;
+    }
+    Ok(())
 }
 
 fn generate_vector_impl() -> Fallible<()> {
@@ -265,13 +325,43 @@ use std::ops::{{Deref, DerefMut, Index, IndexMut}};
 use libc::size_t;
 
 use super::memory::UniquePtr;
-use super::vector::{{Vector, VectorErase, VectorExtract, VectorInsert, VectorSlice}};
+use super::vector::{{VectorOfUniquePtr, VectorErase, VectorExtract, VectorInsert, VectorSlice}};
+use crate::model::stl::bindings::root::rust::dummy_vector;
 
 cpp! {{{{
     #include <vector>
 }}}}
 "#
     )?;
+
+    #[derive(BartDisplay)]
+    #[template = "data/vector_primitive_impl.rs.template"]
+    #[allow(non_snake_case)]
+    struct VectorPrimitiveImpl<'a> {
+        cpp_type: &'a str,
+        rust_type: &'a str,
+        RustType: &'a str,
+    }
+
+    let vector_types = vec![
+        ("uint8_t", "u8"),
+        ("int32_t", "i32"),
+        ("int64_t", "i64"),
+        ("float", "f32"),
+    ];
+
+    for (cpp_type, rust_type) in vector_types {
+        let rust_type_camel_case = rust_type.to_camel_case();
+        writeln!(
+            &mut file,
+            "{}\n",
+            &VectorPrimitiveImpl {
+                cpp_type,
+                rust_type,
+                RustType: &rust_type_camel_case,
+            },
+        )?;
+    }
 
     #[derive(BartDisplay)]
     #[template = "data/vector_basic_impl.rs.template"]
@@ -281,10 +371,6 @@ cpp! {{{{
     }
 
     let vector_types = vec![
-        ("uint8_t", "u8"),
-        ("int32_t", "i32"),
-        ("int64_t", "i64"),
-        ("float", "f32"),
         (
             "std::unique_ptr<OperatorCodeT>",
             "UniquePtr<crate::model::OperatorCodeT>",
@@ -323,6 +409,7 @@ cpp! {{{{
 fn main() {
     import_stl_types();
     if cfg!(feature = "generate_model_apis") {
+        generate_memory_impl().unwrap();
         generate_vector_impl().unwrap();
     }
 

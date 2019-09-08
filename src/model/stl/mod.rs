@@ -1,4 +1,5 @@
 pub mod memory;
+pub mod memory_impl;
 pub mod string;
 #[macro_use]
 pub mod vector;

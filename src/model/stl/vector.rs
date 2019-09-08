@@ -1,11 +1,9 @@
 use std::marker::PhantomData;
-use std::ops::{Index, IndexMut};
-use std::slice;
-
-use libc::size_t;
+use std::{mem, slice};
 
 use super::bindings::root::rust::*;
 use super::memory::UniquePtr;
+pub use super::vector_impl::{VectorOfF32, VectorOfI32, VectorOfI64, VectorOfU8};
 
 #[repr(C)]
 pub struct Vector<T>(dummy_vector, PhantomData<T>);
@@ -167,39 +165,144 @@ pub trait VectorExtract<T>: VectorErase {
 #[derive(Debug)]
 pub struct VectorOfBool(vector_of_bool);
 
-#[repr(C)]
-#[derive(Debug)]
-pub struct VectorOfUniquePtr<T>(dummy_vector, PhantomData<T>);
-
-#[derive(Debug)]
-pub struct InnerIndex(pub usize);
-
-impl<T> Index<InnerIndex> for Vector<UniquePtr<T>> {
-    type Output = T;
-
-    fn index(&self, index: InnerIndex) -> &Self::Output {
-        let index = index.0 as size_t;
+impl Default for VectorOfBool {
+    fn default() -> Self {
+        let mut this = unsafe { mem::zeroed() };
+        let this_ref = &mut this;
         unsafe {
-            let ptr = cpp!([self as "const std::vector<std::unique_ptr<void>>*", index as "size_t"]
-                            -> *const crate::model::OperatorCodeT as "const void*" {
-                return (*self)[index].get();
-            }) as *const Self::Output;
+            cpp!([this_ref as "std::vector<bool>*"] {
+                new (this_ref) const std::vector<bool>;
+            })
+        }
+        this
+    }
+}
 
-            ptr.as_ref().unwrap()
+impl Drop for VectorOfBool {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<bool>*"] {
+                self->~vector<bool>();
+            })
         }
     }
 }
 
-impl<T> IndexMut<InnerIndex> for Vector<UniquePtr<T>> {
-    fn index_mut(&mut self, index: InnerIndex) -> &mut Self::Output {
-        let index = index.0 as size_t;
+impl Clone for VectorOfBool {
+    fn clone(&self) -> Self {
+        let mut cloned = unsafe { mem::zeroed() };
+        let cloned_ref = &mut cloned;
         unsafe {
-            let ptr = cpp!([self as "std::vector<std::unique_ptr<void>>*", index as "size_t"]
-                            -> *mut crate::model::OperatorCodeT as "void*" {
-                return (*self)[index].get();
-            }) as *mut Self::Output;
-
-            ptr.as_mut().unwrap()
+            cpp!([self as "const std::vector<bool>*", cloned_ref as "std::vector<bool>*"] {
+                new (cloned_ref) std::vector<bool>(*self);
+            });
         }
+        cloned
+    }
+}
+
+impl PartialEq for VectorOfBool {
+    fn eq(&self, other: &Self) -> bool {
+        if self.size() != other.size() {
+            return false;
+        }
+        self.iter().zip(other.iter()).all(|(x, y)| x == y)
+    }
+}
+
+impl Eq for VectorOfBool {}
+
+impl VectorOfBool {
+    pub fn get(&self, index: usize) -> bool {
+        unsafe {
+            cpp!([self as "const std::vector<bool>*", index as "size_t"] -> bool as "bool" {
+                return (*self)[index];
+            })
+        }
+    }
+
+    pub fn set(&mut self, index: usize, v: bool) {
+        unsafe {
+            cpp!([self as "std::vector<bool>*", index as "size_t", v as "bool"] {
+                (*self)[index] = v;
+            })
+        }
+    }
+
+    pub fn size(&self) -> usize {
+        unsafe {
+            cpp!([self as "const std::vector<bool>*"] -> usize as "size_t" {
+                return self->size();
+            })
+        }
+    }
+
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = bool> + 'a {
+        (0..self.size()).map(move |i| self.get(i))
+    }
+}
+
+#[repr(C)]
+pub struct VectorOfUniquePtr<T>(dummy_vector, PhantomData<T>);
+
+impl<T> PartialEq for VectorOfUniquePtr<T>
+where
+    Self: VectorSlice<Item = UniquePtr<T>>,
+    UniquePtr<T>: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
+impl<T> Eq for VectorOfUniquePtr<T>
+where
+    Self: VectorSlice<Item = UniquePtr<T>>,
+    UniquePtr<T>: Eq,
+{
+}
+
+impl<T> Drop for VectorOfUniquePtr<T> {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!([self as "const std::vector<std::unique_ptr<flatbuffers::NativeTable>>*"] {
+                self->~vector<std::unique_ptr<flatbuffers::NativeTable>>();
+            })
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::model::stl::memory::UniquePtr;
+    use crate::model::BufferT;
+
+    #[test]
+    fn unittest_vector_default() {
+        let mut vs = VectorOfU8::default();
+        assert_eq!(vs.size(), 0);
+
+        vs.push_back(9);
+        vs.push_back(10);
+        assert_eq!(vs.size(), 2);
+        assert_eq!(vs.as_slice(), &[9u8, 10]);
+
+        let mut vs: VectorOfUniquePtr<BufferT> = VectorOfUniquePtr::default();
+        vs.push_back(UniquePtr::default());
+        vs.push_back(UniquePtr::default());
+        vs.push_back(UniquePtr::default());
+        assert_eq!(vs.size(), 3);
+    }
+
+    #[test]
+    fn unittest_vector_clone() {
+        let mut vs = VectorOfU8::default();
+        vs.assign(0u8..6);
+        assert_eq!(vs.size(), 6);
+
+        let cloned = vs.clone();
+        assert_eq!(vs.as_slice(), cloned.as_slice());
     }
 }

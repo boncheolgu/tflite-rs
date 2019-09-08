@@ -1,0 +1,45 @@
+impl Default for UniquePtr<{{{rust_type}}}> {
+    fn default() -> Self {
+        let mut this: Self = unsafe { mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::unique_ptr<{{{cpp_type}}}>*"] {
+                new (this_ref) std::unique_ptr<{{{cpp_type}}}>(new {{{cpp_type}}});
+            })
+        }
+        this
+    }
+}
+
+impl Deref for UniquePtr<{{{rust_type}}}> {
+    type Target = {{{rust_type}}};
+
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            let ptr = cpp!([self as "const std::unique_ptr<{{{cpp_type}}}>*"] -> *const {{{rust_type}}} as "const {{{cpp_type}}}*" {
+                return self->get();
+            }) as *const Self::Target;
+
+            ptr.as_ref().unwrap()
+        }
+    }
+}
+
+impl DerefMut for UniquePtr<{{{rust_type}}}> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe {
+            let ptr = cpp!([self as "std::unique_ptr<{{{cpp_type}}}>*"] -> *mut {{{rust_type}}} as "{{{cpp_type}}}*" {
+                return self->get();
+            }) as *mut Self::Target;
+
+            ptr.as_mut().unwrap()
+        }
+    }
+}
+
+impl fmt::Debug for UniquePtr<{{{rust_type}}}>
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({:?})", self.deref())
+    }
+}
