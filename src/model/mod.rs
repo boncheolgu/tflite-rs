@@ -20,7 +20,9 @@ use stl::vector::{
 
 pub use crate::bindings::flatbuffers::NativeTable;
 pub use crate::bindings::tflite::*;
-pub use builtin_options::BuiltinOptionsUnion;
+pub use builtin_options::{
+    BuiltinOptionsUnion, ConcatEmbeddingsOptionsT, ReshapeOptionsT, SqueezeOptionsT,
+};
 pub use builtin_options_impl::*;
 
 #[repr(C)]
