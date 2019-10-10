@@ -224,16 +224,24 @@ impl fmt::Debug for Model {
 
 impl Model {
     pub fn from_buffer(buffer: &[u8]) -> Option<Self> {
+        let len = buffer.len();
         let buffer = buffer.as_ptr();
         let mut model: UniquePtr<ModelT> = unsafe { mem::zeroed() };
         let model_ref = &mut model;
-        unsafe {
-            cpp!([buffer as "const void*", model_ref as "std::unique_ptr<ModelT>*"] {
+        let r = unsafe {
+            cpp!([buffer as "const void*", len as "size_t", model_ref as "std::unique_ptr<ModelT>*"]
+                  -> bool as "bool" {
+                auto verifier = flatbuffers::Verifier((const uint8_t *)buffer, len);
+                if (!VerifyModelBuffer(verifier)) {
+                    return false;
+                }
+
                 auto model = tflite::GetModel(buffer)->UnPack();
                 new (model_ref) std::unique_ptr<ModelT>(model);
-            });
-        }
-        if model.is_valid() {
+                return true;
+            })
+        };
+        if r && model.is_valid() {
             Some(Self(model))
         } else {
             None
@@ -283,6 +291,8 @@ mod tests {
 
     #[test]
     fn flatbuffer_model_apis_inspect() {
+        assert!(Model::from_file("data.mnist10.bin").is_err());
+
         let model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
         assert_eq!(model.version, 3);
         assert_eq!(model.operator_codes.size(), 5);
