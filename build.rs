@@ -256,9 +256,8 @@ fn import_stl_types() {
         .derive_eq(true)
         .clang_arg("-x")
         .clang_arg("c++")
-        .clang_arg("-std=c++14");
-
-    let bindings = bindings
+        .clang_arg("-std=c++14")
+        .clang_arg("-fms-extensions")
         .generate()
         .expect("Unable to generate STL bindings");
 
