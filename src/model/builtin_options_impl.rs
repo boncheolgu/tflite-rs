@@ -1,4 +1,3 @@
-
 use super::{BuiltinOptions, BuiltinOptionsUnion, NativeTable};
 
 impl BuiltinOptionsUnion {
@@ -17,7 +16,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn DepthwiseConv2DOptions() -> Self {
@@ -33,7 +31,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -51,7 +48,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn LSHProjectionOptions() -> Self {
@@ -67,7 +63,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -85,7 +80,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SVDFOptions() -> Self {
@@ -101,7 +95,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -119,7 +112,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn FullyConnectedOptions() -> Self {
@@ -135,7 +127,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -153,7 +144,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn ConcatenationOptions() -> Self {
@@ -169,7 +159,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -187,7 +176,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn L2NormOptions() -> Self {
@@ -203,7 +191,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -221,7 +208,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn LSTMOptions() -> Self {
@@ -237,7 +223,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -255,7 +240,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn CallOptions() -> Self {
@@ -271,7 +255,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -289,7 +272,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SkipGramOptions() -> Self {
@@ -305,7 +287,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -323,7 +304,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn EmbeddingLookupSparseOptions() -> Self {
@@ -339,7 +319,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -357,7 +336,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn PadOptions() -> Self {
@@ -373,7 +351,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -391,7 +368,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn BatchToSpaceNDOptions() -> Self {
@@ -407,7 +383,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -425,7 +400,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn TransposeOptions() -> Self {
@@ -441,7 +415,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -459,7 +432,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SubOptions() -> Self {
@@ -475,7 +447,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -493,7 +464,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SqueezeOptions() -> Self {
@@ -509,7 +479,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -527,7 +496,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn StridedSliceOptions() -> Self {
@@ -543,7 +511,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -561,7 +528,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn TopKV2Options() -> Self {
@@ -577,7 +543,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -595,7 +560,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn LogSoftmaxOptions() -> Self {
@@ -611,7 +575,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -629,7 +592,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn DequantizeOptions() -> Self {
@@ -645,7 +607,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -663,7 +624,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn ArgMaxOptions() -> Self {
@@ -679,7 +639,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -697,7 +656,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn NegOptions() -> Self {
@@ -713,7 +671,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -731,7 +688,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn GreaterOptions() -> Self {
@@ -747,7 +703,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -765,7 +720,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn LessEqualOptions() -> Self {
@@ -781,7 +735,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -799,7 +752,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SliceOptions() -> Self {
@@ -815,7 +767,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -833,7 +784,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SparseToDenseOptions() -> Self {
@@ -849,7 +799,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -867,7 +816,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn ExpandDimsOptions() -> Self {
@@ -883,7 +831,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -901,7 +848,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn NotEqualOptions() -> Self {
@@ -917,7 +863,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -935,7 +880,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn PowOptions() -> Self {
@@ -951,7 +895,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -969,7 +912,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn FakeQuantOptions() -> Self {
@@ -985,7 +927,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1003,7 +944,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn LogicalOrOptions() -> Self {
@@ -1019,7 +959,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1037,7 +976,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn LogicalAndOptions() -> Self {
@@ -1053,7 +991,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1071,7 +1008,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn UnpackOptions() -> Self {
@@ -1087,7 +1023,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1105,7 +1040,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SquareOptions() -> Self {
@@ -1121,7 +1055,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1139,7 +1072,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn FillOptions() -> Self {
@@ -1155,7 +1087,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1173,7 +1104,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn BidirectionalSequenceRNNOptions() -> Self {
@@ -1189,7 +1119,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1207,7 +1136,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn FloorModOptions() -> Self {
@@ -1223,7 +1151,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1241,7 +1168,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn ResizeNearestNeighborOptions() -> Self {
@@ -1257,7 +1183,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1275,7 +1200,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SquaredDifferenceOptions() -> Self {
@@ -1291,7 +1215,6 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
@@ -1309,7 +1232,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn AbsOptions() -> Self {
@@ -1326,7 +1248,6 @@ impl BuiltinOptionsUnion {
     }
 }
 
-
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case)]
     pub fn SplitVOptions() -> Self {
@@ -1342,5 +1263,3 @@ impl BuiltinOptionsUnion {
         }
     }
 }
-
-

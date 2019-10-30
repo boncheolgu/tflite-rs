@@ -267,7 +267,7 @@ impl Model {
                 uint8_t* ptr = fbb.GetBufferPointer();
                 size_t size = fbb.GetSize();
                 rust!(ModelT_to_file [ptr: *const u8 as "const uint8_t*", size: size_t as "size_t", buffer_ptr: &mut Vec<u8> as "void*"] {
-                    buffer_ptr.extend_from_slice(&slice::from_raw_parts(ptr, size));
+                    unsafe { buffer_ptr.extend_from_slice(&slice::from_raw_parts(ptr, size)) };
                 });
             })
         }
