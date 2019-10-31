@@ -1,5 +1,6 @@
-use std::ops::{Deref, DerefMut};
+
 use std::{fmt, mem};
+use std::ops::{Deref, DerefMut};
 
 use crate::model::stl::memory::UniquePtr;
 
@@ -42,11 +43,13 @@ impl DerefMut for UniquePtr<crate::model::OperatorCodeT> {
     }
 }
 
-impl fmt::Debug for UniquePtr<crate::model::OperatorCodeT> {
+impl fmt::Debug for UniquePtr<crate::model::OperatorCodeT>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
 }
+
 
 impl Default for UniquePtr<crate::model::TensorT> {
     fn default() -> Self {
@@ -87,11 +90,13 @@ impl DerefMut for UniquePtr<crate::model::TensorT> {
     }
 }
 
-impl fmt::Debug for UniquePtr<crate::model::TensorT> {
+impl fmt::Debug for UniquePtr<crate::model::TensorT>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
 }
+
 
 impl Default for UniquePtr<crate::model::OperatorT> {
     fn default() -> Self {
@@ -132,11 +137,13 @@ impl DerefMut for UniquePtr<crate::model::OperatorT> {
     }
 }
 
-impl fmt::Debug for UniquePtr<crate::model::OperatorT> {
+impl fmt::Debug for UniquePtr<crate::model::OperatorT>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
 }
+
 
 impl Default for UniquePtr<crate::model::SubGraphT> {
     fn default() -> Self {
@@ -177,11 +184,13 @@ impl DerefMut for UniquePtr<crate::model::SubGraphT> {
     }
 }
 
-impl fmt::Debug for UniquePtr<crate::model::SubGraphT> {
+impl fmt::Debug for UniquePtr<crate::model::SubGraphT>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
 }
+
 
 impl Default for UniquePtr<crate::model::BufferT> {
     fn default() -> Self {
@@ -222,11 +231,13 @@ impl DerefMut for UniquePtr<crate::model::BufferT> {
     }
 }
 
-impl fmt::Debug for UniquePtr<crate::model::BufferT> {
+impl fmt::Debug for UniquePtr<crate::model::BufferT>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
 }
+
 
 impl Default for UniquePtr<crate::model::QuantizationParametersT> {
     fn default() -> Self {
@@ -267,11 +278,13 @@ impl DerefMut for UniquePtr<crate::model::QuantizationParametersT> {
     }
 }
 
-impl fmt::Debug for UniquePtr<crate::model::QuantizationParametersT> {
+impl fmt::Debug for UniquePtr<crate::model::QuantizationParametersT>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
 }
+
 
 impl Default for UniquePtr<crate::model::ModelT> {
     fn default() -> Self {
@@ -312,8 +325,11 @@ impl DerefMut for UniquePtr<crate::model::ModelT> {
     }
 }
 
-impl fmt::Debug for UniquePtr<crate::model::ModelT> {
+impl fmt::Debug for UniquePtr<crate::model::ModelT>
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
 }
+
+
