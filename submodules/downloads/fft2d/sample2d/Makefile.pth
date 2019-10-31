@@ -1,0 +1,54 @@
+# ---- for GNU gcc ----
+
+CC = gcc
+
+CFLAGS = -Wall -DUSE_FFT2D_PTHREADS -DUSE_FFT3D_PTHREADS
+
+OFLAGS = -O2
+
+# ---- for SUN WS cc ----
+#
+#CC = cc
+#
+#CFLAGS = -Wall -DUSE_FFT2D_PTHREADS -DUSE_FFT3D_PTHREADS
+#
+#OFLAGS = -xO2
+
+
+
+
+all: fftsg2dt_pt fftsg3dt_pt
+
+
+fftsg2dt_pt : fftsg2dt.o fftsg2dpt.o fftsg.o alloc.o
+	$(CC) fftsg2dt.o fftsg2dpt.o fftsg.o alloc.o -lm -lpthread -o fftsg2dt_pt
+
+fftsg3dt_pt : fftsg3dt.o fftsg3dpt.o fftsg.o alloc.o
+	$(CC) fftsg3dt.o fftsg3dpt.o fftsg.o alloc.o -lm -lpthread -o fftsg3dt_pt
+
+
+fftsg2dt.o : fftsg2dt.c
+	$(CC) $(CFLAGS) $(OFLAGS) -c fftsg2dt.c -o fftsg2dt.o
+
+fftsg3dt.o : fftsg3dt.c
+	$(CC) $(CFLAGS) $(OFLAGS) -c fftsg3dt.c -o fftsg3dt.o
+
+
+fftsg2dpt.o : ../fftsg2d.c
+	$(CC) $(CFLAGS) $(OFLAGS) -c ../fftsg2d.c -o fftsg2dpt.o
+
+fftsg3dpt.o : ../fftsg3d.c
+	$(CC) $(CFLAGS) $(OFLAGS) -c ../fftsg3d.c -o fftsg3dpt.o
+
+fftsg.o : ../fftsg.c
+	$(CC) $(CFLAGS) $(OFLAGS) -c ../fftsg.c -o fftsg.o
+
+alloc.o : ../alloc.c
+	$(CC) $(CFLAGS) $(OFLAGS) -c ../alloc.c -o alloc.o
+
+
+
+
+clean:
+	rm -f *.o
+

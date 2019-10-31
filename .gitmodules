@@ -1,24 +1,3 @@
 [submodule "submodules/tensorflow"]
 	path = submodules/tensorflow
 	url = https://github.com/tensorflow/tensorflow.git
-[submodule "submodules/tflite-deps/eigen"]
-	path = submodules/tflite-deps/eigen
-	url = https://github.com/eigenteam/eigen-git-mirror
-[submodule "submodules/tflite-deps/gemmlowp"]
-	path = submodules/tflite-deps/gemmlowp
-	url = https://github.com/google/gemmlowp
-[submodule "submodules/tflite-deps/absl"]
-	path = submodules/tflite-deps/absl
-	url = https://github.com/abseil/abseil-cpp
-[submodule "submodules/tflite-deps/neon_2_sse"]
-	path = submodules/tflite-deps/neon_2_sse
-	url = https://github.com/intel/ARM_NEON_2_x86_SSE
-[submodule "submodules/tflite-deps/farmhash"]
-	path = submodules/tflite-deps/farmhash
-	url = https://github.com/google/farmhash
-[submodule "submodules/tflite-deps/flatbuffers"]
-	path = submodules/tflite-deps/flatbuffers
-	url = https://github.com/google/flatbuffers
-[submodule "submodules/tflite-deps/fft2d"]
-	path = submodules/tflite-deps/fft2d
-	url = https://github.com/biotrump/OouraFFT

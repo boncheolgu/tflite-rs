@@ -1,63 +1,22 @@
+#[cfg(feature = "generate_model_apis")]
 #[macro_use]
 extern crate bart_derive;
-extern crate bindgen;
-extern crate cpp_build;
-//extern crate curl;
-//extern crate failure;
-//extern crate flate2;
-//extern crate hex;
-//extern crate reqwest;
-//extern crate sha2;
-//extern crate tar;
 
 use std::env;
-use std::fs::{self, File};
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use fs_extra::dir::CopyOptions;
+use std::path::{PathBuf, Path};
 
-//use failure::Fallible;
-//use heck::CamelCase;
+fn submodules() -> PathBuf {
+    PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("submodules")
+}
 
-//const TFLITE_VERSION: &'static str = "1.13.2";
-//
-//fn is_valid_tf_src<P: AsRef<Path>>(filepath: P) -> bool {
-//    use sha2::{Digest, Sha256};
-//
-//    let mut sha256 = Sha256::new();
-//    sha256.input(&fs::read(filepath).unwrap());
-//    ::hex::encode(sha256.result())
-//        == "abe3bf0c47845a628b7df4c57646f41a10ee70f914f1b018a5c761be75e1f1a9"
-//}
-//
-//fn download<P: reqwest::IntoUrl, P2: AsRef<Path>>(source_url: P, target_file: P2) -> Fallible<()> {
-//    eprintln!("Downloading");
-//    let mut resp = reqwest::get(source_url)?;
-//    let f = fs::File::create(&target_file)?;
-//    let mut writer = ::std::io::BufWriter::new(f);
-//    resp.copy_to(&mut writer)?;
-//    Ok(())
-//}
-//
-//fn extract<P: AsRef<Path>, P2: AsRef<Path>>(archive_path: P, extract_to: P2) {
-//    use flate2::read::GzDecoder;
-//    use tar::Archive;
-//    eprintln!("extracting");
-//
-//    let file = fs::File::open(archive_path).unwrap();
-//    let unzipped = GzDecoder::new(file);
-//    let mut a = Archive::new(unzipped);
-//    a.unpack(extract_to).unwrap();
-//}
-
-fn prepare_tensorflow_source() -> Result<PathBuf, Box<dyn std::error::Error>> {
+#[cfg(feature = "build")]
+fn prepare_tensorflow_source() -> PathBuf {
+    println!("Building tflite");
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let tf_src_dir = out_dir.join("tensorflow");
-    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    eprintln!("Preparing tensorflow source in {:?}", tf_src_dir);
+    let tf_src_dir = out_dir.join("tensorflow/tensorflow");
+    let submodules = submodules();
 
-    let copy_dir = CopyOptions {
+    let copy_dir = fs_extra::dir::CopyOptions {
         overwrite: true,
         skip_exist: false,
         buffer_size: 65536,
@@ -65,170 +24,103 @@ fn prepare_tensorflow_source() -> Result<PathBuf, Box<dyn std::error::Error>> {
         depth: 0
     };
 
-    //    fs::create_dir(&tf_src_dir).unwrap_or_default();
-
-    //    let tf_src_name = tf_src_dir.join(format!("v{}.tar.gz", TFLITE_VERSION));
-    //    if !tf_src_name.exists() || !is_valid_tf_src(&tf_src_name) {
-    //        let tf_src_url = format!(
-    //            "https://codeload.github.com/tensorflow/tensorflow/tar.gz/v{}",
-    //            TFLITE_VERSION
-    //        );
-    //
-    //        download(&tf_src_url, &tf_src_name).unwrap();
-    //
-    //        assert!(
-    //            is_valid_tf_src(&tf_src_name),
-    //            "{} is not valid",
-    //            tf_src_name.to_str().unwrap()
-    //        );
-    //    }
-
-    //    let tf_src_dir_inner = tf_src_dir.join(format!("tensorflow-{}", TFLITE_VERSION));
     if !tf_src_dir.exists() {
-        std::fs::create_dir_all(&tf_src_dir)?;
-        eprintln!("Copying submodules/tensorflow");
-        fs_extra::dir::copy(manifest_dir.join("submodules/tensorflow/tensorflow"), &out_dir, &copy_dir)?;
-        fs_extra::dir::copy(manifest_dir.join("submodules/tensorflow/third_party"), &out_dir, &copy_dir)?;
+        fs_extra::dir::copy(submodules.join("tensorflow"), &out_dir, &copy_dir)
+            .expect("Unable to copy tensorflow");
     }
 
     let download_dir = tf_src_dir.join("lite/tools/make/downloads");
-    std::fs::remove_dir(&download_dir).ok();
     if !download_dir.exists() {
-        std::fs::create_dir_all(&download_dir)?;
-        eprintln!("Copying submodules/tflite-deps");
-
-        std::fs::read_dir(manifest_dir.join("submodules/tflite-deps/"))?.try_for_each(|de| {
-            let path = de?.path();
-            if !path.ends_with("replacements") {
-                eprintln!("Copying {:?} to {:?}", path, &download_dir);
-                fs_extra::dir::copy(path, &download_dir, &copy_dir).map(|_| ())
-            } else {
-                Ok(())
-            }
-        })?;
-
-        std::fs::read_dir(manifest_dir.join("submodules/tflite-deps/replacements"))?.try_for_each(|de| {
-            let path = de?.path();
-            eprintln!("Copying {:?} to {:?}", path, &download_dir);
-            fs_extra::dir::copy(path, &download_dir, &copy_dir).map(|_| ())
-        })?;
-//        eprintln!("Copying submodules/tflite-deps/replacements");
-//        fs_extra::dir::copy(
-//            manifest_dir.join("submodules/tflite-deps/replacements"),
-//            download_dir.as_path(),
-//            &copy_inside_dir
-//        )?;
+        fs_extra::dir::copy(submodules.join("downloads"), download_dir.parent().unwrap(), &copy_dir)
+            .expect("Unable to copy downloads");
+        let flat_h_path = download_dir.join("flatbuffers/include/flatbuffers/flatbuffers.h");
+        let flat_h = std::fs::read_to_string(&flat_h_path).expect("Unable to read flatbuffers.h");
+        std::fs::write(&flat_h_path, flat_h.replace(
+            "struct NativeTable {};",
+            "struct NativeTable { virtual ~NativeTable() {} };"
+        )).expect("Unable to write flatbuffers.h");
     }
-    //        extract(&tf_src_name, &tf_src_dir);
 
-    //        dbg!(Command::new("tensorflow/lite/tools/make/download_dependencies.sh")
-    //            .current_dir(&tf_src_dir_inner)
-    //            .status()
-    //            .expect("failed to download tflite dependencies."));
-
-    // To make `NativeTable` polymorphic
-//    Command::new("sed")
-//        .arg("-i")
-//        .arg("s/struct NativeTable {};/struct NativeTable { virtual ~NativeTable() {} };/g")
-//        .arg("lite/tools/make/downloads/flatbuffers/include/flatbuffers/flatbuffers.h")
-//        .current_dir(&tf_src_dir)
-//        .status()
-//        .expect("failed to edit flatbuffers.h.");
-
-    let flat_h_path = download_dir.join("flatbuffers/include/flatbuffers/flatbuffers.h");
-    let flat_h = std::fs::read_to_string(&flat_h_path)?;
-    std::fs::write(&flat_h_path, flat_h.replace(
-        "struct NativeTable {};",
-        "struct NativeTable { virtual ~NativeTable() {} };"
-    ))?;
-
-
-    // No longer needed
-    //        // To compile C files with -fPIC
-    //        if env::var("CARGO_CFG_TARGET_OS").unwrap() == "linux" {
-    //            dbg!(fs::copy(
-    //                "data/linux_makefile.inc",
-    //                tf_src_dir_inner.join("tensorflow/lite/tools/make/targets/linux_makefile.inc"),
-    //            )
-    //              .expect("Unable to copy linux makefile"));
-    //        }
-    //        // To allow for cross-compiling to aarch64
-    //        if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "aarch64" {
-    //            dbg!(fs::copy(
-    //                "data/aarch64_makefile.inc",
-    //                tf_src_dir_inner.join("tensorflow/lite/tools/make/targets/aarch64_makefile.inc"),
-    //            )
-    //              .expect("Unable to copy aarch64 makefile"));
-    //        }
 
     #[cfg(feature = "debug_tflite")]
     {
-        Command::new("sed")
+        std::process::Command::new("sed")
             .arg("-i")
             .arg("54s/.*/CXXFLAGS := -O0 -g/")
             .arg("tensorflow/lite/tools/make/Makefile")
             .current_dir(&tf_src_dir_inner)
             .status()?;
-
-        // CFLAGS is set to CXXFLAGS by default
-        //            Command::new("sed")
-        //                .arg("-i")
-        //                .arg("58s/.*/CFLAGS := -O0 -g/")
-        //                .arg("tensorflow/lite/tools/make/Makefile")
-        //                .current_dir(&tf_src_dir_inner)
-        //                .status()?;
     }
 
-    Ok(tf_src_dir)
+    tf_src_dir
 }
 
-fn prepare_tensorflow_library<P: AsRef<Path>>(tflite: P) {
-    let tf_lib_name = PathBuf::from(env::var("OUT_DIR").unwrap()).join("libtensorflow-lite.a");
-    let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+fn prepare_tensorflow_library() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("Unable to get TARGET_ARCH");
-    if !tf_lib_name.exists() {
-        let mut make = Command::new("make");
-        if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
-            make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
-        };
 
-        make
-            .arg("-j")
-            // allow parallelism to be overridden
-            .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or(env::var("NUM_JOBS").unwrap_or_else(|_|"4".to_string())))
-            .arg("-f")
-            .arg("tensorflow/lite/tools/make/Makefile");
+    #[cfg(feature = "build")] {
+        let tflite = prepare_tensorflow_source();
+        let out_dir = env::var("OUT_DIR").unwrap();
+        let tf_lib_name = Path::new(&out_dir).join("libtensorflow-lite.a");
+        let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
+        if !tf_lib_name.exists() {
+            println!("Building tflite");
+            let mut make = std::process::Command::new("make");
+            if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
+                make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
+            };
             // Use cargo's cross-compilation information while building tensorflow
-        if &arch == "aarch64" {
             // Now that tensorflow has an aarch64_makefile.inc use theirs
-            make.arg(format!("TARGET={}", arch));
-        } else {
-            make.arg(format!("TARGET={}", os));
-        }
-        make
-            .arg(format!("TARGET_ARCH={}", arch))
-            .arg("micro")
-            .current_dir(tflite.as_ref().parent().unwrap())
-            .status()
-            .expect("failed to build tensorflow");
+            let target = if &arch == "aarch64" { &arch } else { &os };
 
-        // find library
-        let library = std::fs::read_dir(tflite.as_ref().join("lite/tools/make/gen"))
-            .expect("Make gen file should exist")
-            .filter_map(|de|Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
-            .find(|p|p.exists())
-            .expect("Unable to copy libtensorflow-lite.a");
-        fs::copy(&library,&tf_lib_name)
-            .expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
+            make
+              .arg(format!("TARGET={}", target)
+              .arg(format!("TARGET_ARCH={}", arch))
+              .arg("-j")
+              // allow parallelism to be overridden
+              .arg(env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or(env::var("NUM_JOBS").unwrap_or_else(|_| "4".to_string())))
+              .arg("-f")
+              .arg("tensorflow/lite/tools/make/Makefile")
+              .arg("micro")
+              .current_dir(tflite.parent().unwrap());
+            eprintln!("make command = {:?}", make);
+            make
+              .status()
+              .expect("failed to build tensorflow");
+
+            // find library
+            let library = std::fs::read_dir(tflite.join("lite/tools/make/gen"))
+              .expect("Make gen file should exist")
+              .filter_map(|de| Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
+              .find(|p| p.exists())
+              .expect("Unable to find libtensorflow-lite.a");
+            std::fs::copy(&library, &tf_lib_name)
+              .expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
+        }
+        println!("cargo:rustc-link-search=native={}", out_dir);
+        println!("cargo:rustc-link-lib=static=tensorflow-lite");
     }
+    #[cfg(not(feature = "build"))] {
+        let arch_var = format!("TFLITE_{}_LIB_DIR", arch.replace("-", "_").to_uppercase());
+        let all_var = "TFLITE_LIB_DIR".to_string();
+        let lib_dir_str = env::var(&arch_var)
+            .or(env::var(&all_var))
+            .unwrap_or_else(|_|panic!("[feature = build] not set and environment variables {} and {} are not set", arch_var, all_var));
+        let lib_dir = Path::new(&lib_dir_str);
+        println!("cargo:rustc-link-search=native={}", lib_dir_str);
+        let static_dynamic = if lib_dir.join("libtensorflow-lite.a").exists() {"static"} else {"dylib"};
+        println!("cargo:rustc-link-search={}={}", static_dynamic, lib_dir_str);
+    }
+    println!("cargo:rustc-link-lib=dylib=pthread");
+    println!("cargo:rustc-link-lib=dylib=dl");
 }
 
 // This generates "tflite_types.rs" containing structs and enums which are inter-operable with Glow.
-fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
+fn import_tflite_types() {
     use bindgen::*;
 
-    eprintln!("Import tflite types");
-
+    let submodules = submodules();
+    let submodules_str = submodules.to_string_lossy();
     let bindings = Builder::default()
         .whitelist_recursively(true)
         .prepend_enum_name(false)
@@ -264,11 +156,8 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .derive_partialeq(true)
         .derive_eq(true)
         .header("csrc/tflite_wrapper.hpp")
-        .clang_arg(format!("-I{}", tflite.as_ref().to_str().unwrap()))
-        .clang_arg(format!(
-            "-I{}/tensorflow/lite/tools/make/downloads/flatbuffers/include",
-            tflite.as_ref().to_str().unwrap()
-        ))
+        .clang_arg(format!("-I{}/tensorflow", submodules_str))
+        .clang_arg(format!("-I{}/downloads/flatbuffers/include", submodules_str))
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
@@ -285,19 +174,14 @@ fn import_tflite_types<P: AsRef<Path>>(tflite: P) {
         .expect("Couldn't write bindings!");
 }
 
-fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
-    println!("cargo:rustc-link-lib=static=tensorflow-lite");
-    println!("cargo:rustc-link-lib=dylib=pthread");
-    println!("cargo:rustc-link-lib=dylib=dl");
-
-    eprintln!("build inline cpp");
+fn build_inline_cpp() {
+    let submodules = submodules();
 
     cpp_build::Config::new()
-        .include(tflite.as_ref())
+        .include(submodules.join("tensorflow"))
         .include(
-            tflite
-                .as_ref()
-                .join("tensorflow/lite/tools/make/downloads/flatbuffers/include"),
+            submodules
+                .join("downloads/flatbuffers/include"),
         )
         .flag("-fPIC")
         .flag("-std=c++14")
@@ -310,8 +194,6 @@ fn build_inline_cpp<P: AsRef<Path>>(tflite: P) {
 
 fn import_stl_types() {
     use bindgen::*;
-
-    eprintln!("import stl types");
 
     let bindings = Builder::default()
         .enable_cxx_namespaces()
@@ -338,9 +220,9 @@ fn import_stl_types() {
         .expect("Couldn't write bindings!");
 }
 
+#[cfg(feature = "generate_model_apis")]
 fn generate_memory_impl() -> Result<(), Box<dyn std::error::Error>> {
-    eprintln!("generate memory impl");
-    let mut file = File::create("src/model/stl/memory_impl.rs")?;
+    let mut file = std::fs::File::create("src/model/stl/memory_impl.rs")?;
     writeln!(
         &mut file,
         r#"
@@ -384,9 +266,9 @@ use crate::model::stl::memory::UniquePtr;
     Ok(())
 }
 
+#[cfg(feature = "generate_model_apis")]
 fn generate_vector_impl() -> Result<(), Box<dyn std::error::Error>> {
-    eprintln!("generate vector impl");
-    let mut file = File::create("src/model/stl/vector_impl.rs")?;
+    let mut file = std::fs::File::create("src/model/stl/vector_impl.rs")?;
     writeln!(
         &mut file,
         r#"
@@ -477,9 +359,9 @@ cpp! {{{{
     Ok(())
 }
 
+#[cfg(feature = "generate_model_apis")]
 fn generate_builtin_options_impl() -> Result<(), Box<dyn std::error::Error>> {
-    eprintln!("generate builtin options impl");
-    let mut file = File::create("src/model/builtin_options_impl.rs")?;
+    let mut file = std::fs::File::create("src/model/builtin_options_impl.rs")?;
     writeln!(
         &mut file,
         r#"
@@ -581,19 +463,14 @@ use super::{{BuiltinOptions, BuiltinOptionsUnion, NativeTable}};
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>>{
-    eprintln!("main");
+fn main() {
     import_stl_types();
-    if cfg!(feature = "generate_model_apis") {
+    #[cfg(feature = "generate_model_apis")] {
         generate_memory_impl().unwrap();
         generate_vector_impl().unwrap();
         generate_builtin_options_impl().unwrap();
     }
-
-    let tflite_src_dir = prepare_tensorflow_source()?;
-    #[cfg(not(feature = "build_doc"))]
-    prepare_tensorflow_library(&tflite_src_dir);
-    import_tflite_types(&tflite_src_dir);
-    build_inline_cpp(&tflite_src_dir);
-    Ok(())
+    import_tflite_types();
+    build_inline_cpp();
+    prepare_tensorflow_library();
 }
