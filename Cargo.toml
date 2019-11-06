@@ -2,13 +2,13 @@
 name = "tflite"
 version = "0.6.3"
 authors = ["Boncheol Gu <boncheol.gu@gmail.com>"]
-
 description = "Rust bindings for TensorFlow Lite"
 keywords = ["tensorflow", "tflite", "bindings"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/boncheolgu/tflite-rs"
 readme = "README.md"
 edition = "2018"
+documentation = "https://docs.rs/crate/tflite"
 
 [dependencies]
 cpp = "0.5"
@@ -26,7 +26,7 @@ fs_extra = { version = "1.1", optional = true }
 [features]
 build = ["fs_extra"]
 default = ["build"]
-debug_tflite = [] # use "libtensorflow-lite.a" built in debug mode
+debug_tflite = ["build"] # use "libtensorflow-lite.a" built in debug mode
 generate_model_apis = ["bart", "bart_derive"]
 
 [package.metadata.docs.rs]
