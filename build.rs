@@ -52,6 +52,18 @@ fn prepare_tensorflow_source() -> PathBuf {
             &copy_dir,
         )
         .expect("Unable to copy download dir");
+
+        let flatbuffers_h = download_dir.join("flatbuffers/include/flatbuffers/flatbuffers.h");
+        let flatbuffers =
+            std::fs::read_to_string(&flatbuffers_h).expect("Unable to read flatbuffers.h");
+        std::fs::write(
+            flatbuffers_h,
+            flatbuffers.replace(
+                "struct NativeTable { virtual ~NativeTable() {} };",
+                "struct NativeTable {};",
+            ),
+        )
+        .expect("Unable to write to flatbuffers.h");
     }
 
     println!("Moving source took {:?}", start.elapsed());
