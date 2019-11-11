@@ -4,14 +4,20 @@ extern crate bart_derive;
 
 use std::env;
 use std::path::{Path, PathBuf};
+use std::time::Instant;
+
+fn manifest_dir() -> PathBuf {
+    PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
+}
 
 fn submodules() -> PathBuf {
-    PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("submodules")
+    manifest_dir().join("submodules")
 }
 
 #[cfg(feature = "build")]
 fn prepare_tensorflow_source() -> PathBuf {
-    println!("Building tflite");
+    println!("Moving tflite source");
+    let start = Instant::now();
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let tf_src_dir = out_dir.join("tensorflow/tensorflow");
     let submodules = submodules();
@@ -27,6 +33,15 @@ fn prepare_tensorflow_source() -> PathBuf {
     if !tf_src_dir.exists() {
         fs_extra::dir::copy(submodules.join("tensorflow"), &out_dir, &copy_dir)
             .expect("Unable to copy tensorflow");
+
+        // TODO: remove these when we upgrade tensorflow far enough that they exist
+        for f in &["aarch64_makefile.inc", "linux_makefile.inc"] {
+            std::fs::copy(
+                manifest_dir().join("data").join(f),
+                tf_src_dir.join("lite/tools/make/targets").join(f),
+            )
+            .expect(&format!("Unable to copy makefile {}", f));
+        }
     }
 
     let download_dir = tf_src_dir.join("lite/tools/make/downloads");
@@ -36,18 +51,10 @@ fn prepare_tensorflow_source() -> PathBuf {
             download_dir.parent().unwrap(),
             &copy_dir,
         )
-        .expect("Unable to copy downloads");
-        let flat_h_path = download_dir.join("flatbuffers/include/flatbuffers/flatbuffers.h");
-        let flat_h = std::fs::read_to_string(&flat_h_path).expect("Unable to read flatbuffers.h");
-        std::fs::write(
-            &flat_h_path,
-            flat_h.replace(
-                "struct NativeTable {};",
-                "struct NativeTable { virtual ~NativeTable() {} };",
-            ),
-        )
-        .expect("Unable to write flatbuffers.h");
+        .expect("Unable to copy download dir");
     }
+
+    println!("Moving source took {:?}", start.elapsed());
 
     tf_src_dir
 }
@@ -63,6 +70,7 @@ fn prepare_tensorflow_library() {
         let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
         if !tf_lib_name.exists() {
             println!("Building tflite");
+            let start = Instant::now();
             let mut make = std::process::Command::new("make");
             if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
                 make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
@@ -77,16 +85,16 @@ fn prepare_tensorflow_library() {
                 let makefile = tflite.join("lite/tools/make/Makefile");
                 let makefile_contents =
                     std::fs::read_to_string(&makefile).expect("Unable to read Makefile");
-                println!("{}", makefile_contents);
                 let replaced = makefile_contents
-                    .replace("-O3", "-O0")
+                    .replace("-O3", "-Og -g")
                     .replace("-DNDEBUG", "");
-                println!("{}", replaced);
                 std::fs::write(&makefile, &replaced).expect("Unable to write Makefile");
-                if !replaced.contains("-O0") {
+                if !replaced.contains("-Og") {
                     panic!("Unable to change optimization settings");
                 }
             }
+
+            let make_dir = tflite.parent().unwrap();
 
             make.arg(format!("TARGET={}", target))
                 .arg(format!("TARGET_ARCH={}", arch))
@@ -94,14 +102,16 @@ fn prepare_tensorflow_library() {
                 // allow parallelism to be overridden
                 .arg(
                     env::var("TFLITE_RS_MAKE_PARALLELISM")
-                        .unwrap_or(env::var("NUM_JOBS").unwrap_or_else(|_| "4".to_string())),
+                        .unwrap_or(env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())),
                 )
                 .arg("-f")
                 .arg("tensorflow/lite/tools/make/Makefile")
                 .arg("micro")
-                .current_dir(tflite.parent().unwrap());
-            eprintln!("make command = {:?}", make);
-            make.status().expect("failed to build tensorflow");
+                .current_dir(make_dir);
+            eprintln!("make command = {:?} in dir  {:?}", make, make_dir);
+            if !make.status().expect("failed to run make command").success() {
+                panic!("Failed to build tensorflow");
+            }
 
             // find library
             let library = std::fs::read_dir(tflite.join("lite/tools/make/gen"))
@@ -111,6 +121,8 @@ fn prepare_tensorflow_library() {
                 .expect("Unable to find libtensorflow-lite.a");
             std::fs::copy(&library, &tf_lib_name)
                 .expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
+
+            println!("Building tflite from source took {:?}", start.elapsed());
         }
         println!("cargo:rustc-link-search=native={}", out_dir);
         println!("cargo:rustc-link-lib=static=tensorflow-lite");

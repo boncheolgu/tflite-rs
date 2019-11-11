@@ -119,21 +119,14 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  typedef StorageMemory<CoeffReturnType, Device> Storage;
-  typedef typename Storage::Type EvaluatorPointerType;
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     BlockAccess = false,
-    BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     RawAccess = false
   };
-
-  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
-  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : m_leftImpl(op.lhsExpression(), device), m_rightImpl(op.rhsExpression(), device), m_axis(op.axis())
@@ -188,7 +181,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   // TODO(phli): Add short-circuit memcpy evaluation if underlying data are linear?
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/)
   {
     m_leftImpl.evalSubExprsIfNeeded(NULL);
     m_rightImpl.evalSubExprsIfNeeded(NULL);
@@ -226,13 +219,11 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
       Index left_index;
       if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
         left_index = subs[0];
-        EIGEN_UNROLL_LOOP
         for (int i = 1; i < NumDims; ++i) {
           left_index += (subs[i] % left_dims[i]) * m_leftStrides[i];
         }
       } else {
         left_index = subs[NumDims - 1];
-        EIGEN_UNROLL_LOOP
         for (int i = NumDims - 2; i >= 0; --i) {
           left_index += (subs[i] % left_dims[i]) * m_leftStrides[i];
         }
@@ -244,13 +235,11 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
       Index right_index;
       if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
         right_index = subs[0];
-        EIGEN_UNROLL_LOOP
         for (int i = 1; i < NumDims; ++i) {
           right_index += (subs[i] % right_dims[i]) * m_rightStrides[i];
         }
       } else {
         right_index = subs[NumDims - 1];
-        EIGEN_UNROLL_LOOP
         for (int i = NumDims - 2; i >= 0; --i) {
           right_index += (subs[i] % right_dims[i]) * m_rightStrides[i];
         }
@@ -268,7 +257,6 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
     eigen_assert(index + packetSize - 1 < dimensions().TotalSize());
 
     EIGEN_ALIGN_MAX CoeffReturnType values[packetSize];
-    EIGEN_UNROLL_LOOP
     for (int i = 0; i < packetSize; ++i) {
       values[i] = coeff(index+i);
     }
@@ -291,15 +279,13 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
            TensorOpCost(0, 0, compute_cost);
   }
 
-  EIGEN_DEVICE_FUNC EvaluatorPointerType data() const { return NULL; }
-
-  #ifdef EIGEN_USE_SYCL
-  // binding placeholder accessors to a command group handler for SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
-    m_leftImpl.bind(cgh);
-    m_rightImpl.bind(cgh);
-  }
-  #endif
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<LeftArgType, Device>& left_impl() const { return m_leftImpl; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<RightArgType, Device>& right_impl() const { return m_rightImpl; }
+  /// required by sycl in order to extract the accessor
+  const Axis& axis() const { return m_axis; }
 
   protected:
     Dimensions m_dimensions;
@@ -323,15 +309,10 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
     IsAligned = false,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     BlockAccess = false,
-    BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     RawAccess = false
   };
-
-  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
-  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(XprType& op, const Device& device)
     : Base(op, device)

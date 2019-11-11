@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      https://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
 load(
     "//absl:copts/configure_copts.bzl",
     "ABSL_DEFAULT_COPTS",
-    "ABSL_DEFAULT_LINKOPTS",
     "ABSL_TEST_COPTS",
 )
 
@@ -34,7 +33,6 @@ cc_library(
     ],
     hdrs = ["stacktrace.h"],
     copts = ABSL_DEFAULT_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         ":debugging_internal",
         "//absl/base",
@@ -55,13 +53,11 @@ cc_library(
         "symbolize.h",
     ],
     copts = ABSL_DEFAULT_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         ":debugging_internal",
         ":demangle_internal",
         "//absl/base",
         "//absl/base:core_headers",
-        "//absl/base:dynamic_annotations",
         "//absl/base:malloc_internal",
     ],
 )
@@ -70,7 +66,6 @@ cc_test(
     name = "symbolize_test",
     srcs = ["symbolize_test.cc"],
     copts = ABSL_TEST_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         ":stack_consumption",
         ":symbolize",
@@ -90,7 +85,6 @@ cc_library(
         "internal/examine_stack.h",
     ],
     copts = ABSL_DEFAULT_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     visibility = ["//visibility:private"],
     deps = [
         ":stacktrace",
@@ -105,7 +99,6 @@ cc_library(
     srcs = ["failure_signal_handler.cc"],
     hdrs = ["failure_signal_handler.h"],
     copts = ABSL_DEFAULT_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         ":examine_stack",
         ":stacktrace",
@@ -122,7 +115,7 @@ cc_test(
     linkopts = select({
         "//absl:windows": [],
         "//conditions:default": ["-pthread"],
-    }) + ABSL_DEFAULT_LINKOPTS,
+    }),
     deps = [
         ":failure_signal_handler",
         ":stacktrace",
@@ -154,7 +147,6 @@ cc_library(
         "internal/vdso_support.h",
     ],
     copts = ABSL_DEFAULT_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         "//absl/base",
         "//absl/base:core_headers",
@@ -177,7 +169,6 @@ cc_test(
     name = "demangle_test",
     srcs = ["internal/demangle_test.cc"],
     copts = ABSL_TEST_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         ":demangle_internal",
         ":stack_consumption",
@@ -192,7 +183,6 @@ cc_library(
     name = "leak_check",
     srcs = ["leak_check.cc"],
     hdrs = ["leak_check.h"],
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = ["//absl/base:core_headers"],
 )
 
@@ -202,7 +192,6 @@ cc_library(
 cc_library(
     name = "leak_check_disable",
     srcs = ["leak_check_disable.cc"],
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     linkstatic = 1,
     alwayslink = 1,
 )
@@ -223,7 +212,6 @@ cc_library(
         "//absl:llvm_compiler": ["-DLEAK_SANITIZER"],
         "//conditions:default": [],
     }),
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     visibility = ["//visibility:private"],
 )
 
@@ -233,7 +221,6 @@ cc_library(
     srcs = ["leak_check.cc"],
     hdrs = ["leak_check.h"],
     copts = ["-ULEAK_SANITIZER"],
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     visibility = ["//visibility:private"],
 )
 
@@ -244,8 +231,7 @@ cc_test(
         "//absl:llvm_compiler": ["-DABSL_EXPECT_LEAK_SANITIZER"],
         "//conditions:default": [],
     }),
-    linkopts = ABSL_LSAN_LINKOPTS + ABSL_DEFAULT_LINKOPTS,
-    tags = ["notsan"],
+    linkopts = ABSL_LSAN_LINKOPTS,
     deps = [
         ":leak_check_api_enabled_for_testing",
         "//absl/base",
@@ -257,8 +243,6 @@ cc_test(
     name = "leak_check_no_lsan_test",
     srcs = ["leak_check_test.cc"],
     copts = ["-UABSL_EXPECT_LEAK_SANITIZER"],
-    linkopts = ABSL_DEFAULT_LINKOPTS,
-    tags = ["noasan"],
     deps = [
         ":leak_check_api_disabled_for_testing",
         "//absl/base",  # for raw_logging
@@ -273,8 +257,7 @@ cc_test(
 cc_test(
     name = "disabled_leak_check_test",
     srcs = ["leak_check_fail_test.cc"],
-    linkopts = ABSL_LSAN_LINKOPTS + ABSL_DEFAULT_LINKOPTS,
-    tags = ["notsan"],
+    linkopts = ABSL_LSAN_LINKOPTS,
     deps = [
         ":leak_check_api_enabled_for_testing",
         ":leak_check_disable",
@@ -289,7 +272,6 @@ cc_library(
     srcs = ["internal/stack_consumption.cc"],
     hdrs = ["internal/stack_consumption.h"],
     copts = ABSL_DEFAULT_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     visibility = ["//visibility:private"],
     deps = [
         "//absl/base",
@@ -301,7 +283,6 @@ cc_test(
     name = "stack_consumption_test",
     srcs = ["internal/stack_consumption_test.cc"],
     copts = ABSL_TEST_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         ":stack_consumption",
         "//absl/base",

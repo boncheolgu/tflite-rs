@@ -359,8 +359,7 @@ class redux_evaluator : public internal::evaluator<_XprType>
   typedef internal::evaluator<_XprType> Base;
 public:
   typedef _XprType XprType;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit redux_evaluator(const XprType &xpr) : Base(xpr) {}
+  EIGEN_DEVICE_FUNC explicit redux_evaluator(const XprType &xpr) : Base(xpr) {}
   
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
@@ -376,12 +375,11 @@ public:
     InnerSizeAtCompileTime = XprType::InnerSizeAtCompileTime
   };
   
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  EIGEN_DEVICE_FUNC
   CoeffReturnType coeffByOuterInner(Index outer, Index inner) const
   { return Base::coeff(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
   
   template<int LoadMode, typename PacketType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   PacketType packetByOuterInner(Index outer, Index inner) const
   { return Base::template packet<LoadMode,PacketType>(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
   
@@ -398,8 +396,6 @@ public:
   *
   * The template parameter \a BinaryOp is the type of the functor \a func which must be
   * an associative operator. Both current C++98 and C++11 functor styles are handled.
-  *
-  * \warning the matrix must be not empty, otherwise an assertion is triggered.
   *
   * \sa DenseBase::sum(), DenseBase::minCoeff(), DenseBase::maxCoeff(), MatrixBase::colwise(), MatrixBase::rowwise()
   */
@@ -419,7 +415,6 @@ DenseBase<Derived>::redux(const Func& func) const
 }
 
 /** \returns the minimum of all coefficients of \c *this.
-  * \warning the matrix must be not empty, otherwise an assertion is triggered.
   * \warning the result is undefined if \c *this contains NaN.
   */
 template<typename Derived>
@@ -430,7 +425,6 @@ DenseBase<Derived>::minCoeff() const
 }
 
 /** \returns the maximum of all coefficients of \c *this.
-  * \warning the matrix must be not empty, otherwise an assertion is triggered.
   * \warning the result is undefined if \c *this contains NaN.
   */
 template<typename Derived>

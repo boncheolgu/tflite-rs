@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//   https://www.apache.org/licenses/LICENSE-2.0
+//   http://www.apache.org/licenses/LICENSE-2.0
 //
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
@@ -306,9 +306,9 @@ using detail::get_weekday;
 //
 //   civil_day d = ...
 //   // Gets the following Thursday if d is not already Thursday
-//   civil_day thurs1 = next_weekday(d - 1, weekday::thursday);
+//   civil_day thurs1 = prev_weekday(d, weekday::thursday) + 7;
 //   // Gets the previous Thursday if d is not already Thursday
-//   civil_day thurs2 = prev_weekday(d + 1, weekday::thursday);
+//   civil_day thurs2 = next_weekday(d, weekday::thursday) - 7;
 //
 using detail::next_weekday;
 using detail::prev_weekday;

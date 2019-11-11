@@ -299,13 +299,13 @@ class ResizeContext {
 void SetString(const reflection::Schema &schema, const std::string &val,
                const String *str, std::vector<uint8_t> *flatbuf,
                const reflection::Object *root_table) {
-  auto delta = static_cast<int>(val.size()) - static_cast<int>(str->size());
+  auto delta = static_cast<int>(val.size()) - static_cast<int>(str->Length());
   auto str_start = static_cast<uoffset_t>(
       reinterpret_cast<const uint8_t *>(str) - vector_data(*flatbuf));
   auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
-    memset(vector_data(*flatbuf) + start, 0, str->size());
+    memset(vector_data(*flatbuf) + start, 0, str->Length());
     // Different size, we must expand (or contract).
     ResizeContext(schema, start, delta, flatbuf, root_table);
     // Set the new length.
@@ -431,7 +431,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
               break;
             }
           }
-          FLATBUFFERS_FALLTHROUGH(); // fall thru
+          // FALL-THRU
           default: {  // Scalars and structs.
             auto element_size = GetTypeSize(element_base_type);
             if (elemobjectdef && elemobjectdef->is_struct())
@@ -466,7 +466,7 @@ Offset<const Table *> CopyTable(FlatBufferBuilder &fbb,
           break;
         }
       }
-      FLATBUFFERS_FALLTHROUGH(); // fall thru
+      // ELSE FALL-THRU
       case reflection::Union:
       case reflection::String:
       case reflection::Vector:

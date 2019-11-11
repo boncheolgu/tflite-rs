@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,6 +66,7 @@
 //
 //   // Valid in C++14
 //   constexpr absl::CivilDay cd(1969, 07, 20);
+//
 
 #ifndef ABSL_TIME_CIVIL_TIME_H_
 #define ABSL_TIME_CIVIL_TIME_H_
@@ -407,9 +408,9 @@ inline Weekday GetWeekday(CivilDay cd) {
 //
 //   absl::CivilDay d = ...
 //   // Gets the following Thursday if d is not already Thursday
-//   absl::CivilDay thurs1 = absl::NextWeekday(d - 1, absl::Weekday::thursday);
+//   absl::CivilDay thurs1 = absl::PrevWeekday(d, absl::Weekday::thursday) + 7;
 //   // Gets the previous Thursday if d is not already Thursday
-//   absl::CivilDay thurs2 = absl::PrevWeekday(d + 1, absl::Weekday::thursday);
+//   absl::CivilDay thurs2 = absl::NextWeekday(d, absl::Weekday::thursday) - 7;
 //
 inline CivilDay NextWeekday(CivilDay cd, Weekday wd) {
   return CivilDay(time_internal::cctz::next_weekday(cd, wd));
@@ -450,7 +451,7 @@ inline int GetYearDay(CivilDay cd) {
 // Example:
 //
 //   absl::CivilDay d = absl::CivilDay(1969, 7, 20);
-//   std::string day_string = absl::FormatCivilTime(d);  // "1969-07-20"
+//   string day_string = absl::FormatCivilTime(d);          // "1969-07-20"
 //
 std::string FormatCivilTime(CivilSecond c);
 std::string FormatCivilTime(CivilMinute c);

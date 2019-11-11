@@ -388,7 +388,7 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   // the sum across all big k blocks of the product of little k block of index (x, y)
   // with block of index (y, z). To compute the final output, we need to reduce
   // the 8 threads over y by summation.
-#if defined(EIGEN_HIPCC) || (defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER < 90000)
+#if defined(EIGEN_HIPCC) || (defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000)
 #define shuffleInc(i, j, mask) res(i, j) += __shfl_xor(res(i, j), mask)
 #else
 #define shuffleInc(i, j, mask) res(i, j) += __shfl_xor_sync(0xFFFFFFFF, res(i, j), mask)
@@ -621,7 +621,7 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
       x1 = rhs_pf0.x;
       x2 = rhs_pf0.z;
     }
-    #if defined(EIGEN_HIPCC) || (defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER < 90000)
+    #if defined(EIGEN_HIPCC) || (defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000)
     x1 = __shfl_xor(x1, 4);
     x2 = __shfl_xor(x2, 4);
     #else
@@ -1219,6 +1219,9 @@ template<typename Indices, typename LeftArgType, typename RightArgType, typename
 struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, GpuDevice> :
     public TensorContractionEvaluatorBase<TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, GpuDevice> > {
 
+  static_assert(std::is_same<OutputKernelType, const NoOpOutputKernel>::value,
+                "GPU tensor contraction does not support output kernels.");
+
   typedef GpuDevice Device;
 
   typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType>, Device> Self;
@@ -1271,11 +1274,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef typename RightEvaluator::Dimensions RightDimensions;
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
-      Base(op, device)
-  {
-    EIGEN_STATIC_ASSERT( (internal::is_same<OutputKernelType, const NoOpOutputKernel>::value),
-                          GPU_TENSOR_CONTRACTION_DOES_NOT_SUPPORT_OUTPUT_KERNELS);
-  }
+      Base(op, device) {}
 
   // We need to redefine this method to make nvcc happy
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {

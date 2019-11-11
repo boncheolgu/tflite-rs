@@ -2,18 +2,12 @@ env:
   global:
     # Set at the root level as this is ignored when set under matrix.env.
     - GCC_VERSION="4.9"
-    # Fail on first error if UBSAN or ASAN enabled for a target
-    - UBSAN_OPTIONS=halt_on_error=1
-    - ASAN_OPTIONS=halt_on_error=1
-    # Travis machines have 2 cores
-    - JOBS=2
-    - MAKEFLAGS="-j 2"
 
 conan-linux: &conan-linux
   os: linux
-  dist: xenial
+  sudo: required
   language: python
-  python: "3.7"
+  python: "3.6"
   services:
     - docker
   install:
@@ -59,18 +53,7 @@ matrix:
     #        branch: master
     - language: cpp
       os:
-        - linux
-
-      addons:
-        apt:
-          packages:
-            - docker-ce
-      script:
-        - bash .travis/build-and-run-docker-test-containers.sh
-
-    - language: cpp
-      os:
-        - linux
+      - linux
 
       compiler:
         - gcc
@@ -89,18 +72,8 @@ matrix:
       - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
       script:
-      - bash .travis/check-sources.sh
-      - bash grpc/build_grpc.sh
-      - cmake .
-        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-        -DFLATBUFFERS_BUILD_GRPCTEST=ON
-        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install
-        -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
-        -DFLATBUFFERS_CODE_SANITIZE=ON
-      - cmake --build . -- -j${JOBS}
-      - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
-      - bash .travis/check-generate-code.sh
-      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . flatbuffers/${TRAVIS_BRANCH}@google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
+      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
+      - if [ "$CONAN" == "true" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo pip install conan && conan create . google/testing -s build_type=$BUILD_TYPE -tf conan/test_package; fi
 
     - language: cpp
       os: osx
@@ -109,37 +82,27 @@ matrix:
         matrix:
           - BUILD_TYPE=Debug
           - BUILD_TYPE=Release
-
       script:
-      - bash grpc/build_grpc.sh
-      - cmake .
-        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-        -DFLATBUFFERS_BUILD_GRPCTEST=ON
-        -DGRPC_INSTALL_PATH=$TRAVIS_BUILD_DIR/google/grpc/install
-        -DPROTOBUF_DOWNLOAD_PATH=$TRAVIS_BUILD_DIR/google/grpc/third_party/protobuf
-        -DFLATBUFFERS_CODE_SANITIZE=ON
-      - cmake --build . -- -j${JOBS}
-      - DYLD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/google/grpc/install/lib ctest --extra-verbose --output-on-failure
-      - bash .travis/check-generate-code.sh
+      - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE . && make && make test
 
     - <<: *conan-linux
-      env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=conanio/gcc49
+      env: CONAN_GCC_VERSIONS=4.9 CONAN_DOCKER_IMAGE=lasote/conangcc49
     - <<: *conan-linux
-      env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=conanio/gcc5
+      env: CONAN_GCC_VERSIONS=5 CONAN_DOCKER_IMAGE=lasote/conangcc5
     - <<: *conan-linux
-      env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=conanio/gcc6
+      env: CONAN_GCC_VERSIONS=6 CONAN_DOCKER_IMAGE=lasote/conangcc6
     - <<: *conan-linux
-      env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=conanio/gcc7
+      env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=lasote/conangcc7
     - <<: *conan-linux
-      env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
+      env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=lasote/conangcc8
     - <<: *conan-linux
-      env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=conanio/clang39
+      env: CONAN_CLANG_VERSIONS=3.9 CONAN_DOCKER_IMAGE=lasote/conanclang39
     - <<: *conan-linux
-      env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=conanio/clang40
+      env: CONAN_CLANG_VERSIONS=4.0 CONAN_DOCKER_IMAGE=lasote/conanclang40
     - <<: *conan-linux
-      env: CONAN_CLANG_VERSIONS=5.0 CONAN_DOCKER_IMAGE=conanio/clang50
+      env: CONAN_CLANG_VERSIONS=5.0 CONAN_DOCKER_IMAGE=lasote/conanclang50
     - <<: *conan-linux
-      env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=conanio/clang60
+      env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=lasote/conanclang60
     - <<: *conan-osx
       osx_image: xcode7.3
       env: CONAN_APPLE_CLANG_VERSIONS=7.3
@@ -150,37 +113,29 @@ matrix:
       osx_image: xcode9
       env: CONAN_APPLE_CLANG_VERSIONS=9.0
     - <<: *conan-osx
-      osx_image: xcode9.4
+      osx_image: xcode9.3
       env: CONAN_APPLE_CLANG_VERSIONS=9.1
-    - <<: *conan-osx
-      osx_image: xcode10
-      env: CONAN_APPLE_CLANG_VERSIONS=10.0
 
-    - language: android
-      sudo: true
-      android:
-        components:
-          - tools
-          - platform-tools
-          - build-tools-25.0.2
-          - android-25
-          - extra-android-m2repository
-      compiler:
-        - gcc
-
-      before_install:
-        # Output something every 10 minutes or Travis kills the job
-        - while sleep 540; do echo "=====[ $SECONDS seconds still running ]====="; done &
-        - git clone https://github.com/urho3d/android-ndk.git $HOME/android-ndk-root
-        - export ANDROID_NDK_HOME=$HOME/android-ndk-root
-        # Setup environment for Linux build which is required to build the sample.
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-$GCC_VERSION; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
-        - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
-      script:
-        - failed=0; for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ) || failed=1; done; exit $((failed))
-        # Kill the sleep loop
-        - kill %1
+    #- language: android
+    #  sudo: true
+    #  android:
+    #    components:
+    #      - tools
+    #      - platform-tools
+    #      - build-tools-25.0.2
+    #      - android-25
+    #      - extra-android-m2repository
+    #  compiler:
+    #    - gcc
+    #  before_install:
+    #    - git clone https://github.com/urho3d/android-ndk.git $HOME/android-ndk-root
+    #    - export ANDROID_NDK_HOME=$HOME/android-ndk-root
+    #    # Setup environment for Linux build which is required to build the sample.
+    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
+    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-$GCC_VERSION; fi
+    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
+    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
+    #    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
+    #  script:
+    #    - failed=0; for build_gradle in $(git ls-files | grep build.gradle); do ( cd "$(dirname "${build_gradle}")" && ./gradlew build ) || failed=1; done; exit $((failed))

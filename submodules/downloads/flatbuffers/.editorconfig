@@ -1,7 +1,7 @@
 root = true
-# Don't set line endings to avoid conflict with core.autocrlf flag.
-# Line endings on checkout/checkin are controlled by .gitattributes file.
-[*]
+[*.{cpp,cc,h}]
+end_of_line = LF
 indent_style = space
 indent_size = 2
 insert_final_newline = true
+

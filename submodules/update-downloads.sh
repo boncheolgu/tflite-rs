@@ -37,3 +37,4 @@ rm -rf ${thisDir}/downloads/eigen/demos
 rm -rf ${thisDir}/downloads/eigen/bench
 rm -rf ${thisDir}/downloads/absl/ci
 
+sed -i "s/struct NativeTable {};/struct NativeTable { virtual ~NativeTable() {} };/" ${thisDir}/downloads/flatbuffers/include/flatbuffers/flatbuffers.h

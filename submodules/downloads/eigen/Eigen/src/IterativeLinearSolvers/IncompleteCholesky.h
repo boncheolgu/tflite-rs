@@ -41,7 +41,13 @@ namespace Eigen {
   * the info() method, then you can either increase the initial shift, or better use another preconditioning technique.
   *
   */
-template <typename Scalar, int _UpLo = Lower, typename _OrderingType = AMDOrdering<int> >
+template <typename Scalar, int _UpLo = Lower, typename _OrderingType =
+#ifndef EIGEN_MPL2_ONLY
+AMDOrdering<int>
+#else
+NaturalOrdering<int>
+#endif
+>
 class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_UpLo,_OrderingType> >
 {
   protected:

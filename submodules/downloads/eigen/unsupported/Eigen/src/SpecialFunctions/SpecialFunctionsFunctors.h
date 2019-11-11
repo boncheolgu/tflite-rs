@@ -238,40 +238,25 @@ struct functor_traits<scalar_polygamma_op<Scalar> >
 };
 
 /** \internal
- * \brief Template functor to compute the error function of a scalar
- * \sa class CwiseUnaryOp, ArrayBase::erf()
+ * \brief Template functor to compute the Gauss error function of a
+ * scalar
+ * \sa class CwiseUnaryOp, Cwise::erf()
  */
 template<typename Scalar> struct scalar_erf_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_erf_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar
-  operator()(const Scalar& a) const {
-    return numext::erf(a);
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const {
+    using numext::erf; return erf(a);
   }
-  template <typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
-    return perf(x);
-  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& a) const { return internal::perf(a); }
 };
-template <typename Scalar>
-struct functor_traits<scalar_erf_op<Scalar> > {
+template<typename Scalar>
+struct functor_traits<scalar_erf_op<Scalar> >
+{
   enum {
-    PacketAccess = packet_traits<Scalar>::HasErf,
-    Cost =
-        (PacketAccess
-#ifdef EIGEN_VECTORIZE_FMA
-             // TODO(rmlarsen): Move the FMA cost model to a central location.
-             // Haswell can issue 2 add/mul/madd per cycle.
-             // 10 pmadd, 2 pmul, 1 div, 2 other
-             ? (2 * NumTraits<Scalar>::AddCost +
-                7 * NumTraits<Scalar>::MulCost +
-                scalar_div_cost<Scalar, packet_traits<Scalar>::HasDiv>::value)
-#else
-             ? (12 * NumTraits<Scalar>::AddCost +
-                12 * NumTraits<Scalar>::MulCost +
-                scalar_div_cost<Scalar, packet_traits<Scalar>::HasDiv>::value)
-#endif
-             // Assume for simplicity that this is as expensive as an exp().
-             : (functor_traits<scalar_exp_op<Scalar> >::Cost))
+    // Guesstimate
+    Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasErf
   };
 };
 
@@ -299,27 +284,56 @@ struct functor_traits<scalar_erfc_op<Scalar> >
 };
 
 /** \internal
- * \brief Template functor to compute the Inverse of the normal distribution
- * function of a scalar
- * \sa class CwiseUnaryOp, Cwise::ndtri()
+ * \brief Template functor to compute the exponentially scaled modified Bessel
+ * function of order zero
+ * \sa class CwiseUnaryOp, Cwise::i0e()
  */
-template<typename Scalar> struct scalar_ndtri_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_ndtri_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const {
-    using numext::ndtri; return ndtri(a);
+template <typename Scalar>
+struct scalar_i0e_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_i0e_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
+    using numext::i0e;
+    return i0e(x);
   }
   typedef typename packet_traits<Scalar>::type Packet;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& a) const { return internal::pndtri(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
+    return internal::pi0e(x);
+  }
 };
-template<typename Scalar>
-struct functor_traits<scalar_ndtri_op<Scalar> >
-{
+template <typename Scalar>
+struct functor_traits<scalar_i0e_op<Scalar> > {
   enum {
-    // On average, We are evaluating rational functions with degree N=9 in the
-    // numerator and denominator. This results in 2*N additions and 2*N
-    // multiplications.
-    Cost = 18 * NumTraits<Scalar>::MulCost + 18 * NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasNdtri
+    // On average, a Chebyshev polynomial of order N=20 is computed.
+    // The cost is N multiplications and 2N additions.
+    Cost = 20 * NumTraits<Scalar>::MulCost + 40 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasI0e
+  };
+};
+
+/** \internal
+ * \brief Template functor to compute the exponentially scaled modified Bessel
+ * function of order zero
+ * \sa class CwiseUnaryOp, Cwise::i1e()
+ */
+template <typename Scalar>
+struct scalar_i1e_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_i1e_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator()(const Scalar& x) const {
+    using numext::i1e;
+    return i1e(x);
+  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet packetOp(const Packet& x) const {
+    return internal::pi1e(x);
+  }
+};
+template <typename Scalar>
+struct functor_traits<scalar_i1e_op<Scalar> > {
+  enum {
+    // On average, a Chebyshev polynomial of order N=20 is computed.
+    // The cost is N multiplications and 2N additions.
+    Cost = 20 * NumTraits<Scalar>::MulCost + 40 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasI1e
   };
 };
 

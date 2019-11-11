@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,9 +24,6 @@ int InstallSymbolDecorator(SymbolDecorator, void*) { return -1; }
 bool RemoveSymbolDecorator(int) { return false; }
 bool RemoveAllSymbolDecorators(void) { return false; }
 bool RegisterFileMappingHint(const void *, const void *, uint64_t, const char *) {
-  return false;
-}
-bool GetFileMappingHint(const void **, const void **, uint64_t *, const char **) {
   return false;
 }
 

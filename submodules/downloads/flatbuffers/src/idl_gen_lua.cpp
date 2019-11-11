@@ -109,10 +109,9 @@ namespace lua {
     }
 
     // A single enum member.
-    void EnumMember(const EnumDef &enum_def, const EnumVal &ev, std::string *code_ptr) {
+    void EnumMember(const EnumVal ev, std::string *code_ptr) {
       std::string &code = *code_ptr;
       code += std::string(Indent) + NormalizedName(ev) + " = " + NumToString(ev.value) + ",\n";
-      (void)enum_def;
     }
 
     // End enum code.
@@ -337,7 +336,7 @@ namespace lua {
       }
       code += EndFunc;
     }
-
+    
     // Begin the creator function signature.
     void BeginBuilderArgs(const StructDef &struct_def,
       std::string *code_ptr) {
@@ -363,7 +362,7 @@ namespace lua {
         }
         else {
           std::string &code = *code_ptr;
-          code += std::string(", ") + nameprefix;
+          code += (std::string) ", " + nameprefix;
           code += MakeCamel(NormalizedName(field), false);
         }
       }
@@ -498,7 +497,7 @@ namespace lua {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr);
           }
           else {
-            GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
+            GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);            
           }
           break;
         }
@@ -573,11 +572,11 @@ namespace lua {
 
       GenComment(enum_def.doc_comment, code_ptr, nullptr, Comment);
       BeginEnum(NormalizedName(enum_def), code_ptr);
-      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
-           ++it) {
+      for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+        ++it) {
         auto &ev = **it;
         GenComment(ev.doc_comment, code_ptr, nullptr, Comment);
-        EnumMember(enum_def, ev, code_ptr);
+        EnumMember(ev, code_ptr);
       }
       EndEnum(code_ptr);
     }
@@ -605,7 +604,7 @@ namespace lua {
       static const char *ctypename[] = {
         // clang-format off
           #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+            CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
             #PTYPE,
             FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
           #undef FLATBUFFERS_TD

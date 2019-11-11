@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      https://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@
 load(
     "//absl:copts/configure_copts.bzl",
     "ABSL_DEFAULT_COPTS",
-    "ABSL_DEFAULT_LINKOPTS",
     "ABSL_TEST_COPTS",
 )
 
@@ -42,7 +41,6 @@ cc_library(
         "time.h",
     ],
     copts = ABSL_DEFAULT_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         "//absl/base",
         "//absl/base:core_headers",
@@ -62,7 +60,6 @@ cc_library(
     ],
     hdrs = ["internal/test_util.h"],
     copts = ABSL_DEFAULT_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     visibility = [
         "//absl/time:__pkg__",
     ],
@@ -85,7 +82,6 @@ cc_test(
         "time_zone_test.cc",
     ],
     copts = ABSL_TEST_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     deps = [
         ":test_util",
         ":time",
@@ -107,7 +103,6 @@ cc_test(
         "time_benchmark.cc",
     ],
     copts = ABSL_TEST_COPTS,
-    linkopts = ABSL_DEFAULT_LINKOPTS,
     tags = [
         "benchmark",
     ],
@@ -115,7 +110,6 @@ cc_test(
         ":test_util",
         ":time",
         "//absl/base",
-        "//absl/base:core_headers",
         "//absl/hash",
         "@com_github_google_benchmark//:benchmark_main",
     ],

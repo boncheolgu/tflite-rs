@@ -47,7 +47,6 @@ plog<Packet16f>(const Packet16f& _x) {
   // The smallest non denormalized float number.
   _EIGEN_DECLARE_CONST_Packet16f_FROM_INT(min_norm_pos, 0x00800000);
   _EIGEN_DECLARE_CONST_Packet16f_FROM_INT(minus_inf, 0xff800000);
-  _EIGEN_DECLARE_CONST_Packet16f_FROM_INT(pos_inf, 0x7f800000);
   _EIGEN_DECLARE_CONST_Packet16f_FROM_INT(nan, 0x7fc00000);
 
   // Polynomial coefficients.
@@ -117,16 +116,10 @@ plog<Packet16f>(const Packet16f& _x) {
   x = padd(x, y);
   x = padd(x, y2);
 
-  __mmask16 pos_inf_mask = _mm512_cmp_ps_mask(_x,p16f_pos_inf,_CMP_EQ_OQ);
-  // Filter out invalid inputs, i.e.:
-  //  - negative arg will be NAN,
-  //  - 0 will be -INF.
-  //  - +INF will be +INF
+  // Filter out invalid inputs, i.e. negative arg will be NAN, 0 will be -INF.
   return _mm512_mask_blend_ps(iszero_mask,
-            _mm512_mask_blend_ps(invalid_mask,
-              _mm512_mask_blend_ps(pos_inf_mask,x,p16f_pos_inf),
-              p16f_nan),
-            p16f_minus_inf);
+                              _mm512_mask_blend_ps(invalid_mask, x, p16f_nan),
+                              p16f_minus_inf);
 }
 #endif
 
@@ -391,24 +384,6 @@ template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
 pcos<Packet16f>(const Packet16f& _x) {
   return pcos_float(_x);
-}
-
-#if defined(EIGEN_VECTORIZE_AVX512DQ)
-template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet16f plog1p<Packet16f>(const Packet16f& _x) {
-  return generic_plog1p(_x);
-}
-
-template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet16f pexpm1<Packet16f>(const Packet16f& _x) {
-  return generic_expm1(_x);
-}
-#endif
-
-template <>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
-ptanh<Packet16f>(const Packet16f& _x) {
-  return internal::generic_fast_tanh_float(_x);
 }
 
 }  // end namespace internal

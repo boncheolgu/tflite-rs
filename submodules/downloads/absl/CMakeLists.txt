@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      https://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,39 +14,23 @@
 # limitations under the License.
 #
 
-# Most widely used distributions have cmake 3.5 or greater available as of March
-# 2019.  A notable exception is RHEL-7 (CentOS7).  You can install a current
-# version of CMake by first installing Extra Packages for Enterprise Linux
-# (https://fedoraproject.org/wiki/EPEL#Extra_Packages_for_Enterprise_Linux_.28EPEL.29)
-# and then issuing `yum install cmake3` on the command line.
-cmake_minimum_required(VERSION 3.5)
+# We require 3.0 for modern, target-based CMake.  We require 3.1 for the use of
+# CXX_STANDARD in our targets.
+cmake_minimum_required(VERSION 3.1)
 
 # Compiler id for Apple Clang is now AppleClang.
-cmake_policy(SET CMP0025 NEW)
-
-# if command can use IN_LIST
-cmake_policy(SET CMP0057 NEW)
-
-# Project version variables are the empty std::string if version is unspecified
-cmake_policy(SET CMP0048 NEW)
-
-project(absl CXX)
-
-# when absl is included as subproject (i.e. using add_subdirectory(abseil-cpp))
-# in the source tree of a project that uses it, install rules are disabled.
-if(NOT "^${CMAKE_SOURCE_DIR}$" STREQUAL "^${PROJECT_SOURCE_DIR}$")
-  set(ABSL_ENABLE_INSTALL FALSE)
-else()
-  set(ABSL_ENABLE_INSTALL TRUE)
+if (POLICY CMP0025)
+  cmake_policy(SET CMP0025 NEW)
 endif()
+
+project(absl)
 
 list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_LIST_DIR}/CMake
   ${CMAKE_CURRENT_LIST_DIR}/absl/copts
 )
 
-include(AbseilInstallDirs)
-include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 include(AbseilHelpers)
 
 
@@ -63,6 +47,9 @@ include(AbseilHelpers)
 
 # include current path
 list(APPEND ABSL_COMMON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+# -fexceptions
+set(ABSL_EXCEPTIONS_FLAG "${CMAKE_CXX_EXCEPTIONS}")
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(ABSL_USING_CLANG ON)
@@ -90,9 +77,7 @@ endif()
 if(BUILD_TESTING)
 
   if(${ABSL_USE_GOOGLETEST_HEAD})
-    include(CMake/Googletest/DownloadGTest.cmake)
-    set(absl_gtest_src_dir ${CMAKE_BINARY_DIR}/googletest-src)
-    set(absl_gtest_build_dir ${CMAKE_BINARY_DIR}/googletest-build)
+    include(CMake/DownloadGTest.cmake)
   endif()
 
   check_target(gtest)
@@ -108,53 +93,3 @@ if(BUILD_TESTING)
 endif()
 
 add_subdirectory(absl)
-
-if(ABSL_ENABLE_INSTALL)
-  # absl:lts-remove-begin(system installation is supported for LTS releases)
-  # We don't support system-wide installation
-  list(APPEND SYSTEM_INSTALL_DIRS "/usr/local" "/usr" "/opt/" "/opt/local" "c:/Program Files/${PROJECT_NAME}")
-  if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX IN_LIST SYSTEM_INSTALL_DIRS)
-    message(WARNING "\
-  The default and system-level install directories are unsupported except in LTS \
-  releases of Abseil.  Please set CMAKE_INSTALL_PREFIX to install Abseil in your \
-  source or build tree directly.\
-    ")
-  endif()
-  # absl:lts-remove-end
-
-  # install as a subdirectory only
-  install(EXPORT ${PROJECT_NAME}Targets
-    NAMESPACE absl::
-    DESTINATION "${ABSL_INSTALL_CONFIGDIR}"
-  )
-
-  configure_package_config_file(
-    CMake/abslConfig.cmake.in
-    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    INSTALL_DESTINATION "${ABSL_INSTALL_CONFIGDIR}"
-  )
-  install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    DESTINATION "${ABSL_INSTALL_CONFIGDIR}"
-  )
-
-  # Abseil only has a version in LTS releases.  This mechanism is accomplished
-  # Abseil's internal Copybara (https://github.com/google/copybara) workflows and
-  # isn't visible in the CMake buildsystem itself.
-  if(absl_VERSION)
-    write_basic_package_version_file(
-      "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-      COMPATIBILITY ExactVersion
-    )
-
-    install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-      DESTINATION ${ABSL_INSTALL_CONFIGDIR}
-    )
-  endif()  # absl_VERSION
-
-  install(DIRECTORY absl
-    DESTINATION ${ABSL_INSTALL_INCLUDEDIR}
-    FILES_MATCHING
-      PATTERN "*.inc"
-      PATTERN "*.h"
-  )
-endif()  # ABSL_ENABLE_INSTALL

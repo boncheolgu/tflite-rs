@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -294,10 +294,7 @@ class SCOPED_LOCKABLE ArenaLock {
     arena_->mu.Unlock();
 #ifndef ABSL_LOW_LEVEL_ALLOC_ASYNC_SIGNAL_SAFE_MISSING
     if (mask_valid_) {
-      const int err = pthread_sigmask(SIG_SETMASK, &mask_, nullptr);
-      if (err != 0) {
-        ABSL_RAW_LOG(FATAL, "pthread_sigmask failed: %d", err);
-      }
+      pthread_sigmask(SIG_SETMASK, &mask_, nullptr);
     }
 #endif
     left_ = true;

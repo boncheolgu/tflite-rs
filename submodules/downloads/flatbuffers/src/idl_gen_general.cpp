@@ -56,18 +56,10 @@ struct LanguageParameters {
   std::string optional_suffix;
   std::string includes;
   std::string class_annotation;
-  std::string generated_type_annotation;
   CommentConfig comment_config;
-  const FloatConstantGenerator *float_gen;
 };
 
 const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
-  static TypedFloatConstantGenerator CSharpFloatGen(
-      "Double.", "Single.", "NaN", "PositiveInfinity", "NegativeInfinity");
-
-  static TypedFloatConstantGenerator JavaFloatGen(
-      "Double.", "Float.", "NaN", "POSITIVE_INFINITY", "NEGATIVE_INFINITY");
-
   static const LanguageParameters language_parameters[] = {
     {
         IDLOptions::kJava,
@@ -96,13 +88,11 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
         "import java.nio.*;\nimport java.lang.*;\nimport "
         "java.util.*;\nimport com.google.flatbuffers.*;\n",
         "\n@SuppressWarnings(\"unused\")\n",
-        "\n@javax.annotation.Generated(value=\"flatc\")\n",
         {
             "/**",
             " *",
             " */",
         },
-        &JavaFloatGen
     },
     {
         IDLOptions::kCSharp,
@@ -130,13 +120,11 @@ const LanguageParameters &GetLangParams(IDLOptions::Language lang) {
         "?",
         "using global::System;\nusing global::FlatBuffers;\n\n",
         "",
-        "",
         {
             nullptr,
             "///",
             nullptr,
         },
-        &CSharpFloatGen
     },
   };
 
@@ -230,9 +218,6 @@ class GeneralGenerator : public BaseGenerator {
       }
       code += lang_.class_annotation;
     }
-    if (parser_.opts.gen_generated) {
-      code += lang_.generated_type_annotation;
-    }
     code += classcode;
     if (!namespace_name.empty()) code += lang_.namespace_end;
     auto filename = NamespaceDir(ns) + defname + lang_.file_extension;
@@ -262,7 +247,7 @@ class GeneralGenerator : public BaseGenerator {
     // clang-format off
   static const char * const java_typename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         #JTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -270,7 +255,7 @@ class GeneralGenerator : public BaseGenerator {
 
   static const char * const csharp_typename[] = {
     #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         #NTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
     #undef FLATBUFFERS_TD
@@ -306,7 +291,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_UNION:
         // Unions in C# use a generic Table-derived type for better type safety
         if (lang_.language == IDLOptions::kCSharp) return "TTable";
-        FLATBUFFERS_FALLTHROUGH();  // else fall thru
+        // fall through
       default: return "Table";
     }
   }
@@ -327,7 +312,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_UINT: return Type(BASE_TYPE_LONG);
       case BASE_TYPE_VECTOR:
         if (vectorelem) return DestinationType(type.VectorType(), vectorelem);
-        FLATBUFFERS_FALLTHROUGH(); // else fall thru
+        // else fall thru
       default: return type;
     }
   }
@@ -371,7 +356,7 @@ class GeneralGenerator : public BaseGenerator {
       case BASE_TYPE_UINT: return " & 0xFFFFFFFFL";
       case BASE_TYPE_VECTOR:
         if (vectorelem) return DestinationMask(type.VectorType(), vectorelem);
-        FLATBUFFERS_FALLTHROUGH(); // else fall thru
+        // else fall thru
       default: return "";
     }
   }
@@ -438,8 +423,7 @@ class GeneralGenerator : public BaseGenerator {
     return SourceCastBasic(type, true);
   }
 
-  std::string GenEnumDefaultValue(const FieldDef &field) const {
-    auto& value = field.value;
+  std::string GenEnumDefaultValue(const Value &value) const {
     auto enum_def = value.type.enum_def;
     auto vec = enum_def->vals.vec;
     auto default_value = StringToInt(value.constant.c_str());
@@ -456,19 +440,19 @@ class GeneralGenerator : public BaseGenerator {
     return result;
   }
 
-  std::string GenDefaultValue(const FieldDef &field, bool enableLangOverrides) const {
-    auto& value = field.value;
+  std::string GenDefaultValue(const Value &value, bool enableLangOverrides) const {
     if (enableLangOverrides) {
       // handles both enum case and vector of enum case
       if (lang_.language == IDLOptions::kCSharp &&
           value.type.enum_def != nullptr &&
           value.type.base_type != BASE_TYPE_UNION) {
-        return GenEnumDefaultValue(field);
+        return GenEnumDefaultValue(value);
       }
     }
 
     auto longSuffix = lang_.language == IDLOptions::kJava ? "L" : "";
     switch (value.type.base_type) {
+      case BASE_TYPE_FLOAT: return value.constant + "f";
       case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
       case BASE_TYPE_ULONG: {
         if (lang_.language != IDLOptions::kJava) return value.constant;
@@ -478,21 +462,16 @@ class GeneralGenerator : public BaseGenerator {
       }
       case BASE_TYPE_UINT:
       case BASE_TYPE_LONG: return value.constant + longSuffix;
-      default:
-        if(IsFloat(value.type.base_type))
-          return lang_.float_gen->GenFloatConstant(field);
-        else
-          return value.constant;
+      default: return value.constant;
     }
   }
 
-  std::string GenDefaultValue(const FieldDef &field) const {
-    return GenDefaultValue(field, true);
+  std::string GenDefaultValue(const Value &value) const {
+    return GenDefaultValue(value, true);
   }
 
-  std::string GenDefaultValueBasic(const FieldDef &field,
+  std::string GenDefaultValueBasic(const Value &value,
                                    bool enableLangOverrides) const {
-    auto& value = field.value;
     if (!IsScalar(value.type.base_type)) {
       if (enableLangOverrides) {
         if (lang_.language == IDLOptions::kCSharp) {
@@ -508,11 +487,11 @@ class GeneralGenerator : public BaseGenerator {
       }
       return "0";
     }
-    return GenDefaultValue(field, enableLangOverrides);
+    return GenDefaultValue(value, enableLangOverrides);
   }
 
-  std::string GenDefaultValueBasic(const FieldDef &field) const {
-    return GenDefaultValueBasic(field, true);
+  std::string GenDefaultValueBasic(const Value &value) const {
+    return GenDefaultValueBasic(value, true);
   }
 
   void GenEnum(EnumDef &enum_def, std::string *code_ptr) const {
@@ -543,7 +522,8 @@ class GeneralGenerator : public BaseGenerator {
     if (lang_.language == IDLOptions::kJava) {
       code += "  private " + enum_def.name + "() { }\n";
     }
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, &lang_.comment_config, "  ");
       if (lang_.language != IDLOptions::kCSharp) {
@@ -573,8 +553,8 @@ class GeneralGenerator : public BaseGenerator {
         code += lang_.const_decl;
         code += lang_.string_type;
         code += "[] names = { ";
-        auto val = enum_def.Vals().front()->value;
-        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+        auto val = enum_def.vals.vec.front()->value;
+        for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
              ++it) {
           while (val++ != (*it)->value) code += "\"\", ";
           code += "\"" + (*it)->name + "\", ";
@@ -873,15 +853,7 @@ class GeneralGenerator : public BaseGenerator {
     // accessor object. This is to allow object reuse.
     code += "  public void __init(int _i, ByteBuffer _bb) ";
     code += "{ " + lang_.accessor_prefix + "bb_pos = _i; ";
-    code += lang_.accessor_prefix + "bb = _bb; ";
-    if (!struct_def.fixed && lang_.language == IDLOptions::kJava) {
-      code += lang_.accessor_prefix + "vtable_start = " + lang_.accessor_prefix + "bb_pos - ";
-      code += lang_.accessor_prefix + "bb." + FunctionStart('G') + "etInt(";
-      code += lang_.accessor_prefix + "bb_pos); " + lang_.accessor_prefix + "vtable_size = ";
-      code += lang_.accessor_prefix + "bb." + FunctionStart('G') + "etShort(";
-      code += lang_.accessor_prefix + "vtable_start); ";
-    }
-    code += "}\n";
+    code += lang_.accessor_prefix + "bb = _bb; }\n";
     code +=
         "  public " + struct_def.name + " __assign(int _i, ByteBuffer _bb) ";
     code += "{ __init(_i, _bb); return this; }\n\n";
@@ -978,7 +950,7 @@ class GeneralGenerator : public BaseGenerator {
           code += offset_prefix + getter;
           code += "(o + " + lang_.accessor_prefix + "bb_pos)" + dest_mask;
           code += " : " + default_cast;
-          code += GenDefaultValue(field);
+          code += GenDefaultValue(field.value);
         }
       } else {
         switch (field.value.type.base_type) {
@@ -1042,8 +1014,6 @@ class GeneralGenerator : public BaseGenerator {
                           ? index
                           : lang_.accessor_prefix + "__indirect(" + index + ")";
               code += ", " + lang_.accessor_prefix + "bb";
-            } else if (vectortype.base_type == BASE_TYPE_UNION) {
-              code += index + " - " + lang_.accessor_prefix +  "bb_pos";
             } else {
               code += index;
             }
@@ -1143,31 +1113,10 @@ class GeneralGenerator : public BaseGenerator {
             code += "); }\n";
             break;
           case IDLOptions::kCSharp:
-            code += "#if ENABLE_SPAN_T\n";
-            code += "  public Span<byte> Get";
-            code += MakeCamel(field.name, lang_.first_camel_upper);
-            code += "Bytes() { return ";
-            code += lang_.accessor_prefix + "__vector_as_span(";
-            code += NumToString(field.value.offset);
-            code += "); }\n";
-            code += "#else\n";
             code += "  public ArraySegment<byte>? Get";
             code += MakeCamel(field.name, lang_.first_camel_upper);
             code += "Bytes() { return ";
             code += lang_.accessor_prefix + "__vector_as_arraysegment(";
-            code += NumToString(field.value.offset);
-            code += "); }\n";
-            code += "#endif\n";
-
-            // For direct blockcopying the data into a typed array
-            code += "  public ";
-            code += GenTypeBasic(field.value.type.VectorType());
-            code += "[] Get";
-            code += MakeCamel(field.name, lang_.first_camel_upper);
-            code += "Array() { return ";
-            code += lang_.accessor_prefix + "__vector_as_array<";
-            code += GenTypeBasic(field.value.type.VectorType());
-            code += ">(";
             code += NumToString(field.value.offset);
             code += "); }\n";
             break;
@@ -1302,7 +1251,7 @@ class GeneralGenerator : public BaseGenerator {
           // supply all arguments, and thus won't compile when fields are added.
           if (lang_.language != IDLOptions::kJava) {
             code += " = ";
-            code += GenDefaultValueBasic(field);
+            code += GenDefaultValueBasic(field.value);
           }
         }
         code += ") {\n    builder.";
@@ -1362,7 +1311,7 @@ class GeneralGenerator : public BaseGenerator {
         code += ", ";
         if (lang_.language == IDLOptions::kJava)
           code += SourceCastBasic(field.value.type);
-        code += GenDefaultValue(field, false);
+        code += GenDefaultValue(field.value, false);
         code += "); }\n";
         if (field.value.type.base_type == BASE_TYPE_VECTOR) {
           auto vector_type = field.value.type.VectorType();
@@ -1392,19 +1341,6 @@ class GeneralGenerator : public BaseGenerator {
               code += ".Value";
             code += "); return ";
             code += "builder." + FunctionStart('E') + "ndVector(); }\n";
-            // For C#, include a block copy method signature.
-            if (lang_.language == IDLOptions::kCSharp) {
-              code += "  public static " + GenVectorOffsetType() + " ";
-              code += FunctionStart('C') + "reate";
-              code += MakeCamel(field.name);
-              code += "VectorBlock(FlatBufferBuilder builder, ";
-              code += GenTypeBasic(vector_type) + "[] data) ";
-              code += "{ builder." + FunctionStart('S') + "tartVector(";
-              code += NumToString(elem_size);
-              code += ", data." + FunctionStart('L') + "ength, ";
-              code += NumToString(alignment);
-              code += "); builder.Add(data); return builder.EndVector(); }\n";
-            }
           }
           // Generate a method to start a vector, data to be added manually
           // after.

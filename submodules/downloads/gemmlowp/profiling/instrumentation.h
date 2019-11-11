@@ -115,7 +115,6 @@ struct ProfilingStack {
   Mutex* lock;
 
   ProfilingStack() { memset(this, 0, sizeof(ProfilingStack)); }
-  ~ProfilingStack() { delete lock; }
 
   void Push(const char* label) {
     ScopedLock sl(lock);
@@ -172,6 +171,8 @@ struct ThreadInfo {
     ScopedLock sl(GlobalMutexes::Profiler());
     ThreadInfo* self = static_cast<ThreadInfo*>(ptr);
     ThreadsUnderProfiling().erase(self);
+    pthread_key_delete(self->key);
+    delete self->stack.lock;
   }
 };
 
@@ -184,11 +185,7 @@ inline ThreadInfo& ThreadLocalThreadInfo() {
     }
   };
 
-  // key_result is unused. The purpose of this 'static' local object is
-  // to have its initializer (the pthread_key_create call) performed exactly
-  // once, in a way that is guaranteed (since C++11) to be reentrant.
-  static const int key_result = pthread_key_create(&key, DeleteThreadInfo);
-  (void)key_result;
+  static int key_result = pthread_key_create(&key, DeleteThreadInfo);
 
   ThreadInfo* threadInfo = static_cast<ThreadInfo*>(pthread_getspecific(key));
   if (!threadInfo) {

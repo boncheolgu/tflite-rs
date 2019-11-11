@@ -88,59 +88,41 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  typedef StorageMemory<CoeffReturnType, Device> Storage;
-  typedef typename Storage::Type EvaluatorPointerType;
   enum {
-    IsAligned         = false,
-    PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
-    BlockAccess       = true,
-    BlockAccessV2     = true,
-    PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess       = false,  // to be implemented
-    RawAccess         = false
+    IsAligned = false,
+    PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
+    BlockAccess = false,
+    PreferBlockAccess = false,
+    Layout = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
-  typedef internal::TensorIntDivisor<Index> IndexDivisor;
-
-  typedef internal::TensorBlock<CoeffReturnType, Index, NumDims, Layout>
-      TensorBlock;
-
-  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockDescriptor<NumDims, Index> TensorBlockDesc;
-  typedef internal::TensorBlockScratchAllocator<Device> TensorBlockScratch;
-
-  typedef typename internal::TensorMaterializedBlock<CoeffReturnType, NumDims,
-                                                     Layout, Index>
-      TensorBlockV2;
-  //===--------------------------------------------------------------------===//
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      :  m_device(device), m_generator(op.generator())
+      : m_generator(op.generator())
+#ifdef EIGEN_USE_SYCL
+      , m_argImpl(op.expression(), device)
+#endif
   {
     TensorEvaluator<ArgType, Device> argImpl(op.expression(), device);
     m_dimensions = argImpl.dimensions();
 
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       m_strides[0] = 1;
-      EIGEN_UNROLL_LOOP
       for (int i = 1; i < NumDims; ++i) {
         m_strides[i] = m_strides[i - 1] * m_dimensions[i - 1];
-        if (m_strides[i] != 0) m_fast_strides[i] = IndexDivisor(m_strides[i]);
       }
     } else {
       m_strides[NumDims - 1] = 1;
-      EIGEN_UNROLL_LOOP
       for (int i = NumDims - 2; i >= 0; --i) {
         m_strides[i] = m_strides[i + 1] * m_dimensions[i + 1];
-        if (m_strides[i] != 0) m_fast_strides[i] = IndexDivisor(m_strides[i]);
       }
     }
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType /*data*/) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
     return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
@@ -168,149 +150,6 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     return rslt;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void getResourceRequirements(
-      std::vector<internal::TensorOpResourceRequirements>* resources) const {
-    Eigen::Index block_total_size_max = numext::maxi<Eigen::Index>(
-        1, m_device.firstLevelCacheSize() / sizeof(Scalar));
-    resources->push_back(internal::TensorOpResourceRequirements(
-        internal::kSkewedInnerDims, block_total_size_max));
-  }
-
-  struct BlockIteratorState {
-    Index stride;
-    Index span;
-    Index size;
-    Index count;
-  };
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void block(
-      TensorBlock* output_block) const {
-    if (NumDims <= 0) return;
-
-    static const bool is_col_major =
-        static_cast<int>(Layout) == static_cast<int>(ColMajor);
-
-    // Compute spatial coordinates for the first block element.
-    array<Index, NumDims> coords;
-    extract_coordinates(output_block->first_coeff_index(), coords);
-    array<Index, NumDims> initial_coords = coords;
-
-    CoeffReturnType* data = output_block->data();
-    Index offset = 0;
-
-    // Initialize output block iterator state. Dimension in this array are
-    // always in inner_most -> outer_most order (col major layout).
-    array<BlockIteratorState, NumDims> it;
-    for (Index i = 0; i < NumDims; ++i) {
-      const Index dim = is_col_major ? i : NumDims - 1 - i;
-      it[i].size = output_block->block_sizes()[dim];
-      it[i].stride = output_block->block_strides()[dim];
-      it[i].span = it[i].stride * (it[i].size - 1);
-      it[i].count = 0;
-    }
-    eigen_assert(it[0].stride == 1);
-
-    while (it[NumDims - 1].count < it[NumDims - 1].size) {
-      // Generate data for the inner-most dimension.
-      for (Index i = 0; i < it[0].size; ++i) {
-        *(data + offset + i) = m_generator(coords);
-        coords[is_col_major ? 0 : NumDims - 1]++;
-      }
-      coords[is_col_major ? 0 : NumDims - 1] =
-          initial_coords[is_col_major ? 0 : NumDims - 1];
-
-      // For the 1d tensor we need to generate only one inner-most dimension.
-      if (NumDims == 1) break;
-
-      // Update offset.
-      for (Index i = 1; i < NumDims; ++i) {
-        if (++it[i].count < it[i].size) {
-          offset += it[i].stride;
-          coords[is_col_major ? i : NumDims - 1 - i]++;
-          break;
-        }
-        if (i != NumDims - 1) it[i].count = 0;
-        coords[is_col_major ? i : NumDims - 1 - i] =
-            initial_coords[is_col_major ? i : NumDims - 1 - i];
-        offset -= it[i].span;
-      }
-    }
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorBlockV2
-  blockV2(TensorBlockDesc& desc, TensorBlockScratch& scratch,
-          bool /*root_of_expr_ast*/ = false) const {
-    static const bool is_col_major =
-        static_cast<int>(Layout) == static_cast<int>(ColMajor);
-
-    // Compute spatial coordinates for the first block element.
-    array<Index, NumDims> coords;
-    extract_coordinates(desc.offset(), coords);
-    array<Index, NumDims> initial_coords = coords;
-
-    // Try to reuse destination as an output block buffer.
-    CoeffReturnType* block_buffer =
-        desc.template destination<CoeffReturnType, Layout>();
-    bool materialized_in_output;
-
-    if (block_buffer != NULL) {
-      desc.DropDestinationBuffer();
-      materialized_in_output = true;
-
-    } else {
-      materialized_in_output = false;
-      void* mem = scratch.allocate(desc.size() * sizeof(CoeffReturnType));
-      block_buffer = static_cast<CoeffReturnType*>(mem);
-    }
-
-    // Offset in the output block buffer.
-    Index offset = 0;
-
-    // Initialize output block iterator state. Dimension in this array are
-    // always in inner_most -> outer_most order (col major layout).
-    array<BlockIteratorState, NumDims> it;
-    for (int i = 0; i < NumDims; ++i) {
-      const int dim = is_col_major ? i : NumDims - 1 - i;
-      it[i].size = desc.dimension(dim);
-      it[i].stride = i == 0 ? 1 : (it[i - 1].size * it[i - 1].stride);
-      it[i].span = it[i].stride * (it[i].size - 1);
-      it[i].count = 0;
-    }
-    eigen_assert(it[0].stride == 1);
-
-    while (it[NumDims - 1].count < it[NumDims - 1].size) {
-      // Generate data for the inner-most dimension.
-      for (Index i = 0; i < it[0].size; ++i) {
-        *(block_buffer + offset + i) = m_generator(coords);
-        coords[is_col_major ? 0 : NumDims - 1]++;
-      }
-      coords[is_col_major ? 0 : NumDims - 1] =
-          initial_coords[is_col_major ? 0 : NumDims - 1];
-
-      // For the 1d tensor we need to generate only one inner-most dimension.
-      if (NumDims == 1) break;
-
-      // Update offset.
-      for (Index i = 1; i < NumDims; ++i) {
-        if (++it[i].count < it[i].size) {
-          offset += it[i].stride;
-          coords[is_col_major ? i : NumDims - 1 - i]++;
-          break;
-        }
-        if (i != NumDims - 1) it[i].count = 0;
-        coords[is_col_major ? i : NumDims - 1 - i] =
-            initial_coords[is_col_major ? i : NumDims - 1 - i];
-        offset -= it[i].span;
-      }
-    }
-
-    return TensorBlockV2(
-        materialized_in_output
-          ? internal::TensorBlockKind::kMaterializedInOutput
-          : internal::TensorBlockKind::kMaterializedInScratch,
-        block_buffer, desc.dimensions());
-  }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
   costPerCoeff(bool) const {
     // TODO(rmlarsen): This is just a placeholder. Define interface to make
@@ -319,11 +158,11 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
                                   TensorOpCost::MulCost<Scalar>());
   }
 
-  EIGEN_DEVICE_FUNC EvaluatorPointerType  data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType  data() const { return NULL; }
 
 #ifdef EIGEN_USE_SYCL
-  // binding placeholder accessors to a command group handler for SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler&) const {}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_argImpl; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Generator& functor() const { return m_generator; }
 #endif
 
  protected:
@@ -331,14 +170,14 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   void extract_coordinates(Index index, array<Index, NumDims>& coords) const {
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
-        const Index idx = index / m_fast_strides[i];
+        const Index idx = index / m_strides[i];
         index -= idx * m_strides[i];
         coords[i] = idx;
       }
       coords[0] = index;
     } else {
       for (int i = 0; i < NumDims - 1; ++i) {
-        const Index idx = index / m_fast_strides[i];
+        const Index idx = index / m_strides[i];
         index -= idx * m_strides[i];
         coords[i] = idx;
       }
@@ -346,11 +185,12 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     }
   }
 
-  const Device EIGEN_DEVICE_REF m_device;
   Dimensions m_dimensions;
   array<Index, NumDims> m_strides;
-  array<IndexDivisor, NumDims> m_fast_strides;
   Generator m_generator;
+#ifdef EIGEN_USE_SYCL
+  TensorEvaluator<ArgType, Device> m_argImpl;
+#endif
 };
 
 } // end namespace Eigen

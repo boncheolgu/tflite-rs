@@ -177,8 +177,7 @@ class TensorCostModel {
     double threads = (cost - kStartupCycles) / kPerThreadCycles + 0.9;
     // Make sure we don't invoke undefined behavior when we convert to an int.
     threads = numext::mini<double>(threads, GenericNumTraits<int>::highest());
-    return numext::mini(max_threads,
-                        numext::maxi<int>(1, static_cast<int>(threads)));
+    return numext::mini(max_threads, numext::maxi<int>(1, threads));
   }
 
   // taskSize assesses parallel task size.

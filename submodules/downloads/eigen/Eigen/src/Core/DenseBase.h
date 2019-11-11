@@ -40,7 +40,7 @@ static inline void check_DenseIndex_is_signed() {
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public DenseCoeffsBase<Derived, internal::accessors_level<Derived>::value>
+  : public DenseCoeffsBase<Derived>
 #else
   : public DenseCoeffsBase<Derived,DirectWriteAccessors>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
@@ -71,7 +71,7 @@ template<typename Derived> class DenseBase
     typedef Scalar value_type;
     
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef DenseCoeffsBase<Derived, internal::accessors_level<Derived>::value> Base;
+    typedef DenseCoeffsBase<Derived> Base;
 
     using Base::derived;
     using Base::const_cast_derived;
@@ -150,8 +150,8 @@ template<typename Derived> class DenseBase
           * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
           */
 
-      IsVectorAtCompileTime = internal::traits<Derived>::RowsAtCompileTime == 1
-                           || internal::traits<Derived>::ColsAtCompileTime == 1,
+      IsVectorAtCompileTime = internal::traits<Derived>::MaxRowsAtCompileTime == 1
+                           || internal::traits<Derived>::MaxColsAtCompileTime == 1,
         /**< This is set to true if either the number of rows or the number of
           * columns is known at compile-time to be equal to 1. Indeed, in that case,
           * we are dealing with a column-vector (if there is only one column) or with
@@ -266,7 +266,7 @@ template<typename Derived> class DenseBase
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,PlainObject> ConstantReturnType;
     /** \internal \deprecated Represents a vector with linearly spaced coefficients that allows sequential access only. */
-    EIGEN_DEPRECATED typedef CwiseNullaryOp<internal::linspaced_op<Scalar>,PlainObject> SequentialLinSpacedReturnType;
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar>,PlainObject> SequentialLinSpacedReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows random access. */
     typedef CwiseNullaryOp<internal::linspaced_op<Scalar>,PlainObject> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
@@ -302,17 +302,17 @@ template<typename Derived> class DenseBase
     Derived& operator=(const ReturnByValue<OtherDerived>& func);
 
     /** \internal
-      * Copies \a other into *this without evaluating other. \returns a reference to *this. */
+      * Copies \a other into *this without evaluating other. \returns a reference to *this.
+      * \deprecated */
     template<typename OtherDerived>
-    /** \deprecated */
-    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC
     Derived& lazyAssign(const DenseBase<OtherDerived>& other);
 
     EIGEN_DEVICE_FUNC
     CommaInitializer<Derived> operator<< (const Scalar& s);
 
-    template<unsigned int Added,unsigned int Removed>
     /** \deprecated it now returns \c *this */
+    template<unsigned int Added,unsigned int Removed>
     EIGEN_DEPRECATED
     const Derived& flagged() const
     { return derived(); }
@@ -337,13 +337,12 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC static const ConstantReturnType
     Constant(const Scalar& value);
 
-    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
+    EIGEN_DEVICE_FUNC static const SequentialLinSpacedReturnType
     LinSpaced(Sequential_t, Index size, const Scalar& low, const Scalar& high);
-    EIGEN_DEPRECATED EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
-    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high);
-
     EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
     LinSpaced(Index size, const Scalar& low, const Scalar& high);
+    EIGEN_DEVICE_FUNC static const SequentialLinSpacedReturnType
+    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high);
     EIGEN_DEVICE_FUNC static const RandomAccessLinSpacedReturnType
     LinSpaced(const Scalar& low, const Scalar& high);
 
@@ -375,7 +374,7 @@ template<typename Derived> class DenseBase
     template<typename OtherDerived> EIGEN_DEVICE_FUNC
     bool isApprox(const DenseBase<OtherDerived>& other,
                   const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC 
     bool isMuchSmallerThan(const RealScalar& other,
                            const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     template<typename OtherDerived> EIGEN_DEVICE_FUNC
@@ -386,7 +385,7 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC bool isConstant(const Scalar& value, const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     EIGEN_DEVICE_FUNC bool isZero(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     EIGEN_DEVICE_FUNC bool isOnes(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
-
+    
     inline bool hasNaN() const;
     inline bool allFinite() const;
 
@@ -400,7 +399,7 @@ template<typename Derived> class DenseBase
       *
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
       * a const reference, in order to avoid a useless copy.
-      *
+      * 
       * \warning Be careful with eval() and the auto C++ keyword, as detailed in this \link TopicPitfalls_auto_keyword page \endlink.
       */
     EIGEN_DEVICE_FUNC
@@ -416,7 +415,7 @@ template<typename Derived> class DenseBase
       *
       */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    EIGEN_DEVICE_FUNC
     void swap(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT(!OtherDerived::IsPlainObjectBase,THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
@@ -428,7 +427,7 @@ template<typename Derived> class DenseBase
       *
       */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    EIGEN_DEVICE_FUNC
     void swap(PlainObjectBase<OtherDerived>& other)
     {
       eigen_assert(rows()==other.rows() && cols()==other.cols());

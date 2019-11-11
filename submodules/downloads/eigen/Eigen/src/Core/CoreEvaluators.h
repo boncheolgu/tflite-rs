@@ -90,8 +90,7 @@ template<typename T>
 struct evaluator : public unary_evaluator<T>
 {
   typedef unary_evaluator<T> Base;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const T& xpr) : Base(xpr) {}
+  EIGEN_DEVICE_FUNC explicit evaluator(const T& xpr) : Base(xpr) {}
 };
 
 
@@ -100,7 +99,7 @@ template<typename T>
 struct evaluator<const T>
   : evaluator<T>
 {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  EIGEN_DEVICE_FUNC
   explicit evaluator(const T& xpr) : evaluator<T>(xpr) {}
 };
 
@@ -135,25 +134,21 @@ private:
 // this helper permits to completely eliminate m_outerStride if it is known at compiletime.
 template<typename Scalar,int OuterStride> class plainobjectbase_evaluator_data {
 public:
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  plainobjectbase_evaluator_data(const Scalar* ptr, Index outerStride) : data(ptr)
+  EIGEN_DEVICE_FUNC plainobjectbase_evaluator_data(const Scalar* ptr, Index outerStride) : data(ptr)
   {
 #ifndef EIGEN_INTERNAL_DEBUGGING
     EIGEN_UNUSED_VARIABLE(outerStride);
 #endif
     eigen_internal_assert(outerStride==OuterStride);
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  Index outerStride() const { return OuterStride; }
+  EIGEN_DEVICE_FUNC Index outerStride() const { return OuterStride; }
   const Scalar *data;
 };
 
 template<typename Scalar> class plainobjectbase_evaluator_data<Scalar,Dynamic> {
 public:
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  plainobjectbase_evaluator_data(const Scalar* ptr, Index outerStride) : data(ptr), m_outerStride(outerStride) {}
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  Index outerStride() const { return m_outerStride; }
+  EIGEN_DEVICE_FUNC plainobjectbase_evaluator_data(const Scalar* ptr, Index outerStride) : data(ptr), m_outerStride(outerStride) {}
+  EIGEN_DEVICE_FUNC Index outerStride() const { return m_outerStride; }
   const Scalar *data;
 protected:
   Index m_outerStride;
@@ -184,15 +179,13 @@ struct evaluator<PlainObjectBase<Derived> >
                                                                         : RowsAtCompileTime
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  evaluator()
+  EIGEN_DEVICE_FUNC evaluator()
     : m_d(0,OuterStrideAtCompileTime)
   {
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const PlainObjectType& m)
+  EIGEN_DEVICE_FUNC explicit evaluator(const PlainObjectType& m)
     : m_d(m.data(),IsVectorAtCompileTime ? 0 : m.outerStride())
   {
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
@@ -275,11 +268,9 @@ struct evaluator<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 {
   typedef Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> XprType;
   
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  evaluator() {}
+  EIGEN_DEVICE_FUNC evaluator() {}
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const XprType& m)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& m)
     : evaluator<PlainObjectBase<XprType> >(m) 
   { }
 };
@@ -290,11 +281,9 @@ struct evaluator<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 {
   typedef Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> XprType;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  evaluator() {}
+  EIGEN_DEVICE_FUNC evaluator() {}
   
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const XprType& m)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& m)
     : evaluator<PlainObjectBase<XprType> >(m) 
   { }
 };
@@ -313,8 +302,7 @@ struct unary_evaluator<Transpose<ArgType>, IndexBased>
     Alignment = evaluator<ArgType>::Alignment
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit unary_evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
@@ -724,8 +712,7 @@ struct evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
   typedef binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > Base;
   
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const XprType& xpr) : Base(xpr) {}
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr) : Base(xpr) {}
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
@@ -753,8 +740,7 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
     Alignment = EIGEN_PLAIN_ENUM_MIN(evaluator<Lhs>::Alignment,evaluator<Rhs>::Alignment)
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit binary_evaluator(const XprType& xpr) : m_d(xpr)
+  EIGEN_DEVICE_FUNC explicit binary_evaluator(const XprType& xpr) : m_d(xpr)
   {
     EIGEN_INTERNAL_CHECK_COST_VALUE(functor_traits<BinaryOp>::Cost);
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
@@ -891,8 +877,7 @@ struct mapbase_evaluator : evaluator_base<Derived>
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit mapbase_evaluator(const XprType& map)
+  EIGEN_DEVICE_FUNC explicit mapbase_evaluator(const XprType& map)
     : m_data(const_cast<PointerType>(map.data())),
       m_innerStride(map.innerStride()),
       m_outerStride(map.outerStride())
@@ -956,10 +941,10 @@ struct mapbase_evaluator : evaluator_base<Derived>
     internal::pstoret<Scalar, PacketType, StoreMode>(m_data + index * m_innerStride.value(), x);
   }
 protected:
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  Index rowStride() const { return XprType::IsRowMajor ? m_outerStride.value() : m_innerStride.value(); }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  Index colStride() const { return XprType::IsRowMajor ? m_innerStride.value() : m_outerStride.value(); }
+  EIGEN_DEVICE_FUNC
+  inline Index rowStride() const { return XprType::IsRowMajor ? m_outerStride.value() : m_innerStride.value(); }
+  EIGEN_DEVICE_FUNC
+  inline Index colStride() const { return XprType::IsRowMajor ? m_innerStride.value() : m_outerStride.value(); }
 
   PointerType m_data;
   const internal::variable_if_dynamic<Index, XprType::InnerStrideAtCompileTime> m_innerStride;
@@ -1012,8 +997,7 @@ struct evaluator<Ref<PlainObjectType, RefOptions, StrideType> >
     Alignment = evaluator<Map<PlainObjectType, RefOptions, StrideType> >::Alignment
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const XprType& ref)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& ref)
     : mapbase_evaluator<XprType, PlainObjectType>(ref) 
   { }
 };
@@ -1068,8 +1052,7 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     Alignment = EIGEN_PLAIN_ENUM_MIN(evaluator<ArgType>::Alignment, Alignment0)
   };
   typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const XprType& block) : block_evaluator_type(block)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& block) : block_evaluator_type(block)
   {
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
   }
@@ -1082,8 +1065,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAcc
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit block_evaluator(const XprType& block)
+  EIGEN_DEVICE_FUNC explicit block_evaluator(const XprType& block)
     : unary_evaluator<XprType>(block) 
   {}
 };
@@ -1094,8 +1076,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit unary_evaluator(const XprType& block)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& block)
     : m_argImpl(block.nestedExpression()), 
       m_startRow(block.startRow()), 
       m_startCol(block.startCol()),
@@ -1118,8 +1099,11 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   CoeffReturnType coeff(Index index) const
-  {
-    return linear_coeff_impl(index, bool_constant<ForwardLinearAccess>());
+  { 
+    if (ForwardLinearAccess)
+      return m_argImpl.coeff(m_linear_offset.value() + index); 
+    else
+      return coeff(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -1130,8 +1114,11 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Scalar& coeffRef(Index index)
-  {
-    return linear_coeffRef_impl(index, bool_constant<ForwardLinearAccess>());
+  { 
+    if (ForwardLinearAccess)
+      return m_argImpl.coeffRef(m_linear_offset.value() + index); 
+    else
+      return coeffRef(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
   }
  
   template<int LoadMode, typename PacketType>
@@ -1172,28 +1159,6 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   }
  
 protected:
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  CoeffReturnType linear_coeff_impl(Index index, internal::true_type /* ForwardLinearAccess */) const
-  {
-    return m_argImpl.coeff(m_linear_offset.value() + index); 
-  }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  CoeffReturnType linear_coeff_impl(Index index, internal::false_type /* not ForwardLinearAccess */) const
-  {
-    return coeff(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  Scalar& linear_coeffRef_impl(Index index, internal::true_type /* ForwardLinearAccess */)
-  {
-    return m_argImpl.coeffRef(m_linear_offset.value() + index); 
-  }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  Scalar& linear_coeffRef_impl(Index index, internal::false_type /* not ForwardLinearAccess */)
-  {
-    return coeffRef(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
-  }
-
   evaluator<ArgType> m_argImpl;
   const variable_if_dynamic<Index, (ArgType::RowsAtCompileTime == 1 && BlockRows==1) ? 0 : Dynamic> m_startRow;
   const variable_if_dynamic<Index, (ArgType::ColsAtCompileTime == 1 && BlockCols==1) ? 0 : Dynamic> m_startCol;
@@ -1211,8 +1176,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAc
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
   typedef typename XprType::Scalar Scalar;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit block_evaluator(const XprType& block)
+  EIGEN_DEVICE_FUNC explicit block_evaluator(const XprType& block)
     : mapbase_evaluator<XprType, typename XprType::PlainObject>(block) 
   {
     // TODO: for the 3.3 release, this should be turned to an internal assertion, but let's keep it as is for the beta lifetime
@@ -1240,8 +1204,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
     Alignment = EIGEN_PLAIN_ENUM_MIN(evaluator<ThenMatrixType>::Alignment, evaluator<ElseMatrixType>::Alignment)
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const XprType& select)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& select)
     : m_conditionImpl(select.conditionMatrix()),
       m_thenImpl(select.thenMatrix()),
       m_elseImpl(select.elseMatrix())
@@ -1298,8 +1261,7 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
     Alignment = evaluator<ArgTypeNestedCleaned>::Alignment
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit unary_evaluator(const XprType& replicate)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& replicate)
     : m_arg(replicate.nestedExpression()),
       m_argImpl(m_arg),
       m_rows(replicate.nestedExpression().rows()),
@@ -1379,8 +1341,7 @@ struct evaluator_wrapper_base
     Alignment = evaluator<ArgType>::Alignment
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
+  EIGEN_DEVICE_FUNC explicit evaluator_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
 
   typedef typename ArgType::Scalar Scalar;
   typedef typename ArgType::CoeffReturnType CoeffReturnType;
@@ -1447,8 +1408,7 @@ struct unary_evaluator<MatrixWrapper<TArgType> >
 {
   typedef MatrixWrapper<TArgType> XprType;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit unary_evaluator(const XprType& wrapper)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& wrapper)
     : evaluator_wrapper_base<MatrixWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
@@ -1459,8 +1419,7 @@ struct unary_evaluator<ArrayWrapper<TArgType> >
 {
   typedef ArrayWrapper<TArgType> XprType;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit unary_evaluator(const XprType& wrapper)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& wrapper)
     : evaluator_wrapper_base<ArrayWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
@@ -1502,8 +1461,7 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
     Alignment = 0 // FIXME in some rare cases, Alignment could be preserved, like a Vector4f.
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit unary_evaluator(const XprType& reverse)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& reverse)
     : m_argImpl(reverse.nestedExpression()),
       m_rows(ReverseRow ? reverse.nestedExpression().rows() : 1),
       m_cols(ReverseCol ? reverse.nestedExpression().cols() : 1)
@@ -1610,8 +1568,7 @@ struct evaluator<Diagonal<ArgType, DiagIndex> >
     Alignment = 0
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit evaluator(const XprType& diagonal)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& diagonal)
     : m_argImpl(diagonal.nestedExpression()),
       m_index(diagonal.index())
   { }

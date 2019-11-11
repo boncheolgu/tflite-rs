@@ -81,7 +81,7 @@ class LobsterGenerator : public BaseGenerator {
     static const char *ctypename[] = {
       // clang-format off
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
-        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, RTYPE) \
+        CTYPE, JTYPE, GTYPE, NTYPE, PTYPE) \
         #PTYPE,
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
       #undef FLATBUFFERS_TD
@@ -149,10 +149,10 @@ class LobsterGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_UNION: {
-        for (auto it = field.value.type.enum_def->Vals().begin();
-             it != field.value.type.enum_def->Vals().end(); ++it) {
+        for (auto it = field.value.type.enum_def->vals.vec.begin();
+             it != field.value.type.enum_def->vals.vec.end(); ++it) {
           auto &ev = **it;
-          if (ev.IsNonZero()) {
+          if (ev.value) {
             code += def + "_as_" + ev.name + "():\n        " +
                     NamespacedName(*ev.union_type.struct_def) +
                     " { buf_, buf_.flatbuffers_field_table(pos_, " + offsets +
@@ -259,12 +259,13 @@ class LobsterGenerator : public BaseGenerator {
     CheckNameSpace(enum_def, &code);
     GenComment(enum_def.doc_comment, code_ptr, nullptr, "");
     code += "enum + \n";
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+        ++it) {
       auto &ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "    ");
       code += "    " + enum_def.name + "_" + NormalizedName(ev) + " = " +
               NumToString(ev.value);
-      if (it + 1 != enum_def.Vals().end()) code += ",";
+      if (it + 1 != enum_def.vals.vec.end()) code += ",";
       code += "\n";
     }
     code += "\n";

@@ -19,7 +19,6 @@
 
 #include <smmintrin.h>
 #include "fixedpoint.h"
-#include "fixedpoint_sse.h"
 
 namespace gemmlowp {
 

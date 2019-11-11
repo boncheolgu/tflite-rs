@@ -177,7 +177,7 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
     } else {
       reducer.reduce(__shfl_down(static_cast<int>(accum), offset, warpSize), &accum);
     }
-  #elif defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER < 90000
+  #elif defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
     reducer.reduce(__shfl_down(accum, offset, warpSize), &accum);
   #else
     reducer.reduce(__shfl_down_sync(0xFFFFFFFF, accum, offset, warpSize), &accum);
@@ -269,7 +269,7 @@ __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self input, 
     wka_in.h = accum;
     wka_out.i = __shfl_down(wka_in.i, offset, warpSize);
     reducer.reducePacket(wka_out.h, &accum);
-  #elif defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER < 90000
+  #elif defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
     reducer.reducePacket(__shfl_down(accum, offset, warpSize), &accum);
   #else
     int temp = __shfl_down_sync(0xFFFFFFFF, *(int*)(&accum), (unsigned)offset, warpSize);
@@ -466,7 +466,7 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
         } else {
           reducer.reduce(__shfl_down(static_cast<int>(reduced_val), offset), &reduced_val);
         }
-      #elif defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER < 90000
+      #elif defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
         reducer.reduce(__shfl_down(reduced_val, offset), &reduced_val);
       #else
         reducer.reduce(__shfl_down_sync(0xFFFFFFFF, reduced_val, offset), &reduced_val);
@@ -571,7 +571,7 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
 	wka_in.h = reduced_val2;
 	wka_out.i = __shfl_down(wka_in.i, offset, warpSize);
         reducer.reducePacket(wka_out.h, &reduced_val2);
-      #elif defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER < 90000
+      #elif defined(EIGEN_CUDACC_VER) && EIGEN_CUDACC_VER < 90000
         reducer.reducePacket(__shfl_down(reduced_val1, offset, warpSize), &reduced_val1);
         reducer.reducePacket(__shfl_down(reduced_val2, offset, warpSize), &reduced_val2);
       #else
@@ -674,6 +674,10 @@ struct InnerReductionLauncher<Self, Op, Eigen::half, true> {
     if (num_blocks > 1) {
       // We initialize the outputs outside the reduction kernel when we can't be sure that there
       // won't be a race conditions between multiple thread blocks.
+      const int dyn_blocks = divup<int>(num_preserved_vals, 1024);
+      const int max_blocks = device.getNumGpuMultiProcessors() *
+                           device.maxGpuThreadsPerMultiProcessor() / 1024;
+      const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
       LAUNCH_GPU_KERNEL((ReductionInitKernelHalfFloat<Self, Op, Index>),
                          1, 1, 0, device, reducer, self, num_preserved_vals, output);
     }

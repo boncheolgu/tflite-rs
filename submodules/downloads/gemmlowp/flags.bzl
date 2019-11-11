@@ -3,9 +3,10 @@ LIB_COPTS = []
 
 LIB_LINKOPTS = select({
     ":android": [],
-    ":windows": [],
     "//conditions:default": ["-lpthread"],
 })
 
-BIN_LINKOPTS = LIB_LINKOPTS
-
+BIN_LINKOPTS = select({
+    ":android": [],
+    "//conditions:default": ["-lpthread"],
+})

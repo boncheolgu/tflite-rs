@@ -38,13 +38,6 @@ Packet perf(const Packet& a) { using numext::erf; return erf(a); }
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet perfc(const Packet& a) { using numext::erfc; return erfc(a); }
 
-/** \internal \returns the ndtri(\a a) (coeff-wise) */
-template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pndtri(const Packet& a) {
-  typedef typename unpacket_traits<Packet>::type ScalarType;
-  using internal::generic_ndtri; return generic_ndtri<Packet, ScalarType>(a);
-}
-
 /** \internal \returns the incomplete gamma function igamma(\a a, \a x) */
 template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 Packet pigamma(const Packet& a, const Packet& x) { using numext::igamma; return igamma(a, x); }
@@ -72,8 +65,21 @@ Packet pigammac(const Packet& a, const Packet& x) { using numext::igammac; retur
 template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 Packet pbetainc(const Packet& a, const Packet& b,const Packet& x) { using numext::betainc; return betainc(a, b, x); }
 
+/** \internal \returns the exponentially scaled modified Bessel function of
+ * order zero i0e(\a a) (coeff-wise) */
+template <typename Packet>
+EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pi0e(const Packet& x) { using numext::i0e; return i0e(x); }
+
+/** \internal \returns the exponentially scaled modified Bessel function of
+ * order one i1e(\a a) (coeff-wise) */
+template <typename Packet>
+EIGEN_DEVICE_FUNC EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pi1e(const Packet& x) { using numext::i1e; return i1e(x); }
+
 } // end namespace internal
 
 } // end namespace Eigen
 
 #endif // EIGEN_SPECIALFUNCTIONS_PACKETMATH_H
+

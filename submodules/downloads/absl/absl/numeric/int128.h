@@ -5,7 +5,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,15 +43,16 @@
 // builtin type.  We need to make sure not to define operator wchar_t()
 // alongside operator unsigned short() in these instances.
 #define ABSL_INTERNAL_WCHAR_T __wchar_t
-#if defined(_M_X64)
+#if defined(_WIN64)
 #include <intrin.h>
 #pragma intrinsic(_umul128)
-#endif  // defined(_M_X64)
+#endif  // defined(_WIN64)
 #else   // defined(_MSC_VER)
 #define ABSL_INTERNAL_WCHAR_T wchar_t
 #endif  // defined(_MSC_VER)
 
 namespace absl {
+
 
 // uint128
 //
@@ -674,7 +675,7 @@ inline uint128 operator*(uint128 lhs, uint128 rhs) {
   // can be used for uint128 storage.
   return static_cast<unsigned __int128>(lhs) *
          static_cast<unsigned __int128>(rhs);
-#elif defined(_MSC_VER) && defined(_M_X64)
+#elif defined(_MSC_VER) && defined(_WIN64)
   uint64_t carry;
   uint64_t low = _umul128(Uint128Low64(lhs), Uint128Low64(rhs), &carry);
   return MakeUint128(Uint128Low64(lhs) * Uint128High64(rhs) +

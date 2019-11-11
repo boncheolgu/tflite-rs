@@ -16,6 +16,7 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 #include <cassert>
+#include <unordered_map>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -51,11 +52,11 @@ static const char *keywords[] = {
 // and tables) and output them to a single file.
 class DartGenerator : public BaseGenerator {
  public:
-  typedef std::map<std::string, std::string> namespace_code_map;
+  typedef std::unordered_map<std::string, std::string> namespace_code_map;
 
   DartGenerator(const Parser &parser, const std::string &path,
                 const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", ".") {}
+      : BaseGenerator(parser, path, file_name, "", "."){};
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
@@ -251,11 +252,12 @@ class DartGenerator : public BaseGenerator {
         "  static bool containsValue(int value) =>"
         " values.containsKey(value);\n\n";
 
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
       auto &ev = **it;
 
       if (!ev.doc_comment.empty()) {
-        if (it != enum_def.Vals().begin()) { code += '\n'; }
+        if (it != enum_def.vals.vec.begin()) { code += '\n'; }
         GenDocComment(ev.doc_comment, &code, "", "  ");
       }
       code += "  static const " + name + " " + ev.name + " = ";
@@ -263,7 +265,8 @@ class DartGenerator : public BaseGenerator {
     }
 
     code += "  static get values => {";
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+    for (auto it = enum_def.vals.vec.begin(); it != enum_def.vals.vec.end();
+         ++it) {
       auto &ev = **it;
       code += NumToString(ev.value) + ": " + ev.name + ",";
     }
@@ -501,9 +504,8 @@ class DartGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         code += " {\n";
         code += "    switch (" + field_name + "Type?.value) {\n";
-        auto &enum_def = *field.value.type.enum_def;
-        for (auto en_it = enum_def.Vals().begin() + 1;
-             en_it != enum_def.Vals().end(); ++en_it) {
+        for (auto en_it = field.value.type.enum_def->vals.vec.begin() + 1;
+             en_it != field.value.type.enum_def->vals.vec.end(); ++en_it) {
           auto &ev = **en_it;
 
           auto enum_name = NamespaceAliasFromUnionType(ev.name);

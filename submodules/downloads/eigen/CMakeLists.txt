@@ -469,8 +469,6 @@ if(BUILD_TESTING)
   else()
     add_subdirectory(test EXCLUDE_FROM_ALL)
   endif()
-
-  add_subdirectory(failtest)
 endif()
 
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
@@ -521,6 +519,11 @@ message(STATUS "")
 message(STATUS "Configured Eigen ${EIGEN_VERSION_NUMBER}")
 message(STATUS "")
 
+option(EIGEN_FAILTEST "Enable failtests." OFF)
+if(EIGEN_FAILTEST)
+  add_subdirectory(failtest)
+endif()
+
 string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
 if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS "Some things you can do now:")
@@ -537,10 +540,8 @@ if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS "              |   Or:")
   message(STATUS "              |     cmake . -DINCLUDE_INSTALL_DIR=yourdir")
   message(STATUS "make doc      | Generate the API documentation, requires Doxygen & LaTeX")
-  if(BUILD_TESTING)
-    message(STATUS "make check    | Build and run the unit-tests. Read this page:")
-    message(STATUS "              |   http://eigen.tuxfamily.org/index.php?title=Tests")
-  endif()
+  message(STATUS "make check    | Build and run the unit-tests. Read this page:")
+  message(STATUS "              |   http://eigen.tuxfamily.org/index.php?title=Tests")
   message(STATUS "make blas     | Build BLAS library (not the same thing as Eigen)")
   message(STATUS "make uninstall| Removes files installed by make install")
   message(STATUS "--------------+--------------------------------------------------------------")
@@ -567,6 +568,7 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.0)
   # Imported target support
   add_library (eigen INTERFACE)
   add_library (Eigen3::Eigen ALIAS eigen)
+
   target_compile_definitions (eigen INTERFACE ${EIGEN_DEFINITIONS})
   target_include_directories (eigen INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

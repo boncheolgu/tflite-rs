@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,7 @@
 //   const T2& t2 = value.get<2>();
 //   ...
 //
-// https://en.cppreference.com/w/cpp/language/ebo
+// http://en.cppreference.com/w/cpp/language/ebo
 
 #ifndef ABSL_CONTAINER_INTERNAL_COMPRESSED_TUPLE_H_
 #define ABSL_CONTAINER_INTERNAL_COMPRESSED_TUPLE_H_
@@ -38,13 +38,13 @@
 
 #include "absl/utility/utility.h"
 
-#if defined(_MSC_VER) && !defined(__NVCC__)
+#ifdef _MSC_VER
 // We need to mark these classes with this declspec to ensure that
 // CompressedTuple happens.
 #define ABSL_INTERNAL_COMPRESSED_TUPLE_DECLSPEC __declspec(empty_bases)
-#else
+#else  // _MSC_VER
 #define ABSL_INTERNAL_COMPRESSED_TUPLE_DECLSPEC
-#endif
+#endif  // _MSC_VER
 
 namespace absl {
 namespace container_internal {
@@ -141,7 +141,7 @@ struct ABSL_INTERNAL_COMPRESSED_TUPLE_DECLSPEC
 //   const T2& t2 = value.get<2>();
 //   ...
 //
-// https://en.cppreference.com/w/cpp/language/ebo
+// http://en.cppreference.com/w/cpp/language/ebo
 template <typename... Ts>
 class ABSL_INTERNAL_COMPRESSED_TUPLE_DECLSPEC CompressedTuple
     : private internal_compressed_tuple::CompressedTupleImpl<

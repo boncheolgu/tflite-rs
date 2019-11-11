@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      https://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,31 +14,39 @@
 # limitations under the License.
 #
 
-absl_cc_library(
-  NAME
-    utility
-  HDRS
-    "utility.h"
-  COPTS
-    ${ABSL_DEFAULT_COPTS}
-  DEPS
-    absl::base_internal
-    absl::config
-    absl::type_traits
-  PUBLIC
+
+list(APPEND UTILITY_PUBLIC_HEADERS
+  "utility.h"
 )
 
-absl_cc_test(
-  NAME
+absl_header_library(
+  TARGET
+    absl_utility
+  PUBLIC_LIBRARIES
+    absl::base
+  EXPORT_NAME
+    utility
+)
+
+
+#
+## TESTS
+#
+
+# test utility_test
+set(UTILITY_TEST_SRC "utility_test.cc")
+set(UTILITY_TEST_PUBLIC_LIBRARIES
+  absl::base
+  absl::memory
+  absl::strings
+  absl::utility
+)
+
+absl_test(
+  TARGET
     utility_test
-  SRCS
-    "utility_test.cc"
-  COPTS
-    ${ABSL_TEST_COPTS}
-  DEPS
-    absl::utility
-    absl::core_headers
-    absl::memory
-    absl::strings
-    gmock_main
+  SOURCES
+    ${UTILITY_TEST_SRC}
+  PUBLIC_LIBRARIES
+    ${UTILITY_TEST_PUBLIC_LIBRARIES}
 )

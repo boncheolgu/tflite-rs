@@ -425,7 +425,6 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
 
 template<typename _MatrixType, int QRPreconditioner> 
 struct traits<JacobiSVD<_MatrixType,QRPreconditioner> >
-        : traits<_MatrixType>
 {
   typedef _MatrixType MatrixType;
 };

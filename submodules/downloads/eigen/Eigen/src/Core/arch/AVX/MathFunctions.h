@@ -36,16 +36,6 @@ plog<Packet8f>(const Packet8f& _x) {
   return plog_float(_x);
 }
 
-template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet8f plog1p<Packet8f>(const Packet8f& _x) {
-  return generic_plog1p(_x);
-}
-
-template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet8f pexpm1<Packet8f>(const Packet8f& _x) {
-  return generic_expm1(_x);
-}
-
 // Exponential function. Works by writing "x = m*log(2) + r" where
 // "m = floor(x/log(2)+1/2)" and "r" is the remainder. The result is then
 // "exp(x) = 2^m*exp(r)" where exp(r) is in the range [-1,1).
@@ -62,7 +52,6 @@ ptanh<Packet8f>(const Packet8f& x) {
   return internal::generic_fast_tanh_float(x);
 }
 
-// Exponential function for doubles.
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4d
 pexp<Packet4d>(const Packet4d& x) {

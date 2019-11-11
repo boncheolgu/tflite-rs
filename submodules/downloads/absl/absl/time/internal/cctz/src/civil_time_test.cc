@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//   https://www.apache.org/licenses/LICENSE-2.0
+//   http://www.apache.org/licenses/LICENSE-2.0
 //
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,7 +37,7 @@ std::string Format(const T& t) {
 
 }  // namespace
 
-#if __cpp_constexpr >= 201304 || (defined(_MSC_VER) && _MSC_VER >= 1910)
+#if __cpp_constexpr >= 201304 || _MSC_VER >= 1910
 // Construction constexpr tests
 
 TEST(CivilTime, Normal) {
@@ -319,7 +319,7 @@ TEST(CivilTime, YearDay) {
   constexpr int yd = get_yearday(cd);
   static_assert(yd == 28, "YearDay");
 }
-#endif  // __cpp_constexpr >= 201304 || (defined(_MSC_VER) && _MSC_VER >= 1910)
+#endif  // __cpp_constexpr >= 201304 || _MSC_VER >= 1910
 
 // The remaining tests do not use constexpr.
 
@@ -1035,7 +1035,7 @@ TEST(CivilTime, LeapYears) {
 
 TEST(CivilTime, FirstThursdayInMonth) {
   const civil_day nov1(2014, 11, 1);
-  const civil_day thursday = next_weekday(nov1 - 1, weekday::thursday);
+  const civil_day thursday = prev_weekday(nov1, weekday::thursday) + 7;
   EXPECT_EQ("2014-11-06", Format(thursday));
 
   // Bonus: Date of Thanksgiving in the United States

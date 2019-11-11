@@ -33,9 +33,6 @@
 #define TZDEFRULES	"posixrules"
 #endif /* !defined TZDEFRULES */
 
-
-/* See Internet RFC 8536 for more details about the following format.  */
-
 /*
 ** Each file begins with. . .
 */

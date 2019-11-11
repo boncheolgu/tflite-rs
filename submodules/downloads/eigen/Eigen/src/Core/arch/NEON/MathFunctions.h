@@ -8,6 +8,8 @@
 #ifndef EIGEN_MATH_FUNCTIONS_NEON_H
 #define EIGEN_MATH_FUNCTIONS_NEON_H
 
+#include "../Default/GenericPacketMathFunctions.h"
+
 namespace Eigen {
 
 namespace internal {
@@ -34,13 +36,6 @@ template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f pcos<Packet4f>(const Packet4f& x)
 {
   return pcos_float(x);
-}
-
-// Hyperbolic Tangent function.
-template <>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4f
-ptanh<Packet4f>(const Packet4f& x) {
-  return internal::generic_fast_tanh_float(x);
 }
 
 } // end namespace internal

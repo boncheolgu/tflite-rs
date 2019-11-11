@@ -88,27 +88,27 @@ inline size_t InlineSize(ElementaryType type, const TypeTable *type_table) {
       switch (type_table->st) {
         case ST_TABLE:
         case ST_UNION: return 4;
-        case ST_STRUCT: return static_cast<size_t>(type_table->values[type_table->num_elems]);
+        case ST_STRUCT: return type_table->values[type_table->num_elems];
         default: FLATBUFFERS_ASSERT(false); return 1;
       }
     default: FLATBUFFERS_ASSERT(false); return 1;
   }
 }
 
-inline int64_t LookupEnum(int64_t enum_val, const int64_t *values,
+inline int32_t LookupEnum(int32_t enum_val, const int32_t *values,
                           size_t num_values) {
   if (!values) return enum_val;
   for (size_t i = 0; i < num_values; i++) {
-    if (enum_val == values[i]) return static_cast<int64_t>(i);
+    if (enum_val == values[i]) return static_cast<int32_t>(i);
   }
   return -1;  // Unknown enum value.
 }
 
 template<typename T> const char *EnumName(T tval, const TypeTable *type_table) {
   if (!type_table || !type_table->names) return nullptr;
-  auto i = LookupEnum(static_cast<int64_t>(tval), type_table->values,
+  auto i = LookupEnum(static_cast<int32_t>(tval), type_table->values,
                       type_table->num_elems);
-  if (i >= 0 && i < static_cast<int64_t>(type_table->num_elems)) {
+  if (i >= 0 && i < static_cast<int32_t>(type_table->num_elems)) {
     return type_table->names[i];
   }
   return nullptr;
@@ -122,58 +122,58 @@ inline void IterateValue(ElementaryType type, const uint8_t *val,
                          soffset_t vector_index, IterationVisitor *visitor) {
   switch (type) {
     case ET_UTYPE: {
-      auto tval = ReadScalar<uint8_t>(val);
+      auto tval = *reinterpret_cast<const uint8_t *>(val);
       visitor->UType(tval, EnumName(tval, type_table));
       break;
     }
     case ET_BOOL: {
-      visitor->Bool(ReadScalar<uint8_t>(val) != 0);
+      visitor->Bool(*reinterpret_cast<const uint8_t *>(val) != 0);
       break;
     }
     case ET_CHAR: {
-      auto tval = ReadScalar<int8_t>(val);
+      auto tval = *reinterpret_cast<const int8_t *>(val);
       visitor->Char(tval, EnumName(tval, type_table));
       break;
     }
     case ET_UCHAR: {
-      auto tval = ReadScalar<uint8_t>(val);
+      auto tval = *reinterpret_cast<const uint8_t *>(val);
       visitor->UChar(tval, EnumName(tval, type_table));
       break;
     }
     case ET_SHORT: {
-      auto tval = ReadScalar<int16_t>(val);
+      auto tval = *reinterpret_cast<const int16_t *>(val);
       visitor->Short(tval, EnumName(tval, type_table));
       break;
     }
     case ET_USHORT: {
-      auto tval = ReadScalar<uint16_t>(val);
+      auto tval = *reinterpret_cast<const uint16_t *>(val);
       visitor->UShort(tval, EnumName(tval, type_table));
       break;
     }
     case ET_INT: {
-      auto tval = ReadScalar<int32_t>(val);
+      auto tval = *reinterpret_cast<const int32_t *>(val);
       visitor->Int(tval, EnumName(tval, type_table));
       break;
     }
     case ET_UINT: {
-      auto tval = ReadScalar<uint32_t>(val);
+      auto tval = *reinterpret_cast<const uint32_t *>(val);
       visitor->UInt(tval, EnumName(tval, type_table));
       break;
     }
     case ET_LONG: {
-      visitor->Long(ReadScalar<int64_t>(val));
+      visitor->Long(*reinterpret_cast<const int64_t *>(val));
       break;
     }
     case ET_ULONG: {
-      visitor->ULong(ReadScalar<uint64_t>(val));
+      visitor->ULong(*reinterpret_cast<const uint64_t *>(val));
       break;
     }
     case ET_FLOAT: {
-      visitor->Float(ReadScalar<float>(val));
+      visitor->Float(*reinterpret_cast<const float *>(val));
       break;
     }
     case ET_DOUBLE: {
-      visitor->Double(ReadScalar<double>(val));
+      visitor->Double(*reinterpret_cast<const double *>(val));
       break;
     }
     case ET_STRING: {
@@ -284,37 +284,14 @@ inline void IterateFlatBuffer(const uint8_t *buffer,
 struct ToStringVisitor : public IterationVisitor {
   std::string s;
   std::string d;
-  bool q;
-  std::string in;
-  size_t indent_level;
-  bool vector_delimited;
-  ToStringVisitor(std::string delimiter, bool quotes, std::string indent,
-                  bool vdelimited = true)
-      : d(delimiter),
-        q(quotes),
-        in(indent),
-        indent_level(0),
-        vector_delimited(vdelimited) {}
-  ToStringVisitor(std::string delimiter)
-      : d(delimiter),
-        q(false),
-        in(""),
-        indent_level(0),
-        vector_delimited(true) {}
-
-  void append_indent() {
-    for (size_t i = 0; i < indent_level; i++) { s += in; }
-  }
+  ToStringVisitor(std::string delimiter): d(delimiter) {}
 
   void StartSequence() {
     s += "{";
     s += d;
-    indent_level++;
   }
   void EndSequence() {
     s += d;
-    indent_level--;
-    append_indent();
     s += "}";
   }
   void Field(size_t /*field_idx*/, size_t set_idx, ElementaryType /*type*/,
@@ -325,22 +302,16 @@ struct ToStringVisitor : public IterationVisitor {
       s += ",";
       s += d;
     }
-    append_indent();
     if (name) {
-      if (q) s += "\"";
       s += name;
-      if (q) s += "\"";
       s += ": ";
     }
   }
   template<typename T> void Named(T x, const char *name) {
-    if (name) {
-      if (q) s += "\"";
+    if (name)
       s += name;
-      if (q) s += "\"";
-    } else {
+    else
       s += NumToString(x);
-    }
   }
   void UType(uint8_t x, const char *name) { Named(x, name); }
   void Bool(bool x) { s += x ? "true" : "false"; }
@@ -358,46 +329,18 @@ struct ToStringVisitor : public IterationVisitor {
     EscapeString(str->c_str(), str->size(), &s, true, false);
   }
   void Unknown(const uint8_t *) { s += "(?)"; }
-  void StartVector() {
-    s += "[";
-    if (vector_delimited) {
-      s += d;
-      indent_level++;
-      append_indent();
-    } else {
-      s += " ";
-    }
-  }
-  void EndVector() {
-    if (vector_delimited) {
-      s += d;
-      indent_level--;
-      append_indent();
-    } else {
-      s += " ";
-    }
-    s += "]";
-  }
+  void StartVector() { s += "[ "; }
+  void EndVector() { s += " ]"; }
   void Element(size_t i, ElementaryType /*type*/,
                const TypeTable * /*type_table*/, const uint8_t * /*val*/) {
-    if (i) {
-      s += ",";
-      if (vector_delimited) {
-        s += d;
-        append_indent();
-      } else {
-        s += " ";
-      }
-    }
+    if (i) s += ", ";
   }
 };
 
 inline std::string FlatBufferToString(const uint8_t *buffer,
                                       const TypeTable *type_table,
-                                      bool multi_line = false,
-                                      bool vector_delimited = true) {
-  ToStringVisitor tostring_visitor(multi_line ? "\n" : " ", false, "",
-                                   vector_delimited);
+                                      bool multi_line = false) {
+  ToStringVisitor tostring_visitor(multi_line ? "\n" : " ");
   IterateFlatBuffer(buffer, type_table, &tostring_visitor);
   return tostring_visitor.s;
 }

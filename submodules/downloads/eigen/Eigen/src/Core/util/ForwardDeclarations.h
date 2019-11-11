@@ -47,7 +47,11 @@ template<typename T> struct NumTraits;
 template<typename Derived> struct EigenBase;
 template<typename Derived> class DenseBase;
 template<typename Derived> class PlainObjectBase;
-template<typename Derived, int Level> class DenseCoeffsBase;
+
+
+template<typename Derived,
+         int Level = internal::accessors_level<Derived>::value >
+class DenseCoeffsBase;
 
 template<typename _Scalar, int _Rows, int _Cols,
          int _Options = AutoAlign |
@@ -214,26 +218,10 @@ template<typename Scalar> struct scalar_lgamma_op;
 template<typename Scalar> struct scalar_digamma_op;
 template<typename Scalar> struct scalar_erf_op;
 template<typename Scalar> struct scalar_erfc_op;
-template<typename Scalar> struct scalar_ndtri_op;
 template<typename Scalar> struct scalar_igamma_op;
 template<typename Scalar> struct scalar_igammac_op;
 template<typename Scalar> struct scalar_zeta_op;
 template<typename Scalar> struct scalar_betainc_op;
-
-// Bessel functions in SpecialFunctions module
-template<typename Scalar> struct scalar_bessel_i0_op;
-template<typename Scalar> struct scalar_bessel_i0e_op;
-template<typename Scalar> struct scalar_bessel_i1_op;
-template<typename Scalar> struct scalar_bessel_i1e_op;
-template<typename Scalar> struct scalar_bessel_j0_op;
-template<typename Scalar> struct scalar_bessel_y0_op;
-template<typename Scalar> struct scalar_bessel_j1_op;
-template<typename Scalar> struct scalar_bessel_y1_op;
-template<typename Scalar> struct scalar_bessel_k0_op;
-template<typename Scalar> struct scalar_bessel_k0e_op;
-template<typename Scalar> struct scalar_bessel_k1_op;
-template<typename Scalar> struct scalar_bessel_k1e_op;
-
 
 } // end namespace internal
 
@@ -272,7 +260,6 @@ template<typename MatrixType> class HouseholderQR;
 template<typename MatrixType> class ColPivHouseholderQR;
 template<typename MatrixType> class FullPivHouseholderQR;
 template<typename MatrixType> class CompleteOrthogonalDecomposition;
-template<typename MatrixType> class SVDBase;
 template<typename MatrixType, int QRPreconditioner = ColPivHouseholderQRPreconditioner> class JacobiSVD;
 template<typename MatrixType> class BDCSVD;
 template<typename MatrixType, int UpLo = Lower> class LLT;

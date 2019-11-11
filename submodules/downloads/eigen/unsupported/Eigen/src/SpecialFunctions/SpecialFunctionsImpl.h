@@ -36,6 +36,135 @@ namespace internal {
 //    Good luck with your project,
 //    Steve
 
+namespace cephes {
+
+/* polevl (modified for Eigen)
+ *
+ *      Evaluate polynomial
+ *
+ *
+ *
+ * SYNOPSIS:
+ *
+ * int N;
+ * Scalar x, y, coef[N+1];
+ *
+ * y = polevl<decltype(x), N>( x, coef);
+ *
+ *
+ *
+ * DESCRIPTION:
+ *
+ * Evaluates polynomial of degree N:
+ *
+ *                     2          N
+ * y  =  C  + C x + C x  +...+ C x
+ *        0    1     2          N
+ *
+ * Coefficients are stored in reverse order:
+ *
+ * coef[0] = C  , ..., coef[N] = C  .
+ *            N                   0
+ *
+ *  The function p1evl() assumes that coef[N] = 1.0 and is
+ * omitted from the array.  Its calling arguments are
+ * otherwise the same as polevl().
+ *
+ *
+ * The Eigen implementation is templatized.  For best speed, store
+ * coef as a const array (constexpr), e.g.
+ *
+ * const double coef[] = {1.0, 2.0, 3.0, ...};
+ *
+ */
+template <typename Scalar, int N>
+struct polevl {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar x, const Scalar coef[]) {
+    EIGEN_STATIC_ASSERT((N > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
+
+    return polevl<Scalar, N - 1>::run(x, coef) * x + coef[N];
+  }
+};
+
+template <typename Scalar>
+struct polevl<Scalar, 0> {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar, const Scalar coef[]) {
+    return coef[0];
+  }
+};
+
+/* chbevl (modified for Eigen)
+ *
+ *     Evaluate Chebyshev series
+ *
+ *
+ *
+ * SYNOPSIS:
+ *
+ * int N;
+ * Scalar x, y, coef[N], chebevl();
+ *
+ * y = chbevl( x, coef, N );
+ *
+ *
+ *
+ * DESCRIPTION:
+ *
+ * Evaluates the series
+ *
+ *        N-1
+ *         - '
+ *  y  =   >   coef[i] T (x/2)
+ *         -            i
+ *        i=0
+ *
+ * of Chebyshev polynomials Ti at argument x/2.
+ *
+ * Coefficients are stored in reverse order, i.e. the zero
+ * order term is last in the array.  Note N is the number of
+ * coefficients, not the order.
+ *
+ * If coefficients are for the interval a to b, x must
+ * have been transformed to x -> 2(2x - b - a)/(b-a) before
+ * entering the routine.  This maps x from (a, b) to (-1, 1),
+ * over which the Chebyshev polynomials are defined.
+ *
+ * If the coefficients are for the inverted interval, in
+ * which (a, b) is mapped to (1/b, 1/a), the transformation
+ * required is x -> 2(2ab/x - b - a)/(b-a).  If b is infinity,
+ * this becomes x -> 4a/x - 1.
+ *
+ *
+ *
+ * SPEED:
+ *
+ * Taking advantage of the recurrence properties of the
+ * Chebyshev polynomials, the routine requires one more
+ * addition per loop than evaluating a nested polynomial of
+ * the same degree.
+ *
+ */
+template <typename Scalar, int N>
+struct chebevl {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(Scalar x, const Scalar coef[]) {
+    Scalar b0 = coef[0];
+    Scalar b1 = 0;
+    Scalar b2;
+
+    for (int i = 1; i < N; i++) {
+      b2 = b1;
+      b1 = b0;
+      b0 = x * b1 - b2 + coef[i];
+    }
+
+    return Scalar(0.5) * (b0 - b2);
+  }
+};
+
+}  // end namespace cephes
 
 /****************************************************************************
  * Implementation of lgamma, requires C++11/C99                             *
@@ -61,10 +190,10 @@ template <>
 struct lgamma_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(float x) {
-#if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__)
+#if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__) 
     int dummy;
     return ::lgammaf_r(x, &dummy);
-#elif defined(SYCL_DEVICE_ONLY)
+#elif defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
     return cl::sycl::lgamma(x);
 #else
     return ::lgammaf(x);
@@ -76,10 +205,10 @@ template <>
 struct lgamma_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(double x) {
-#if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__)
+#if !defined(EIGEN_GPU_COMPILE_PHASE) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE)) && !defined(__APPLE__) 
     int dummy;
     return ::lgamma_r(x, &dummy);
-#elif defined(SYCL_DEVICE_ONLY)
+#elif defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
     return cl::sycl::lgamma(x);
 #else
     return ::lgamma(x);
@@ -135,7 +264,7 @@ struct digamma_impl_maybe_poly<float> {
     float z;
     if (s < 1.0e8f) {
       z = 1.0f / (s * s);
-      return z * internal::ppolevl<float, 3>::run(z, A);
+      return z * cephes::polevl<float, 3>::run(z, A);
     } else return 0.0f;
   }
 };
@@ -157,7 +286,7 @@ struct digamma_impl_maybe_poly<double> {
     double z;
     if (s < 1.0e17) {
       z = 1.0 / (s * s);
-      return z * internal::ppolevl<double, 6>::run(z, A);
+      return z * cephes::polevl<double, 6>::run(z, A);
     }
     else return 0.0;
   }
@@ -279,63 +408,13 @@ struct digamma_impl {
  * Implementation of erf, requires C++11/C99                                *
  ****************************************************************************/
 
-/** \internal \returns the error function of \a a (coeff-wise)
-    Doesn't do anything fancy, just a 13/8-degree rational interpolant which
-    is accurate up to a couple of ulp in the range [-4, 4], outside of which
-    fl(erf(x)) = +/-1.
-
-    This implementation works on both scalars and Ts.
-*/
-template <typename T>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_fast_erf_float(const T& a_x) {
-  // Clamp the inputs to the range [-4, 4] since anything outside
-  // this range is +/-1.0f in single-precision.
-  const T plus_4 = pset1<T>(4.f);
-  const T minus_4 = pset1<T>(-4.f);
-  const T x = pmax(pmin(a_x, plus_4), minus_4);
-  // The monomial coefficients of the numerator polynomial (odd).
-  const T alpha_1 = pset1<T>(-1.60960333262415e-02f);
-  const T alpha_3 = pset1<T>(-2.95459980854025e-03f);
-  const T alpha_5 = pset1<T>(-7.34990630326855e-04f);
-  const T alpha_7 = pset1<T>(-5.69250639462346e-05f);
-  const T alpha_9 = pset1<T>(-2.10102402082508e-06f);
-  const T alpha_11 = pset1<T>(2.77068142495902e-08f);
-  const T alpha_13 = pset1<T>(-2.72614225801306e-10f);
-
-  // The monomial coefficients of the denominator polynomial (even).
-  const T beta_0 = pset1<T>(-1.42647390514189e-02f);
-  const T beta_2 = pset1<T>(-7.37332916720468e-03f);
-  const T beta_4 = pset1<T>(-1.68282697438203e-03f);
-  const T beta_6 = pset1<T>(-2.13374055278905e-04f);
-  const T beta_8 = pset1<T>(-1.45660718464996e-05f);
-
-  // Since the polynomials are odd/even, we need x^2.
-  const T x2 = pmul(x, x);
-
-  // Evaluate the numerator polynomial p.
-  T p = pmadd(x2, alpha_13, alpha_11);
-  p = pmadd(x2, p, alpha_9);
-  p = pmadd(x2, p, alpha_7);
-  p = pmadd(x2, p, alpha_5);
-  p = pmadd(x2, p, alpha_3);
-  p = pmadd(x2, p, alpha_1);
-  p = pmul(x, p);
-
-  // Evaluate the denominator polynomial p.
-  T q = pmadd(x2, beta_8, beta_6);
-  q = pmadd(x2, q, beta_4);
-  q = pmadd(x2, q, beta_2);
-  q = pmadd(x2, q, beta_0);
-
-  // Divide the numerator by the denominator.
-  return pdiv(p, q);
-}
-
-template <typename T>
+template <typename Scalar>
 struct erf_impl {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE T run(const T x) {
-    return generic_fast_erf_float(x);
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
   }
 };
 
@@ -349,10 +428,10 @@ template <>
 struct erf_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(float x) {
-#if defined(SYCL_DEVICE_ONLY)
+#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
     return cl::sycl::erf(x);
 #else
-    return generic_fast_erf_float(x);
+    return ::erff(x);
 #endif
   }
 };
@@ -361,7 +440,7 @@ template <>
 struct erf_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(double x) {
-#if defined(SYCL_DEVICE_ONLY)
+#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
     return cl::sycl::erf(x);
 #else
     return ::erf(x);
@@ -394,7 +473,7 @@ template <>
 struct erfc_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(const float x) {
-#if defined(SYCL_DEVICE_ONLY)
+#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
     return cl::sycl::erfc(x);
 #else
     return ::erfcf(x);
@@ -406,7 +485,7 @@ template <>
 struct erfc_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(const double x) {
-#if defined(SYCL_DEVICE_ONLY)
+#if defined(EIGEN_USE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
     return cl::sycl::erfc(x);
 #else
     return ::erfc(x);
@@ -414,247 +493,6 @@ struct erfc_impl<double> {
   }
 };
 #endif  // EIGEN_HAS_C99_MATH
-
-
-/***************************************************************************
-* Implementation of ndtri.                                                 *
-****************************************************************************/
-
-/* Inverse of Normal distribution function (modified for Eigen).
- *
- *
- * SYNOPSIS:
- *
- * double x, y, ndtri();
- *
- * x = ndtri( y );
- *
- *
- *
- * DESCRIPTION:
- *
- * Returns the argument, x, for which the area under the
- * Gaussian probability density function (integrated from
- * minus infinity to x) is equal to y.
- *
- *
- * For small arguments 0 < y < exp(-2), the program computes
- * z = sqrt( -2.0 * log(y) );  then the approximation is
- * x = z - log(z)/z  - (1/z) P(1/z) / Q(1/z).
- * There are two rational functions P/Q, one for 0 < y < exp(-32)
- * and the other for y up to exp(-2).  For larger arguments,
- * w = y - 0.5, and  x/sqrt(2pi) = w + w**3 R(w**2)/S(w**2)).
- *
- *
- * ACCURACY:
- *
- *                      Relative error:
- * arithmetic   domain        # trials      peak         rms
- *    DEC      0.125, 1         5500       9.5e-17     2.1e-17
- *    DEC      6e-39, 0.135     3500       5.7e-17     1.3e-17
- *    IEEE     0.125, 1        20000       7.2e-16     1.3e-16
- *    IEEE     3e-308, 0.135   50000       4.6e-16     9.8e-17
- *
- *
- * ERROR MESSAGES:
- *
- *   message         condition    value returned
- * ndtri domain       x <= 0        -MAXNUM
- * ndtri domain       x >= 1         MAXNUM
- *
- */
- /*
-   Cephes Math Library Release 2.2: June, 1992
-   Copyright 1985, 1987, 1992 by Stephen L. Moshier
-   Direct inquiries to 30 Frost Street, Cambridge, MA 02140
- */
-
-
-// TODO: Add a cheaper approximation for float.
-
-
-template<typename T>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T flipsign(
-    const T& should_flipsign, const T& x) {
-  const T sign_mask = pset1<T>(-0.0);
-  T sign_bit = pand<T>(should_flipsign, sign_mask);
-  return pxor<T>(sign_bit, x);
-}
-
-template<>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double flipsign<double>(
-    const double& should_flipsign, const double& x) {
-  return should_flipsign == 0 ? x : -x;
-}
-
-template<>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float flipsign<float>(
-    const float& should_flipsign, const float& x) {
-  return should_flipsign == 0 ? x : -x;
-}
-
-// We split this computation in to two so that in the scalar path
-// only one branch is evaluated (due to our template specialization of pselect
-// being an if statement.)
-
-template <typename T, typename ScalarType>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_ndtri_gt_exp_neg_two(const T& b) {
-  const ScalarType p0[] = {
-    ScalarType(-5.99633501014107895267e1),
-    ScalarType(9.80010754185999661536e1),
-    ScalarType(-5.66762857469070293439e1),
-    ScalarType(1.39312609387279679503e1),
-    ScalarType(-1.23916583867381258016e0)
-  };
-  const ScalarType q0[] = {
-    ScalarType(1.0),
-    ScalarType(1.95448858338141759834e0),
-    ScalarType(4.67627912898881538453e0),
-    ScalarType(8.63602421390890590575e1),
-    ScalarType(-2.25462687854119370527e2),
-    ScalarType(2.00260212380060660359e2),
-    ScalarType(-8.20372256168333339912e1),
-    ScalarType(1.59056225126211695515e1),
-    ScalarType(-1.18331621121330003142e0)
-  };
-  const T sqrt2pi = pset1<T>(ScalarType(2.50662827463100050242e0));
-  const T half = pset1<T>(ScalarType(0.5));
-  T c, c2, ndtri_gt_exp_neg_two;
-
-  c = psub(b, half);
-  c2 = pmul(c, c);
-  ndtri_gt_exp_neg_two = pmadd(c, pmul(
-      c2, pdiv(
-          internal::ppolevl<T, 4>::run(c2, p0),
-          internal::ppolevl<T, 8>::run(c2, q0))), c);
-  return pmul(ndtri_gt_exp_neg_two, sqrt2pi);
-}
-
-template <typename T, typename ScalarType>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_ndtri_lt_exp_neg_two(
-    const T& b, const T& should_flipsign) {
-  /* Approximation for interval z = sqrt(-2 log a ) between 2 and 8
-   * i.e., a between exp(-2) = .135 and exp(-32) = 1.27e-14.
-   */
-  const ScalarType p1[] = {
-    ScalarType(4.05544892305962419923e0),
-    ScalarType(3.15251094599893866154e1),
-    ScalarType(5.71628192246421288162e1),
-    ScalarType(4.40805073893200834700e1),
-    ScalarType(1.46849561928858024014e1),
-    ScalarType(2.18663306850790267539e0),
-    ScalarType(-1.40256079171354495875e-1),
-    ScalarType(-3.50424626827848203418e-2),
-    ScalarType(-8.57456785154685413611e-4)
-  };
-  const ScalarType q1[] = {
-    ScalarType(1.0),
-    ScalarType(1.57799883256466749731e1),
-    ScalarType(4.53907635128879210584e1),
-    ScalarType(4.13172038254672030440e1),
-    ScalarType(1.50425385692907503408e1),
-    ScalarType(2.50464946208309415979e0),
-    ScalarType(-1.42182922854787788574e-1),
-    ScalarType(-3.80806407691578277194e-2),
-    ScalarType(-9.33259480895457427372e-4)
-  };
-  /* Approximation for interval z = sqrt(-2 log a ) between 8 and 64
-   * i.e., a between exp(-32) = 1.27e-14 and exp(-2048) = 3.67e-890.
-   */
-  const ScalarType p2[] = {
-    ScalarType(3.23774891776946035970e0),
-    ScalarType(6.91522889068984211695e0),
-    ScalarType(3.93881025292474443415e0),
-    ScalarType(1.33303460815807542389e0),
-    ScalarType(2.01485389549179081538e-1),
-    ScalarType(1.23716634817820021358e-2),
-    ScalarType(3.01581553508235416007e-4),
-    ScalarType(2.65806974686737550832e-6),
-    ScalarType(6.23974539184983293730e-9)
-  };
-  const ScalarType q2[] = {
-    ScalarType(1.0),
-    ScalarType(6.02427039364742014255e0),
-    ScalarType(3.67983563856160859403e0),
-    ScalarType(1.37702099489081330271e0),
-    ScalarType(2.16236993594496635890e-1),
-    ScalarType(1.34204006088543189037e-2),
-    ScalarType(3.28014464682127739104e-4),
-    ScalarType(2.89247864745380683936e-6),
-    ScalarType(6.79019408009981274425e-9)
-  };
-  const T eight = pset1<T>(ScalarType(8.0));
-  const T one = pset1<T>(ScalarType(1));
-  const T neg_two = pset1<T>(ScalarType(-2));
-  T x, x0, x1, z;
-
-  x = psqrt(pmul(neg_two, plog(b)));
-  x0 = psub(x, pdiv(plog(x), x));
-  z = pdiv(one, x);
-  x1 = pmul(
-      z, pselect(
-          pcmp_lt(x, eight),
-          pdiv(internal::ppolevl<T, 8>::run(z, p1),
-               internal::ppolevl<T, 8>::run(z, q1)),
-          pdiv(internal::ppolevl<T, 8>::run(z, p2),
-               internal::ppolevl<T, 8>::run(z, q2))));
-  return flipsign(should_flipsign, psub(x0, x1));
-}
-
-template <typename T, typename ScalarType>
-EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-T generic_ndtri(const T& a) {
-  const T maxnum = pset1<T>(NumTraits<ScalarType>::infinity());
-  const T neg_maxnum = pset1<T>(-NumTraits<ScalarType>::infinity());
-
-  const T zero = pset1<T>(ScalarType(0));
-  const T one = pset1<T>(ScalarType(1));
-  // exp(-2)
-  const T exp_neg_two = pset1<T>(ScalarType(0.13533528323661269189));
-  T b, ndtri, should_flipsign;
-
-  should_flipsign = pcmp_le(a, psub(one, exp_neg_two));
-  b = pselect(should_flipsign, a, psub(one, a));
-
-  ndtri = pselect(
-      pcmp_lt(exp_neg_two, b),
-      generic_ndtri_gt_exp_neg_two<T, ScalarType>(b),
-      generic_ndtri_lt_exp_neg_two<T, ScalarType>(b, should_flipsign));
-
-  return pselect(
-      pcmp_le(a, zero), neg_maxnum,
-      pselect(pcmp_le(one, a), maxnum, ndtri));
-}
-
-template <typename Scalar>
-struct ndtri_retval {
-  typedef Scalar type;
-};
-
-#if !EIGEN_HAS_C99_MATH
-
-template <typename Scalar>
-struct ndtri_impl {
-  EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
-    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
-                        THIS_TYPE_IS_NOT_SUPPORTED);
-    return Scalar(0);
-  }
-};
-
-# else
-
-template <typename Scalar>
-struct ndtri_impl {
-  EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar x) {
-    return generic_ndtri<Scalar, Scalar>(x);
-  }
-};
-
-#endif  // EIGEN_HAS_C99_MATH
-
 
 /**************************************************************************************************************
  * Implementation of igammac (complemented incomplete gamma integral), based on Cephes but requires C++11/C99 *
@@ -1807,7 +1645,7 @@ struct betainc_helper<double> {
     if ((a + b) < maxgam && numext::abs(u) < maxlog) {
       t = gamma(a + b) / (gamma(a) * gamma(b));
       s = s * t * pow(x, a);
-    }
+    } else {
     */
     t = lgamma_impl<double>::run(a + b) - lgamma_impl<double>::run(a) -
         lgamma_impl<double>::run(b) + u + numext::log(s);
@@ -1914,6 +1752,334 @@ struct betainc_impl<double> {
 
 #endif  // EIGEN_HAS_C99_MATH
 
+/****************************************************************************
+ * Implementation of Bessel function, based on Cephes                       *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct i0e_retval {
+  typedef Scalar type;
+};
+
+template <typename Scalar>
+struct i0e_impl {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+template <>
+struct i0e_impl<float> {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE float run(float x) {
+    /*  i0ef.c
+     *
+     *  Modified Bessel function of order zero,
+     *  exponentially scaled
+     *
+     *
+     *
+     * SYNOPSIS:
+     *
+     * float x, y, i0ef();
+     *
+     * y = i0ef( x );
+     *
+     *
+     *
+     * DESCRIPTION:
+     *
+     * Returns exponentially scaled modified Bessel function
+     * of order zero of the argument.
+     *
+     * The function is defined as i0e(x) = exp(-|x|) j0( ix ).
+     *
+     *
+     *
+     * ACCURACY:
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0,30        100000      3.7e-7      7.0e-8
+     * See i0f().
+     *
+     */
+    const float A[] = {-1.30002500998624804212E-8f, 6.04699502254191894932E-8f,
+                       -2.67079385394061173391E-7f, 1.11738753912010371815E-6f,
+                       -4.41673835845875056359E-6f, 1.64484480707288970893E-5f,
+                       -5.75419501008210370398E-5f, 1.88502885095841655729E-4f,
+                       -5.76375574538582365885E-4f, 1.63947561694133579842E-3f,
+                       -4.32430999505057594430E-3f, 1.05464603945949983183E-2f,
+                       -2.37374148058994688156E-2f, 4.93052842396707084878E-2f,
+                       -9.49010970480476444210E-2f, 1.71620901522208775349E-1f,
+                       -3.04682672343198398683E-1f, 6.76795274409476084995E-1f};
+
+    const float B[] = {3.39623202570838634515E-9f, 2.26666899049817806459E-8f,
+                       2.04891858946906374183E-7f, 2.89137052083475648297E-6f,
+                       6.88975834691682398426E-5f, 3.36911647825569408990E-3f,
+                       8.04490411014108831608E-1f};
+    if (x < 0.0f) {
+      x = -x;
+    }
+
+    if (x <= 8.0f) {
+      float y = 0.5f * x - 2.0f;
+      return cephes::chebevl<float, 18>::run(y, A);
+    }
+
+    return cephes::chebevl<float, 7>::run(32.0f / x - 2.0f, B) / numext::sqrt(x);
+  }
+};
+
+template <>
+struct i0e_impl<double> {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE double run(double x) {
+    /*  i0e.c
+     *
+     *  Modified Bessel function of order zero,
+     *  exponentially scaled
+     *
+     *
+     *
+     * SYNOPSIS:
+     *
+     * double x, y, i0e();
+     *
+     * y = i0e( x );
+     *
+     *
+     *
+     * DESCRIPTION:
+     *
+     * Returns exponentially scaled modified Bessel function
+     * of order zero of the argument.
+     *
+     * The function is defined as i0e(x) = exp(-|x|) j0( ix ).
+     *
+     *
+     *
+     * ACCURACY:
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0,30        30000       5.4e-16     1.2e-16
+     * See i0().
+     *
+     */
+    const double A[] = {-4.41534164647933937950E-18, 3.33079451882223809783E-17,
+                        -2.43127984654795469359E-16, 1.71539128555513303061E-15,
+                        -1.16853328779934516808E-14, 7.67618549860493561688E-14,
+                        -4.85644678311192946090E-13, 2.95505266312963983461E-12,
+                        -1.72682629144155570723E-11, 9.67580903537323691224E-11,
+                        -5.18979560163526290666E-10, 2.65982372468238665035E-9,
+                        -1.30002500998624804212E-8,  6.04699502254191894932E-8,
+                        -2.67079385394061173391E-7,  1.11738753912010371815E-6,
+                        -4.41673835845875056359E-6,  1.64484480707288970893E-5,
+                        -5.75419501008210370398E-5,  1.88502885095841655729E-4,
+                        -5.76375574538582365885E-4,  1.63947561694133579842E-3,
+                        -4.32430999505057594430E-3,  1.05464603945949983183E-2,
+                        -2.37374148058994688156E-2,  4.93052842396707084878E-2,
+                        -9.49010970480476444210E-2,  1.71620901522208775349E-1,
+                        -3.04682672343198398683E-1,  6.76795274409476084995E-1};
+    const double B[] = {
+        -7.23318048787475395456E-18, -4.83050448594418207126E-18,
+        4.46562142029675999901E-17,  3.46122286769746109310E-17,
+        -2.82762398051658348494E-16, -3.42548561967721913462E-16,
+        1.77256013305652638360E-15,  3.81168066935262242075E-15,
+        -9.55484669882830764870E-15, -4.15056934728722208663E-14,
+        1.54008621752140982691E-14,  3.85277838274214270114E-13,
+        7.18012445138366623367E-13,  -1.79417853150680611778E-12,
+        -1.32158118404477131188E-11, -3.14991652796324136454E-11,
+        1.18891471078464383424E-11,  4.94060238822496958910E-10,
+        3.39623202570838634515E-9,   2.26666899049817806459E-8,
+        2.04891858946906374183E-7,   2.89137052083475648297E-6,
+        6.88975834691682398426E-5,   3.36911647825569408990E-3,
+        8.04490411014108831608E-1};
+
+    if (x < 0.0) {
+      x = -x;
+    }
+
+    if (x <= 8.0) {
+      double y = (x / 2.0) - 2.0;
+      return cephes::chebevl<double, 30>::run(y, A);
+    }
+
+    return cephes::chebevl<double, 25>::run(32.0 / x - 2.0, B) /
+           numext::sqrt(x);
+  }
+};
+
+template <typename Scalar>
+struct i1e_retval {
+  typedef Scalar type;
+};
+
+template <typename Scalar>
+struct i1e_impl {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+template <>
+struct i1e_impl<float> {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE float run(float x) {
+    /* i1ef.c
+     *
+     *  Modified Bessel function of order one,
+     *  exponentially scaled
+     *
+     *
+     *
+     * SYNOPSIS:
+     *
+     * float x, y, i1ef();
+     *
+     * y = i1ef( x );
+     *
+     *
+     *
+     * DESCRIPTION:
+     *
+     * Returns exponentially scaled modified Bessel function
+     * of order one of the argument.
+     *
+     * The function is defined as i1(x) = -i exp(-|x|) j1( ix ).
+     *
+     *
+     *
+     * ACCURACY:
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0, 30       30000       1.5e-6      1.5e-7
+     * See i1().
+     *
+     */
+    const float A[] = {9.38153738649577178388E-9f, -4.44505912879632808065E-8f,
+                       2.00329475355213526229E-7f, -8.56872026469545474066E-7f,
+                       3.47025130813767847674E-6f, -1.32731636560394358279E-5f,
+                       4.78156510755005422638E-5f, -1.61760815825896745588E-4f,
+                       5.12285956168575772895E-4f, -1.51357245063125314899E-3f,
+                       4.15642294431288815669E-3f, -1.05640848946261981558E-2f,
+                       2.47264490306265168283E-2f, -5.29459812080949914269E-2f,
+                       1.02643658689847095384E-1f, -1.76416518357834055153E-1f,
+                       2.52587186443633654823E-1f};
+
+    const float B[] = {-3.83538038596423702205E-9f, -2.63146884688951950684E-8f,
+                       -2.51223623787020892529E-7f, -3.88256480887769039346E-6f,
+                       -1.10588938762623716291E-4f, -9.76109749136146840777E-3f,
+                       7.78576235018280120474E-1f};
+
+    float z = numext::abs(x);
+
+    if (z <= 8.0f) {
+      float y = 0.5f * z - 2.0f;
+      z = cephes::chebevl<float, 17>::run(y, A) * z;
+    } else {
+      z = cephes::chebevl<float, 7>::run(32.0f / z - 2.0f, B) / numext::sqrt(z);
+    }
+
+    if (x < 0.0f) {
+      z = -z;
+    }
+
+    return z;
+  }
+};
+
+template <>
+struct i1e_impl<double> {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE double run(double x) {
+    /*  i1e.c
+     *
+     *  Modified Bessel function of order one,
+     *  exponentially scaled
+     *
+     *
+     *
+     * SYNOPSIS:
+     *
+     * double x, y, i1e();
+     *
+     * y = i1e( x );
+     *
+     *
+     *
+     * DESCRIPTION:
+     *
+     * Returns exponentially scaled modified Bessel function
+     * of order one of the argument.
+     *
+     * The function is defined as i1(x) = -i exp(-|x|) j1( ix ).
+     *
+     *
+     *
+     * ACCURACY:
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0, 30       30000       2.0e-15     2.0e-16
+     * See i1().
+     *
+     */
+    const double A[] = {2.77791411276104639959E-18, -2.11142121435816608115E-17,
+                        1.55363195773620046921E-16, -1.10559694773538630805E-15,
+                        7.60068429473540693410E-15, -5.04218550472791168711E-14,
+                        3.22379336594557470981E-13, -1.98397439776494371520E-12,
+                        1.17361862988909016308E-11, -6.66348972350202774223E-11,
+                        3.62559028155211703701E-10, -1.88724975172282928790E-9,
+                        9.38153738649577178388E-9,  -4.44505912879632808065E-8,
+                        2.00329475355213526229E-7,  -8.56872026469545474066E-7,
+                        3.47025130813767847674E-6,  -1.32731636560394358279E-5,
+                        4.78156510755005422638E-5,  -1.61760815825896745588E-4,
+                        5.12285956168575772895E-4,  -1.51357245063125314899E-3,
+                        4.15642294431288815669E-3,  -1.05640848946261981558E-2,
+                        2.47264490306265168283E-2,  -5.29459812080949914269E-2,
+                        1.02643658689847095384E-1,  -1.76416518357834055153E-1,
+                        2.52587186443633654823E-1};
+    const double B[] = {
+        7.51729631084210481353E-18,  4.41434832307170791151E-18,
+        -4.65030536848935832153E-17, -3.20952592199342395980E-17,
+        2.96262899764595013876E-16,  3.30820231092092828324E-16,
+        -1.88035477551078244854E-15, -3.81440307243700780478E-15,
+        1.04202769841288027642E-14,  4.27244001671195135429E-14,
+        -2.10154184277266431302E-14, -4.08355111109219731823E-13,
+        -7.19855177624590851209E-13, 2.03562854414708950722E-12,
+        1.41258074366137813316E-11,  3.25260358301548823856E-11,
+        -1.89749581235054123450E-11, -5.58974346219658380687E-10,
+        -3.83538038596423702205E-9,  -2.63146884688951950684E-8,
+        -2.51223623787020892529E-7,  -3.88256480887769039346E-6,
+        -1.10588938762623716291E-4,  -9.76109749136146840777E-3,
+        7.78576235018280120474E-1};
+
+    double z = numext::abs(x);
+
+    if (z <= 8.0) {
+      double y = (z / 2.0) - 2.0;
+      z = cephes::chebevl<double, 29>::run(y, A) * z;
+    } else {
+      z = cephes::chebevl<double, 25>::run(32.0 / z - 2.0, B) / numext::sqrt(z);
+    }
+
+    if (x < 0.0) {
+      z = -z;
+    }
+
+    return z;
+  }
+};
+
 }  // end namespace internal
 
 namespace numext {
@@ -1955,12 +2121,6 @@ EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(erfc, Scalar)
 }
 
 template <typename Scalar>
-EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(ndtri, Scalar)
-    ndtri(const Scalar& x) {
-  return EIGEN_MATHFUNC_IMPL(ndtri, Scalar)::run(x);
-}
-
-template <typename Scalar>
 EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(igamma, Scalar)
     igamma(const Scalar& a, const Scalar& x) {
   return EIGEN_MATHFUNC_IMPL(igamma, Scalar)::run(a, x);
@@ -1990,7 +2150,21 @@ EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(betainc, Scalar)
   return EIGEN_MATHFUNC_IMPL(betainc, Scalar)::run(a, b, x);
 }
 
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(i0e, Scalar)
+    i0e(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(i0e, Scalar)::run(x);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(i1e, Scalar)
+    i1e(const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(i1e, Scalar)::run(x);
+}
+
 }  // end namespace numext
+
+
 }  // end namespace Eigen
 
 #endif  // EIGEN_SPECIAL_FUNCTIONS_H

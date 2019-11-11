@@ -24,17 +24,12 @@ enum {
  */
 /// The make pointer class is used by sycl in order to build the mapper class on the device. For other platform the default make pointer is used which
 /// is scalar * for CoeffLoader.
-template <typename Tensor, bool HasRawAccess, template <class> class MakePointer_ = MakePointer>
-struct CoeffLoader;
+template <typename Tensor, bool HasRawAccess, template <class> class MakePointer_ = MakePointer> struct CoeffLoader;
+template<typename Scalar, typename Index, int side, typename Tensor, typename nocontract_t, typename contract_t,
+         int packet_size, bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment,
+         template <class> class MakePointer_ = MakePointer> class BaseTensorContractionMapper;
 
-template <typename Scalar, typename Index, int side, typename Tensor,
-          typename nocontract_t, typename contract_t, int packet_size,
-          bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment,
-          template <class> class MakePointer_ = MakePointer>
-class BaseTensorContractionMapper;
-
-template <typename Tensor, bool HasRawAccess, template <class> class MakePointer_>
-struct CoeffLoader {
+template <typename Tensor, bool HasRawAccess, template <class> class MakePointer_> struct CoeffLoader {
   enum {
     DirectOffsets = false
   };
@@ -45,12 +40,6 @@ struct CoeffLoader {
     eigen_assert(false && "unsupported");
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE const typename MakePointer_<const typename Tensor::Scalar>::Type
-  data() const {
-    eigen_assert(false && "unsupported");
-    return NULL;
-  }
-
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE typename Tensor::Scalar coeff(typename Tensor::Index index) const { return m_tensor.coeff(index); }
 
  template<int LoadMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -59,19 +48,12 @@ struct CoeffLoader {
     return m_tensor.template packet<LoadMode>(index);
   }
 
-  #ifdef EIGEN_USE_SYCL
-  // The placeholder accessors require to be bound to a command group handler for SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
-    m_tensor.bind(cgh);
-  }
-  #endif
 
  private:
   const Tensor m_tensor;
 };
 
-template <typename Tensor, template <class> class MakePointer_>
-struct CoeffLoader<Tensor, true, MakePointer_> {
+template <typename Tensor, template <class> class MakePointer_> struct CoeffLoader<Tensor, true, MakePointer_> {
   enum {
     DirectOffsets = true
   };
@@ -82,11 +64,6 @@ struct CoeffLoader<Tensor, true, MakePointer_> {
     m_data += offset;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE const typename MakePointer_<const typename Tensor::Scalar>::Type
-  data() const {
-    return m_data;
-  }
-
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE typename Tensor::Scalar coeff(typename Tensor::Index index) const { return loadConstant(m_data+index); }
 
  template<int LoadMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -94,13 +71,6 @@ struct CoeffLoader<Tensor, true, MakePointer_> {
   {
     return internal::ploadt_ro<typename Tensor::PacketReturnType, LoadMode>(m_data + index);
   }
-
-  #ifdef EIGEN_USE_SYCL
-  // The placeholder accessors require to be bound to a command group handler for SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
-    m_data.bind(cgh);
-  }
-  #endif
  private:
   typedef typename Tensor::Scalar Scalar;
 
@@ -150,10 +120,8 @@ class SimpleTensorContractionMapper {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Index computeIndex(Index row, Index col) const {
     const bool left = (side == Lhs);
-    EIGEN_UNUSED_VARIABLE(left); // annoying bug in g++8.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85963
     Index nocontract_val = left ? row : col;
     Index linidx = 0;
-    EIGEN_UNROLL_LOOP
     for (int i = static_cast<int>(array_size<nocontract_t>::value) - 1; i > 0; i--) {
       const Index idx = nocontract_val / m_ij_strides[i];
       linidx += idx * m_nocontract_strides[i];
@@ -170,7 +138,6 @@ class SimpleTensorContractionMapper {
 
     Index contract_val = left ? col : row;
     if(array_size<contract_t>::value > 0) {
-      EIGEN_UNROLL_LOOP
       for (int i = static_cast<int>(array_size<contract_t>::value) - 1; i > 0; i--) {
         const Index idx = contract_val / m_k_strides[i];
         linidx += idx * m_contract_strides[i];
@@ -191,11 +158,9 @@ class SimpleTensorContractionMapper {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE IndexPair<Index> computeIndexPair(Index row, Index col, const Index distance) const {
     const bool left = (side == Lhs);
-    EIGEN_UNUSED_VARIABLE(left); // annoying bug in g++8.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85963
     Index nocontract_val[2] = {left ? row : col, left ? row + distance : col};
     Index linidx[2] = {0, 0};
     if (array_size<typename Tensor::Dimensions>::value > array_size<contract_t>::value) {
-      EIGEN_UNROLL_LOOP
       for (int i = static_cast<int>(array_size<nocontract_t>::value) - 1; i > 0; i--) {
         const Index idx0 = nocontract_val[0] / m_ij_strides[i];
         const Index idx1 = nocontract_val[1] / m_ij_strides[i];
@@ -216,7 +181,6 @@ class SimpleTensorContractionMapper {
 
     Index contract_val[2] = {left ? col : row, left ? col : row + distance};
     if (array_size<contract_t>::value> 0) {
-      EIGEN_UNROLL_LOOP
       for (int i = static_cast<int>(array_size<contract_t>::value) - 1; i > 0; i--) {
         const Index idx0 = contract_val[0] / m_k_strides[i];
         const Index idx1 = contract_val[1] / m_k_strides[i];
@@ -248,24 +212,6 @@ class SimpleTensorContractionMapper {
     return ((side == Lhs) && inner_dim_contiguous && array_size<contract_t>::value > 0) ? m_contract_strides[0] : 1;
   }
 
-  #ifdef EIGEN_USE_SYCL
-  // The placeholder accessors require to be bound to a command group handler for SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
-    m_tensor.bind(cgh);
-  }
-  #endif
-
-  const CoeffLoader<Tensor, Tensor::RawAccess, MakePointer_>& tensor() const {
-    return m_tensor;
-  }
-
-  const nocontract_t& nocontract_strides() const {
-    return m_nocontract_strides;
-  }
-  const nocontract_t& ij_strides() const { return m_ij_strides; }
-  const contract_t& contract_strides() const { return m_contract_strides; }
-  const contract_t& k_strides() const { return m_k_strides; }
-
  protected:
   CoeffLoader<Tensor, Tensor::RawAccess, MakePointer_> m_tensor;
   const nocontract_t m_nocontract_strides;
@@ -293,10 +239,8 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
   ParentMapper(tensor, nocontract_strides, ij_strides, contract_strides, k_strides) { }
 
   template <typename PacketT,int AlignmentType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  typename internal::enable_if<internal::unpacket_traits<PacketT>::size==packet_size,PacketT>::type
-  load(Index i, Index j) const
-  {
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE PacketT load(Index i, Index j) const {
     // whole method makes column major assumption
 
     // don't need to add offsets for now (because operator handles that)
@@ -327,36 +271,12 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
     EIGEN_ALIGN_MAX Scalar data[packet_size];
 
     data[0] = this->m_tensor.coeff(first);
-    EIGEN_UNROLL_LOOP
     for (Index k = 1; k < packet_size - 1; k += 2) {
       const IndexPair<Index> internal_pair = this->computeIndexPair(i + k, j, 1);
       data[k] = this->m_tensor.coeff(internal_pair.first);
       data[k + 1] = this->m_tensor.coeff(internal_pair.second);
     }
     data[packet_size - 1] = this->m_tensor.coeff(lastIdx);
-
-    return pload<PacketT>(data);
-  }
-
-  template <typename PacketT,int AlignmentType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  typename internal::enable_if<internal::unpacket_traits<PacketT>::size!=packet_size,PacketT>::type
-  load(Index i, Index j) const
-  {
-    const Index requested_packet_size = internal::unpacket_traits<PacketT>::size;
-    EIGEN_ALIGN_MAX Scalar data[requested_packet_size];
-
-    const IndexPair<Index> indexPair = this->computeIndexPair(i, j, requested_packet_size - 1);
-    const Index first = indexPair.first;
-    const Index lastIdx = indexPair.second;
-
-    data[0] = this->m_tensor.coeff(first);
-    for (Index k = 1; k < requested_packet_size - 1; k += 2) {
-      const IndexPair<Index> internal_pair = this->computeIndexPair(i + k, j, 1);
-      data[k] = this->m_tensor.coeff(internal_pair.first);
-      data[k + 1] = this->m_tensor.coeff(internal_pair.second);
-    }
-    data[requested_packet_size - 1] = this->m_tensor.coeff(lastIdx);
 
     return pload<PacketT>(data);
   }
@@ -498,17 +418,6 @@ class TensorContractionSubMapper {
     return false;
   }
 
-  #ifdef EIGEN_USE_SYCL
-  // The placeholder accessors require to be bound to a command group handler for SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
-    m_base_mapper.bind(cgh);
-  }
-  #endif
-
-  const ParentMapper& base_mapper() const { return m_base_mapper; }
-  Index vert_offset() const { return m_vert_offset; }
-  Index horiz_offset() const { return m_horiz_offset; }
-
  private:
   ParentMapper m_base_mapper;
   const Index m_vert_offset;
@@ -547,22 +456,6 @@ class TensorContractionInputMapper
   }
 };
 
-
-template <typename T> struct TensorContractionInputMapperTrait;
-
-template<typename Scalar_, typename Index_, int side_,
-         typename Tensor_,
-         typename nocontract_t_, typename contract_t_,
-         int packet_size_,
-         bool inner_dim_contiguous_, bool inner_dim_reordered_, int Alignment_,  template <class> class MakePointer_>
-struct TensorContractionInputMapperTrait<TensorContractionInputMapper<Scalar_, Index_, side_, Tensor_, 
-                                                    nocontract_t_, contract_t_, packet_size_, inner_dim_contiguous_, 
-                                                    inner_dim_reordered_, Alignment_, MakePointer_> > {
-
-      typedef Tensor_ XprType;
-      static const bool  inner_dim_contiguous = inner_dim_contiguous_;
-      static const bool  inner_dim_reordered = inner_dim_reordered_;
-  };  
 
 
 }  // end namespace internal

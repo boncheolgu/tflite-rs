@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      https://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,7 @@
 // Implementation details of absl/types/variant.h, pulled into a
 // separate file to avoid cluttering the top of the API header with
 // implementation details.
+//
 
 #ifndef ABSL_TYPES_variant_internal_H_
 #define ABSL_TYPES_variant_internal_H_
@@ -837,8 +838,8 @@ struct ImaginaryFun<variant<H, T...>, I> : ImaginaryFun<variant<T...>, I + 1> {
   // NOTE: const& and && are used instead of by-value due to lack of guaranteed
   // move elision of C++17. This may have other minor differences, but tests
   // pass.
-  static SizeT<I> Run(const H&, SizeT<I>);
-  static SizeT<I> Run(H&&, SizeT<I>);
+  static SizeT<I> Run(const H&);
+  static SizeT<I> Run(H&&);
 };
 
 // The following metafunctions are used in constructor and assignment
@@ -860,8 +861,7 @@ struct ConversionIsPossibleImpl : std::false_type {};
 
 template <class Variant, class T>
 struct ConversionIsPossibleImpl<
-    Variant, T,
-    void_t<decltype(ImaginaryFun<Variant>::Run(std::declval<T>(), {}))>>
+    Variant, T, void_t<decltype(ImaginaryFun<Variant>::Run(std::declval<T>()))>>
     : std::true_type {};
 
 template <class Variant, class T>
@@ -869,9 +869,8 @@ struct ConversionIsPossible : ConversionIsPossibleImpl<Variant, T>::type {};
 
 template <class Variant, class T>
 struct IndexOfConstructedType<
-    Variant, T,
-    void_t<decltype(ImaginaryFun<Variant>::Run(std::declval<T>(), {}))>>
-    : decltype(ImaginaryFun<Variant>::Run(std::declval<T>(), {})) {};
+    Variant, T, void_t<decltype(ImaginaryFun<Variant>::Run(std::declval<T>()))>>
+    : decltype(ImaginaryFun<Variant>::Run(std::declval<T>())) {};
 
 template <std::size_t... Is>
 struct ContainsVariantNPos
@@ -1550,8 +1549,8 @@ struct SwapSameIndex {
   variant<Types...>* w;
   template <std::size_t I>
   void operator()(SizeT<I>) const {
-    type_traits_internal::Swap(VariantCoreAccess::Access<I>(*v),
-                               VariantCoreAccess::Access<I>(*w));
+    using std::swap;
+    swap(VariantCoreAccess::Access<I>(*v), VariantCoreAccess::Access<I>(*w));
   }
 
   void operator()(SizeT<variant_npos>) const {}
@@ -1606,12 +1605,11 @@ struct VariantHashVisitor {
 template <typename Variant, typename... Ts>
 struct VariantHashBase<Variant,
                        absl::enable_if_t<absl::conjunction<
-                           type_traits_internal::IsHashable<Ts>...>::value>,
+                           type_traits_internal::IsHashEnabled<Ts>...>::value>,
                        Ts...> {
   using argument_type = Variant;
   using result_type = size_t;
   size_t operator()(const Variant& var) const {
-    type_traits_internal::AssertHashEnabled<Ts...>();
     if (var.valueless_by_exception()) {
       return 239799884;
     }

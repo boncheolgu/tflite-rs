@@ -37,7 +37,7 @@ struct traits<TensorIndexTupleOp<XprType> > : public traits<XprType>
 template<typename XprType>
 struct eval<TensorIndexTupleOp<XprType>, Eigen::Dense>
 {
-  typedef const TensorIndexTupleOp<XprType>EIGEN_DEVICE_REF type;
+  typedef const TensorIndexTupleOp<XprType>& type;
 };
 
 template<typename XprType>
@@ -82,23 +82,16 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
 
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
   static const int NumDims = internal::array_size<Dimensions>::value;
-  typedef StorageMemory<CoeffReturnType, Device> Storage;
-  typedef typename Storage::Type EvaluatorPointerType;
 
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/ false,
     PacketAccess = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
     BlockAccess = false,
-    BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
-
-  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
-  //===--------------------------------------------------------------------===//
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device) { }
@@ -107,7 +100,7 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
     return m_impl.dimensions();
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType /*data*/) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
@@ -125,11 +118,11 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
     return m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, 1);
   }
 
-  EIGEN_DEVICE_FUNC EvaluatorPointerType data() const { return NULL; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
 #ifdef EIGEN_USE_SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
-    m_impl.bind(cgh);
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const {
+    return m_impl;
   }
 #endif
 
@@ -161,7 +154,7 @@ struct traits<TensorTupleReducerOp<ReduceOp, Dims, XprType> > : public traits<Xp
 template<typename ReduceOp, typename Dims, typename XprType>
 struct eval<TensorTupleReducerOp<ReduceOp, Dims, XprType>, Eigen::Dense>
 {
-  typedef const TensorTupleReducerOp<ReduceOp, Dims, XprType>EIGEN_DEVICE_REF type;
+  typedef const TensorTupleReducerOp<ReduceOp, Dims, XprType>& type;
 };
 
 template<typename ReduceOp, typename Dims, typename XprType>
@@ -223,29 +216,24 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   typedef typename TensorEvaluator<const TensorIndexTupleOp<ArgType> , Device>::Dimensions InputDimensions;
   static const int NumDims = internal::array_size<InputDimensions>::value;
   typedef array<Index, NumDims> StrideDims;
-  typedef StorageMemory<CoeffReturnType, Device> Storage;
-  typedef typename Storage::Type EvaluatorPointerType;
-  typedef StorageMemory<TupleType, Device> TupleStorageMem;
 
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/ false,
     PacketAccess = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
     BlockAccess = false,
-    BlockAccessV2 = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexTupleOp<ArgType> >, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
 
-  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlockV2;
-  //===--------------------------------------------------------------------===//
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_orig_impl(op.expression(), device),
         m_impl(op.expression().index_tuples().reduce(op.reduce_dims(), op.reduce_op()), device),
         m_return_dim(op.return_dim())
+#ifdef EIGEN_USE_SYCL
+       ,m_device(device)
+#endif
   {
     gen_strides(m_orig_impl.dimensions(), m_strides);
     if (Layout == static_cast<int>(ColMajor)) {
@@ -254,18 +242,15 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
     } else {
       const Index total_size = internal::array_prod(m_orig_impl.dimensions());
       m_stride_mod = (m_return_dim > 0) ? m_strides[m_return_dim - 1] : total_size;
-    }    
-    // If m_return_dim is not a valid index, returns 1 or this can crash on Windows.
-    m_stride_div = ((m_return_dim >= 0) &&
-                    (m_return_dim < static_cast<Index>(m_strides.size())))
-                   ? m_strides[m_return_dim] : 1;
+    }
+    m_stride_div = (m_return_dim >= 0) ? m_strides[m_return_dim] : 1;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const {
     return m_impl.dimensions();
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType /*data*/) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
@@ -278,13 +263,16 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
     return (m_return_dim < 0) ? v.first : (v.first % m_stride_mod) / m_stride_div;
   }
 
-  EIGEN_DEVICE_FUNC EvaluatorPointerType data() const { return NULL; }
-#ifdef EIGEN_USE_SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
-    m_impl.bind(cgh);
-    m_orig_impl.bind(cgh);
-  }
-#endif
+  #ifndef EIGEN_USE_SYCL
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+  #else // following functions are required by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TupleType* data() const { return m_impl.data(); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index return_dim() const {return m_return_dim;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const StrideDims& strides() const {return m_strides;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Index& stride_mod() const {return m_stride_mod;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Index& stride_div() const {return m_stride_div;}
+  const Device& device() const{return m_device;}
+  #endif
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
   costPerCoeff(bool vectorized) const {
@@ -324,6 +312,9 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   StrideDims m_strides;
   Index m_stride_mod;
   Index m_stride_div;
+#ifdef EIGEN_USE_SYCL
+  const Device& m_device;
+#endif
 };
 
 } // end namespace Eigen

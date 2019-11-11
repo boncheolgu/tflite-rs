@@ -101,19 +101,6 @@ double2 perfc<double2>(const double2& a)
   return make_double2(erfc(a.x), erfc(a.y));
 }
 
-template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-float4 pndtri<float4>(const float4& a)
-{
-  using numext::ndtri;
-  return make_float4(ndtri(a.x), ndtri(a.y), ndtri(a.z), ndtri(a.w));
-}
-
-template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-double2 pndtri<double2>(const double2& a)
-{
-  using numext::ndtri;
-  return make_double2(ndtri(a.x), ndtri(a.y));
-}
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 pigamma<float4>(const float4& a, const float4& x)
@@ -205,159 +192,29 @@ double2 pbetainc<double2>(const double2& a, const double2& b, const double2& x)
 }
 
 template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_i0e<float4>(const float4& x) {
-  using numext::bessel_i0e;
-  return make_float4(bessel_i0e(x.x), bessel_i0e(x.y), bessel_i0e(x.z), bessel_i0e(x.w));
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pi0e<float4>(const float4& x) {
+  using numext::i0e;
+  return make_float4(i0e(x.x), i0e(x.y), i0e(x.z), i0e(x.w));
 }
 
 template <>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_i0e<double2>(const double2& x) {
-  using numext::bessel_i0e;
-  return make_double2(bessel_i0e(x.x), bessel_i0e(x.y));
+pi0e<double2>(const double2& x) {
+  using numext::i0e;
+  return make_double2(i0e(x.x), i0e(x.y));
 }
 
 template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_i0<float4>(const float4& x) {
-  using numext::bessel_i0;
-  return make_float4(bessel_i0(x.x), bessel_i0(x.y), bessel_i0(x.z), bessel_i0(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_i0<double2>(const double2& x) {
-  using numext::bessel_i0;
-  return make_double2(bessel_i0(x.x), bessel_i0(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_i1e<float4>(const float4& x) {
-  using numext::bessel_i1e;
-  return make_float4(bessel_i1e(x.x), bessel_i1e(x.y), bessel_i1e(x.z), bessel_i1e(x.w));
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pi1e<float4>(const float4& x) {
+  using numext::i1e;
+  return make_float4(i1e(x.x), i1e(x.y), i1e(x.z), i1e(x.w));
 }
 
 template <>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_i1e<double2>(const double2& x) {
-  using numext::bessel_i1e;
-  return make_double2(bessel_i1e(x.x), bessel_i1e(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_i1<float4>(const float4& x) {
-  using numext::bessel_i1;
-  return make_float4(bessel_i1(x.x), bessel_i1(x.y), bessel_i1(x.z), bessel_i1(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_i1<double2>(const double2& x) {
-  using numext::bessel_i1;
-  return make_double2(bessel_i1(x.x), bessel_i1(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_k0e<float4>(const float4& x) {
-  using numext::bessel_k0e;
-  return make_float4(bessel_k0e(x.x), bessel_k0e(x.y), bessel_k0e(x.z), bessel_k0e(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_k0e<double2>(const double2& x) {
-  using numext::bessel_k0e;
-  return make_double2(bessel_k0e(x.x), bessel_k0e(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_k0<float4>(const float4& x) {
-  using numext::bessel_k0;
-  return make_float4(bessel_k0(x.x), bessel_k0(x.y), bessel_k0(x.z), bessel_k0(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_k0<double2>(const double2& x) {
-  using numext::bessel_k0;
-  return make_double2(bessel_k0(x.x), bessel_k0(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_k1e<float4>(const float4& x) {
-  using numext::bessel_k1e;
-  return make_float4(bessel_k1e(x.x), bessel_k1e(x.y), bessel_k1e(x.z), bessel_k1e(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_k1e<double2>(const double2& x) {
-  using numext::bessel_k1e;
-  return make_double2(bessel_k1e(x.x), bessel_k1e(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_k1<float4>(const float4& x) {
-  using numext::bessel_k1;
-  return make_float4(bessel_k1(x.x), bessel_k1(x.y), bessel_k1(x.z), bessel_k1(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_k1<double2>(const double2& x) {
-  using numext::bessel_k1;
-  return make_double2(bessel_k1(x.x), bessel_k1(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_j0<float4>(const float4& x) {
-  using numext::bessel_j0;
-  return make_float4(bessel_j0(x.x), bessel_j0(x.y), bessel_j0(x.z), bessel_j0(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_j0<double2>(const double2& x) {
-  using numext::bessel_j0;
-  return make_double2(bessel_j0(x.x), bessel_j0(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_j1<float4>(const float4& x) {
-  using numext::bessel_j1;
-  return make_float4(bessel_j1(x.x), bessel_j1(x.y), bessel_j1(x.z), bessel_j1(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_j1<double2>(const double2& x) {
-  using numext::bessel_j1;
-  return make_double2(bessel_j1(x.x), bessel_j1(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_y0<float4>(const float4& x) {
-  using numext::bessel_y0;
-  return make_float4(bessel_y0(x.x), bessel_y0(x.y), bessel_y0(x.z), bessel_y0(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_y0<double2>(const double2& x) {
-  using numext::bessel_y0;
-  return make_double2(bessel_y0(x.x), bessel_y0(x.y));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pbessel_y1<float4>(const float4& x) {
-  using numext::bessel_y1;
-  return make_float4(bessel_y1(x.x), bessel_y1(x.y), bessel_y1(x.z), bessel_y1(x.w));
-}
-
-template <>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
-pbessel_y1<double2>(const double2& x) {
-  using numext::bessel_y1;
-  return make_double2(bessel_y1(x.x), bessel_y1(x.y));
+pi1e<double2>(const double2& x) {
+  using numext::i1e;
+  return make_double2(i1e(x.x), i1e(x.y));
 }
 
 #endif

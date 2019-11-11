@@ -18,13 +18,10 @@
 #ifndef GEMMLOWP_INTERNAL_FIXEDPOINT_H_
 #define GEMMLOWP_INTERNAL_FIXEDPOINT_H_
 
-#include <algorithm>
 #include <cassert>
-#include <cmath>
-#include <cstdint>
 #include <limits>
 
-#include "../internal/detect_platform.h"
+#include "../internal/common.h"
 
 namespace gemmlowp {
 
@@ -113,24 +110,11 @@ tIntegerType Neg(tIntegerType a) {
 }
 
 // Integer arithmetic left-shift, equivalent to multiplying with a power of two.
-// Negative values are OK. In case of overflow, no Undefined
-// Behavior, but the results are implementation-defined (in practice,
-// they currently are saturated, but we make no commitment to that). The idea
-// is that the caller will want to implement the overflowing cases with
-// saturation with compare-and-mask, so we don't care about the results
-// in the overflow case, we just want to avoid undefined behavior.
-//
-// tIntegerType may be int32 or any narrower signed type.
-template <typename tIntegerType, typename OffsetType>
-tIntegerType ShiftLeft(tIntegerType a, OffsetType offset) {
-  const std::int64_t wide_a = static_cast<std::int64_t>(a);
-  const std::int64_t wide_shifted = wide_a * (1 << offset);
-  const auto min = std::numeric_limits<tIntegerType>::min();
-  const auto max = std::numeric_limits<tIntegerType>::max();
-  return wide_shifted < min
-             ? min
-             : wide_shifted > max ? max
-                                  : static_cast<tIntegerType>(wide_shifted);
+// Not saturating. Negative inputs do not necessarily invoke undefined
+// behaviour. Overflow is undefined behavior.
+template <typename tIntegerType>
+tIntegerType ShiftLeft(tIntegerType a, int offset) {
+  return a * (static_cast<tIntegerType>(1) << offset);
 }
 
 // Integer arithmetic right-shift. Not rounding.
@@ -228,7 +212,6 @@ bool Any(tIntegerType a) {
 template <typename IntegerType>
 IntegerType RoundingHalfSum(IntegerType a, IntegerType b) {
   static_assert(std::is_same<IntegerType, void>::value, "unimplemented");
-  (void)b;
   return a;
 }
 
@@ -253,7 +236,6 @@ inline std::int16_t RoundingHalfSum(std::int16_t a, std::int16_t b) {
 template <typename IntegerType>
 IntegerType SaturatingAdd(IntegerType a, IntegerType b) {
   static_assert(std::is_same<IntegerType, void>::value, "unimplemented");
-  (void)b;
   return a;
 }
 
@@ -263,9 +245,7 @@ inline std::int16_t SaturatingAdd(std::int16_t a, std::int16_t b) {
   std::int32_t a32 = a;
   std::int32_t b32 = b;
   std::int32_t sum = a32 + b32;
-  return static_cast<std::int16_t>(
-      std::min(static_cast<std::int32_t>(32767),
-               std::max(static_cast<std::int32_t>(-32768), sum)));
+  return static_cast<std::int16_t>(std::min(32767, std::max(-32768, sum)));
 }
 
 // Returns a+b, saturating if the integers are 16bit or narrower,
@@ -319,7 +299,6 @@ IntegerType AddSaturatingIf16Bit(IntegerType a, IntegerType b) {
 template <typename IntegerType>
 IntegerType SaturatingRoundingDoublingHighMul(IntegerType a, IntegerType b) {
   static_assert(std::is_same<IntegerType, void>::value, "unimplemented");
-  (void)b;
   return a;
 }
 
@@ -353,8 +332,8 @@ inline std::int16_t SaturatingRoundingDoublingHighMul(std::int16_t a,
 
 // Correctly-rounded-to-nearest division by a power-of-two.
 // Also known as a rounding arithmetic right shift.
-template <typename IntegerType, typename ExponentType>
-inline IntegerType RoundingDivideByPOT(IntegerType x, ExponentType exponent) {
+template <typename IntegerType>
+inline IntegerType RoundingDivideByPOT(IntegerType x, int exponent) {
   assert(exponent >= 0);
   assert(exponent <= 31);
   const IntegerType mask = Dup<IntegerType>((1ll << exponent) - 1);

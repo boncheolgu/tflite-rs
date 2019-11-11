@@ -29,15 +29,10 @@
  *
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
- * 
- * FIXME: this code can be cleaned up once we switch to proper C++11 only.
  */
 #if (defined EIGEN_CUDACC)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __align__(n)
   #define EIGEN_ALIGNOF(x) __alignof(x)
-#elif EIGEN_HAS_ALIGNAS
-  #define EIGEN_ALIGN_TO_BOUNDARY(n) alignas(n)
-  #define EIGEN_ALIGNOF(x) alignof(x)
 #elif EIGEN_COMP_GNUC || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
   #define EIGEN_ALIGNOF(x) __alignof(x)
@@ -49,7 +44,7 @@
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
   #define EIGEN_ALIGNOF(x) __alignof(x)
 #else
-  #error Please tell me what is the equivalent of alignas(n) and alignof(x) for your compiler
+  #error Please tell me what is the equivalent of __attribute__((aligned(n))) and __alignof(x) for your compiler
 #endif
 
 // If the user explicitly disable vectorization, then we also disable alignment
@@ -261,7 +256,7 @@
       #define EIGEN_VECTORIZE_FMA
     #endif
     #if defined(__AVX512F__)
-      #ifndef EIGEN_VECTORIZE_FMA
+      #ifndef __FMA__
       #if EIGEN_COMP_GNUC
       #error Please add -mfma to your compiler flags: compiling with -mavx512f alone without SSE/AVX FMA is not supported (bug 1638).
       #else
@@ -372,28 +367,21 @@
   #endif
 #endif
 
-#if defined(__F16C__) && (!defined(EIGEN_COMP_CLANG) || EIGEN_COMP_CLANG>=380)
+#if defined(__F16C__) && !defined(EIGEN_COMP_CLANG)
   // We can use the optimized fp16 to float and float to fp16 conversion routines
   #define EIGEN_HAS_FP16_C
-
-  #if defined(EIGEN_COMP_CLANG)
-    // Workaround for clang: The FP16C intrinsics for clang are included by
-    // immintrin.h, as opposed to emmintrin.h as suggested by Intel:
-    // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#othertechs=FP16C&expand=1711
-    #include <immintrin.h>
-  #endif
 #endif
 
 #if defined EIGEN_CUDACC
   #define EIGEN_VECTORIZE_GPU
   #include <vector_types.h>
-  #if EIGEN_CUDA_SDK_VER >= 70500
+  #if EIGEN_CUDACC_VER >= 70500
     #define EIGEN_HAS_CUDA_FP16
   #endif
 #endif
 
 #if defined(EIGEN_HAS_CUDA_FP16)
-  #include <cuda_runtime_api.h>
+  #include <host_defines.h>
   #include <cuda_fp16.h>
 #endif
 
@@ -403,8 +391,17 @@
 #endif
 
 #if defined(EIGEN_HIP_DEVICE_COMPILE)
+
   #define EIGEN_HAS_HIP_FP16
   #include <hip/hip_fp16.h>
+
+  #define HIP_PATCH_WITH_NEW_FP16 18215
+  #if (HIP_VERSION_PATCH < HIP_PATCH_WITH_NEW_FP16)
+    #define EIGEN_HAS_OLD_HIP_FP16
+    // Old HIP implementation does not have a explicit typedef for "half2"
+    typedef __half2 half2;
+  #endif
+
 #endif
 
 

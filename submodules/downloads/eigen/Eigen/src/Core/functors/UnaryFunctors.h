@@ -117,15 +117,7 @@ template<typename Scalar>
 struct functor_traits<scalar_conjugate_op<Scalar> >
 {
   enum {
-    Cost = 0,
-    // Yes the cost is zero even for complexes because in most cases for which
-    // the cost is used, conjugation turns to be a no-op. Some examples:
-    //   cost(a*conj(b)) == cost(a*b)
-    //   cost(a+conj(b)) == cost(a+b)
-    //   <etc.
-    // If we don't set it to zero, then:
-    //   A.conjugate().lazyProduct(B.conjugate())
-    // will bake its operands. We definitely don't want that!
+    Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0,
     PacketAccess = packet_traits<Scalar>::HasConj
   };
 };
@@ -556,23 +548,6 @@ struct functor_traits<scalar_tanh_op<Scalar> > {
   };
 };
 
-#if EIGEN_HAS_CXX11_MATH
-/** \internal
-  * \brief Template functor to compute the atanh of a scalar
-  * \sa class CwiseUnaryOp, ArrayBase::atanh()
-  */
-template <typename Scalar>
-struct scalar_atanh_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_atanh_op)
-  EIGEN_DEVICE_FUNC inline const Scalar operator()(const Scalar& a) const { return numext::atanh(a); }
-};
-
-template <typename Scalar>
-struct functor_traits<scalar_atanh_op<Scalar> > {
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false };
-};
-#endif
-
 /** \internal
   * \brief Template functor to compute the sinh of a scalar
   * \sa class CwiseUnaryOp, ArrayBase::sinh()
@@ -591,23 +566,6 @@ struct functor_traits<scalar_sinh_op<Scalar> >
     PacketAccess = packet_traits<Scalar>::HasSinh
   };
 };
-
-#if EIGEN_HAS_CXX11_MATH
-/** \internal
-  * \brief Template functor to compute the asinh of a scalar
-  * \sa class CwiseUnaryOp, ArrayBase::asinh()
-  */
-template <typename Scalar>
-struct scalar_asinh_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_asinh_op)
-  EIGEN_DEVICE_FUNC inline const Scalar operator()(const Scalar& a) const { return numext::asinh(a); }
-};
-
-template <typename Scalar>
-struct functor_traits<scalar_asinh_op<Scalar> > {
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false };
-};
-#endif
 
 /** \internal
   * \brief Template functor to compute the cosh of a scalar
@@ -628,23 +586,6 @@ struct functor_traits<scalar_cosh_op<Scalar> >
   };
 };
 
-#if EIGEN_HAS_CXX11_MATH
-/** \internal
-  * \brief Template functor to compute the acosh of a scalar
-  * \sa class CwiseUnaryOp, ArrayBase::acosh()
-  */
-template <typename Scalar>
-struct scalar_acosh_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_acosh_op)
-  EIGEN_DEVICE_FUNC inline const Scalar operator()(const Scalar& a) const { return numext::acosh(a); }
-};
-
-template <typename Scalar>
-struct functor_traits<scalar_acosh_op<Scalar> > {
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false };
-};
-#endif
-
 /** \internal
   * \brief Template functor to compute the inverse of a scalar
   * \sa class CwiseUnaryOp, Cwise::inverse()
@@ -657,13 +598,9 @@ struct scalar_inverse_op {
   EIGEN_DEVICE_FUNC inline const Packet packetOp(const Packet& a) const
   { return internal::pdiv(pset1<Packet>(Scalar(1)),a); }
 };
-template <typename Scalar>
-struct functor_traits<scalar_inverse_op<Scalar> > {
-  enum {
-    PacketAccess = packet_traits<Scalar>::HasDiv,
-    Cost = scalar_div_cost<Scalar, PacketAccess>::value
-  };
-};
+template<typename Scalar>
+struct functor_traits<scalar_inverse_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = packet_traits<Scalar>::HasDiv }; };
 
 /** \internal
   * \brief Template functor to compute the square of a scalar
@@ -762,7 +699,7 @@ template<typename Scalar> struct scalar_isnan_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isnan_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const {
-#if defined(SYCL_DEVICE_ONLY)
+#if defined(__SYCL_DEVICE_ONLY__)
     return numext::isnan(a);
 #else
     return (numext::isnan)(a);
@@ -786,7 +723,7 @@ template<typename Scalar> struct scalar_isinf_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isinf_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const {
-#if defined(SYCL_DEVICE_ONLY)
+#if defined(__SYCL_DEVICE_ONLY__)
     return numext::isinf(a);
 #else
     return (numext::isinf)(a);
@@ -810,7 +747,7 @@ template<typename Scalar> struct scalar_isfinite_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isfinite_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const {
-#if defined(SYCL_DEVICE_ONLY)
+#if defined(__SYCL_DEVICE_ONLY__)
     return numext::isfinite(a);
 #else
     return (numext::isfinite)(a);
@@ -869,7 +806,7 @@ struct scalar_sign_op<Scalar,true> {
     if (aa==real_type(0))
       return Scalar(0);
     aa = real_type(1)/aa;
-    return Scalar(a.real()*aa, a.imag()*aa );
+    return Scalar(real(a)*aa, imag(a)*aa );
   }
   //TODO
   //template <typename Packet>
@@ -904,6 +841,14 @@ struct scalar_logistic_op {
     return pdiv(one, padd(one, pexp(pnegate(x))));
   }
 };
+template <typename T>
+struct functor_traits<scalar_logistic_op<T> > {
+  enum {
+    Cost = NumTraits<T>::AddCost * 2 + NumTraits<T>::MulCost * 6,
+    PacketAccess = packet_traits<T>::HasAdd && packet_traits<T>::HasDiv &&
+                   packet_traits<T>::HasNegate && packet_traits<T>::HasExp
+  };
+};
 
 /** \internal
   * \brief Template specialization of the logistic function for float.
@@ -919,9 +864,8 @@ template <>
 struct scalar_logistic_op<float> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_logistic_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float operator()(const float& x) const {
-    if (x < -18.0f) return 0.0f;
-    else if (x > 18.0f) return 1.0f;
-    else return 1.0f / (1.0f + numext::exp(-x));
+    const float one = 1.0f;
+    return one / (one + numext::exp(-x));
   }
 
   template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -966,23 +910,6 @@ struct scalar_logistic_op<float> {
     return pmax(pmin(padd(pdiv(p, q), pset1<Packet>(0.5)), pset1<Packet>(1.0)),
                 pset1<Packet>(0.0));
   }
-};
-
-template <typename T>
-struct functor_traits<scalar_logistic_op<T> > {
-  enum {
-    Cost = scalar_div_cost<T, packet_traits<T>::HasDiv>::value +
-           (internal::is_same<T, float>::value
-                ? NumTraits<T>::AddCost * 12 + NumTraits<T>::MulCost * 11
-                : NumTraits<T>::AddCost * 2 +
-                      functor_traits<scalar_exp_op<T> >::Cost),
-    PacketAccess =
-        packet_traits<T>::HasAdd && packet_traits<T>::HasDiv &&
-        (internal::is_same<T, float>::value
-             ? packet_traits<T>::HasMul && packet_traits<T>::HasMax &&
-                   packet_traits<T>::HasMin
-             : packet_traits<T>::HasNegate && packet_traits<T>::HasExp)
-  };
 };
 
 } // end namespace internal

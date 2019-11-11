@@ -131,7 +131,6 @@ class VectorDup {
     assert(start >= 0);
     assert(start + len <= size_);
 
-    (void)start;
     return VectorDup(data_, len);
   }
 };
