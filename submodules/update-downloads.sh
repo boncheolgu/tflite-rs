@@ -2,11 +2,12 @@
 
 thisDir=$(cd $(dirname $0) && pwd)
 
-rm -rf ${thisDir}/downloads/
+rm -rf ${thisDir}/downloads/*
 
 ${thisDir}/tensorflow/tensorflow/lite/tools/make/download_dependencies.sh
 
-mv ${thisDir}/tensorflow/tensorflow/lite/tools/make/downloads ${thisDir}/
+mv ${thisDir}/tensorflow/tensorflow/lite/tools/make/downloads/* ${thisDir}/downloads/
+rm -rf ${thisDir}/tensorflow/tensorflow/lite/tools/make/downloads
 
 rm -rf ${thisDir}/downloads/googletest
 rm -rf ${thisDir}/downloads/gemmlowp/todo
