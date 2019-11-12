@@ -271,6 +271,7 @@ fn import_stl_types() {
 
 #[cfg(feature = "generate_model_apis")]
 fn generate_memory_impl() -> Result<(), Box<dyn std::error::Error>> {
+    use std::io::Write;
     let mut file = std::fs::File::create("src/model/stl/memory_impl.rs")?;
     writeln!(
         &mut file,
@@ -317,6 +318,7 @@ use crate::model::stl::memory::UniquePtr;
 
 #[cfg(feature = "generate_model_apis")]
 fn generate_vector_impl() -> Result<(), Box<dyn std::error::Error>> {
+    use std::io::Write;
     let mut file = std::fs::File::create("src/model/stl/vector_impl.rs")?;
     writeln!(
         &mut file,
@@ -410,6 +412,7 @@ cpp! {{{{
 
 #[cfg(feature = "generate_model_apis")]
 fn generate_builtin_options_impl() -> Result<(), Box<dyn std::error::Error>> {
+    use std::io::Write;
     let mut file = std::fs::File::create("src/model/builtin_options_impl.rs")?;
     writeln!(
         &mut file,
