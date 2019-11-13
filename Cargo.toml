@@ -2,13 +2,13 @@
 name = "tflite"
 version = "0.6.3"
 authors = ["Boncheol Gu <boncheol.gu@gmail.com>"]
-
 description = "Rust bindings for TensorFlow Lite"
 keywords = ["tensorflow", "tflite", "bindings"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/boncheolgu/tflite-rs"
 readme = "README.md"
 edition = "2018"
+documentation = "https://docs.rs/crate/tflite"
 
 [dependencies]
 cpp = "0.5"
@@ -17,27 +17,19 @@ libc = "0.2"
 maybe-owned = "0.3"
 
 [build-dependencies]
-bart = "0.1"
-bart_derive = "0.1"
-bindgen = "0.50"
+bart = { version = "0.1", optional = true }
+bart_derive = { version = "0.1", optional = true }
+bindgen = "0.51"
 cpp_build = "0.5"
-curl = "0.4"
-failure = "0.1"
-flate2 = "1.0"
-heck = "0.3"
-hex = "0.3"
-num_cpus = "1.10"
-reqwest = "0.9"
-sha2 = "0.8"
-tar = "0.4"
+fs_extra = { version = "1.1", optional = true }
 
 [features]
-debug_tflite = [] # use "libtensorflow-lite.a" built in debug mode
-build_doc = []
-generate_model_apis = []
+build = ["fs_extra"]
+default = ["build"]
+debug_tflite = ["build"] # use "libtensorflow-lite.a" built in debug mode
+generate_model_apis = ["bart", "bart_derive"]
 
 [package.metadata.docs.rs]
-features = ["build_doc"]
 all-features = false
 no-default-features = true
 default-target = "x86_64-unknown-linux-gnu"
