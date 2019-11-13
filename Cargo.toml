@@ -1,6 +1,6 @@
 [package]
 name = "tflite"
-version = "0.6.3"
+version = "0.7.0"
 authors = ["Boncheol Gu <boncheol.gu@gmail.com>"]
 description = "Rust bindings for TensorFlow Lite"
 keywords = ["tensorflow", "tflite", "bindings"]
