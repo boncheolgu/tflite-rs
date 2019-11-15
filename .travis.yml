@@ -15,4 +15,4 @@ script:
   - cargo build --verbose --features debug_tflite
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test --features debug_tflite -- --nocapture ; fi
   # Make sure package size is under 10 MB
-  - cargo package --verbose && [ $(stat -c %s target/package/tflite-*.crate) -le 10485760 ]
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo package --verbose && [ $(stat -c %s target/package/tflite-*.crate) -le 10485760 ] ; fi
