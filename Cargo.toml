@@ -10,6 +10,33 @@ readme = "README.md"
 edition = "2018"
 documentation = "https://docs.rs/crate/tflite"
 
+exclude = [
+  "submodules/tensorflow/tensorflow/*.bzl",
+  "submodules/tensorflow/tensorflow/*.lds",
+  "submodules/tensorflow/tensorflow/*.py",
+  "submodules/tensorflow/tensorflow/c",
+  "submodules/tensorflow/tensorflow/cc",
+  "submodules/tensorflow/tensorflow/compiler",
+  "submodules/tensorflow/tensorflow/contrib",
+  "submodules/tensorflow/tensorflow/core",
+  "submodules/tensorflow/tensorflow/docs_src",
+  "submodules/tensorflow/tensorflow/examples",
+  "submodules/tensorflow/tensorflow/g3doc",
+  "submodules/tensorflow/tensorflow/go",
+  "submodules/tensorflow/tensorflow/java",
+  "submodules/tensorflow/tensorflow/js",
+  "submodules/tensorflow/tensorflow/lite/g3doc",
+  "submodules/tensorflow/tensorflow/lite/java",
+  "submodules/tensorflow/tensorflow/lite/python",
+  "submodules/tensorflow/tensorflow/lite/testing",
+  "submodules/tensorflow/tensorflow/lite/toco",
+  "submodules/tensorflow/tensorflow/python",
+  "submodules/tensorflow/tensorflow/stream_executor",
+  "submodules/tensorflow/tensorflow/tools",
+  "submodules/tensorflow/third_party/icu",
+  "submodules/tensorflow/third_party/toolchains",
+]
+
 [dependencies]
 cpp = "0.5"
 failure = "0.1"
