@@ -397,6 +397,18 @@ where
             slice::from_raw_parts_mut(inner.data.raw as *mut T, inner.bytes / size_of::<T>())
         })
     }
+
+    pub fn tensor_buffer(&self, tensor_index: TensorIndex) -> Fallible<&[u8]> {
+        let inner = self.tensor_inner(tensor_index)?;
+
+        Ok(unsafe { slice::from_raw_parts(inner.data.raw_const as *mut u8, inner.bytes) })
+    }
+
+    pub fn tensor_buffer_mut(&mut self, tensor_index: TensorIndex) -> Fallible<&mut [u8]> {
+        let inner = self.tensor_inner(tensor_index)?;
+
+        Ok(unsafe { slice::from_raw_parts_mut(inner.data.raw as *mut u8, inner.bytes) })
+    }
 }
 
 #[cfg(test)]
