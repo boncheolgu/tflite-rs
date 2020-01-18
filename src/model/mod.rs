@@ -55,6 +55,7 @@ pub struct QuantizationParametersT {
     pub scale: VectorOfF32,
     pub zero_point: VectorOfI64,
     pub details: QuantizationDetailsUnion,
+    pub quantized_dimension: i32,
 }
 
 #[repr(C)]
@@ -80,6 +81,7 @@ pub struct OperatorT {
     pub custom_options: VectorOfU8,
     pub custom_options_format: CustomOptionsFormat,
     pub mutating_variable_inputs: VectorOfBool,
+    pub intermediates: VectorOfI32,
 }
 
 #[repr(C)]
@@ -104,6 +106,14 @@ pub struct SubGraphT {
 
 #[repr(C)]
 #[derive(Debug)]
+pub struct MetadataT {
+    _vtable: NativeTable,
+    pub name: StlString,
+    pub buffer: u32,
+}
+
+#[repr(C)]
+#[derive(Debug)]
 pub struct ModelT {
     _vtable: NativeTable,
     pub version: u32,
@@ -112,6 +122,7 @@ pub struct ModelT {
     pub description: StlString,
     pub buffers: VectorOfUniquePtr<BufferT>,
     pub metadata_buffer: VectorOfI32,
+    pub metadata: VectorOfUniquePtr<MetadataT>,
 }
 
 impl Clone for BuiltinOptionsUnion {

@@ -333,3 +333,50 @@ impl fmt::Debug for UniquePtr<crate::model::ModelT>
 }
 
 
+impl Default for UniquePtr<crate::model::MetadataT> {
+    fn default() -> Self {
+        let mut this: Self = unsafe { mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::unique_ptr<MetadataT>*"] {
+                new (this_ref) std::unique_ptr<MetadataT>(new MetadataT);
+            })
+        }
+        this
+    }
+}
+
+impl Deref for UniquePtr<crate::model::MetadataT> {
+    type Target = crate::model::MetadataT;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            let ptr = cpp!([self as "const std::unique_ptr<MetadataT>*"] -> *const crate::model::MetadataT as "const MetadataT*" {
+                return self->get();
+            }) as *const Self::Target;
+
+            ptr.as_ref().unwrap()
+        }
+    }
+}
+
+impl DerefMut for UniquePtr<crate::model::MetadataT> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe {
+            let ptr = cpp!([self as "std::unique_ptr<MetadataT>*"] -> *mut crate::model::MetadataT as "MetadataT*" {
+                return self->get();
+            }) as *mut Self::Target;
+
+            ptr.as_mut().unwrap()
+        }
+    }
+}
+
+impl fmt::Debug for UniquePtr<crate::model::MetadataT>
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({:?})", self.deref())
+    }
+}
+
+

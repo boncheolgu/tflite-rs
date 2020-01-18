@@ -1344,3 +1344,258 @@ impl BuiltinOptionsUnion {
 }
 
 
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn UniqueOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new UniqueOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_UniqueOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn ReverseV2Options() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new ReverseV2OptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ReverseV2Options,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn AddNOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new AddNOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_AddNOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn GatherNdOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new GatherNdOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_GatherNdOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn CosOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new CosOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_CosOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn WhereOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new WhereOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_WhereOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn RankOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new RankOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_RankOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn ReverseSequenceOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new ReverseSequenceOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ReverseSequenceOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn MatrixDiagOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new MatrixDiagOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_MatrixDiagOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn QuantizeOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new QuantizeOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_QuantizeOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn MatrixSetDiagOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new MatrixSetDiagOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_MatrixSetDiagOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn HardSwishOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new HardSwishOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_HardSwishOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn IfOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new IfOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_IfOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn WhileOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new WhileOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_WhileOptions,
+            value,
+        }
+    }
+}
+
+
+impl BuiltinOptionsUnion {
+    #[allow(non_snake_case)]
+    pub fn DepthToSpaceOptions() -> Self {
+        let value = unsafe {
+            cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
+                return new DepthToSpaceOptionsT;
+            })
+        };
+
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_DepthToSpaceOptions,
+            value,
+        }
+    }
+}
+
+

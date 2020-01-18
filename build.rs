@@ -4,6 +4,7 @@ extern crate bart_derive;
 
 use std::env;
 use std::path::{Path, PathBuf};
+#[cfg(feature = "build")]
 use std::time::Instant;
 
 fn manifest_dir() -> PathBuf {
@@ -301,6 +302,7 @@ use crate::model::stl::memory::UniquePtr;
             "crate::model::QuantizationParametersT",
         ),
         ("ModelT", "crate::model::ModelT"),
+        ("MetadataT", "crate::model::MetadataT"),
     ];
 
     for (cpp_type, rust_type) in memory_types {
@@ -394,6 +396,10 @@ cpp! {{{{
         (
             "std::unique_ptr<BufferT>",
             "UniquePtr<crate::model::BufferT>",
+        ),
+        (
+            "std::unique_ptr<MetadataT>",
+            "UniquePtr<crate::model::MetadataT>",
         ),
     ];
 
@@ -507,6 +513,21 @@ use super::{{BuiltinOptions, BuiltinOptionsUnion, NativeTable}};
         "MirrorPadOptions",
         "AbsOptions",
         "SplitVOptions",
+        "UniqueOptions",
+        "ReverseV2Options",
+        "AddNOptions",
+        "GatherNdOptions",
+        "CosOptions",
+        "WhereOptions",
+        "RankOptions",
+        "ReverseSequenceOptions",
+        "MatrixDiagOptions",
+        "QuantizeOptions",
+        "MatrixSetDiagOptions",
+        "HardSwishOptions",
+        "IfOptions",
+        "WhileOptions",
+        "DepthToSpaceOptions",
     ];
 
     for name in option_names {

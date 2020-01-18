@@ -904,3 +904,87 @@ impl VectorExtract<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate
 add_impl!(VectorOfUniquePtr<crate::model::BufferT>);
 
 
+impl Default for VectorOfUniquePtr<crate::model::MetadataT> {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<std::unique_ptr<MetadataT>>*"] {
+                new (this_ref) const std::vector<std::unique_ptr<MetadataT>>;
+            })
+        }
+        this
+    }
+}
+
+impl VectorSlice for VectorOfUniquePtr<crate::model::MetadataT> {
+    type Item = UniquePtr<crate::model::MetadataT>;
+
+    fn get_ptr(&self) -> *const Self::Item {
+        unsafe {
+            cpp!([self as "const std::vector<std::unique_ptr<MetadataT>>*"]
+                  -> *const UniquePtr<crate::model::MetadataT> as "const std::unique_ptr<MetadataT>*" {
+                return self->data();
+            })
+        }
+    }
+
+    fn get_mut_ptr(&mut self) -> *mut Self::Item {
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<MetadataT>>*"]
+                  -> *mut UniquePtr<crate::model::MetadataT> as "std::unique_ptr<MetadataT>*" {
+                return self->data();
+            })
+        }
+    }
+
+    fn size(&self) -> usize {
+        unsafe {
+            cpp!([self as "const std::vector<std::unique_ptr<MetadataT>>*"] -> size_t as "size_t" {
+                return self->size();
+            })
+        }
+    }
+}
+
+impl VectorErase for VectorOfUniquePtr<crate::model::MetadataT> {
+    fn erase_range(&mut self, offset: usize, size: usize) {
+        let begin = offset as size_t;
+        let end = offset + size as size_t;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<MetadataT>>*", begin as "size_t", end as "size_t"] {
+                self->erase(self->begin() + begin, self->begin() + end);
+            });
+        }
+    }
+}
+
+impl VectorInsert<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crate::model::MetadataT> {
+    fn push_back(&mut self, mut v: Self::Item) {
+        let vref = &mut v;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<MetadataT>>*", vref as "std::unique_ptr<MetadataT>*"] {
+                self->push_back(std::move(*vref));
+            })
+        }
+        mem::forget(v);
+    }
+}
+
+impl VectorExtract<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crate::model::MetadataT> {
+    fn extract(&mut self, index: usize) -> UniquePtr<crate::model::MetadataT> {
+        assert!(index < self.size());
+        let mut v: UniquePtr<crate::model::MetadataT> = unsafe { mem::zeroed() };
+        let vref = &mut v;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<MetadataT>>*", index as "size_t", vref as "std::unique_ptr<MetadataT>*"] {
+                *vref = std::move((*self)[index]);
+            })
+        }
+        v
+    }
+}
+
+add_impl!(VectorOfUniquePtr<crate::model::MetadataT>);
+
+
