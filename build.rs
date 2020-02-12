@@ -121,7 +121,6 @@ fn prepare_tensorflow_library() {
                 .arg("-f")
                 .arg("tensorflow/lite/tools/make/Makefile");
 
-            std::env::vars().for_each(|(k, v)| println!("{}={}", k, v));
             if cfg!(feature = "multi_thread") {
                 println!("Building with pthreads");
             } else {
@@ -318,7 +317,7 @@ use crate::model::stl::memory::UniquePtr;
             "{}\n",
             &MemoryBasicImpl {
                 cpp_type,
-                rust_type
+                rust_type,
             },
         )?;
     }
@@ -416,7 +415,7 @@ cpp! {{{{
             "{}\n",
             &VectorBasicImpl {
                 cpp_type,
-                rust_type
+                rust_type,
             },
         )?;
     }

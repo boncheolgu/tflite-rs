@@ -102,7 +102,6 @@ where
     pub fn invoke(&mut self) -> Fallible<()> {
         let interpreter = self.handle_mut();
 
-        #[allow(clippy::forget_copy)]
         let result = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->Invoke() == kTfLiteOk;
@@ -110,6 +109,20 @@ where
         };
         ensure!(result, "Interpreter::allocate_tensors failed");
         Ok(())
+    }
+
+    /// Sets the number of threads available to the interpreter
+    #[cfg(feature = "multi_thread")]
+    pub fn set_num_threads(&mut self, threads: std::os::raw::c_int) {
+        let interpreter = self.handle_mut();
+
+        #[allow(clippy::forget_copy)]
+        unsafe {
+            cpp!([interpreter as "Interpreter*", threads as "int"] {
+                interpreter->SetNumThreads(threads);
+            })
+        };
+        println!("Set num threads to {}", threads);
     }
 
     /// Read only access to list of inputs.
