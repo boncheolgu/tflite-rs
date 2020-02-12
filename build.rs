@@ -41,7 +41,7 @@ fn prepare_tensorflow_source() -> PathBuf {
                 manifest_dir().join("data").join(f),
                 tf_src_dir.join("lite/tools/make/targets").join(f),
             )
-            .expect(&format!("Unable to copy makefile {}", f));
+            .unwrap_or_else(|_| panic!("Unable to copy makefile {}", f));
         }
     }
 
@@ -114,13 +114,20 @@ fn prepare_tensorflow_library() {
                 .arg("-j")
                 // allow parallelism to be overridden
                 .arg(
-                    env::var("TFLITE_RS_MAKE_PARALLELISM")
-                        .unwrap_or(env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())),
+                    env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or_else(|_| {
+                        env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())
+                    }),
                 )
                 .arg("-f")
-                .arg("tensorflow/lite/tools/make/Makefile")
-                .arg("micro")
-                .current_dir(make_dir);
+                .arg("tensorflow/lite/tools/make/Makefile");
+
+            std::env::vars().for_each(|(k, v)| println!("{}={}", k, v));
+            if cfg!(feature = "multi_thread") {
+                println!("Building with pthreads");
+            } else {
+                make.arg("micro");
+            }
+            make.current_dir(make_dir);
             eprintln!("make command = {:?} in dir  {:?}", make, make_dir);
             if !make.status().expect("failed to run make command").success() {
                 panic!("Failed to build tensorflow");
@@ -311,7 +318,7 @@ use crate::model::stl::memory::UniquePtr;
             "{}\n",
             &MemoryBasicImpl {
                 cpp_type,
-                rust_type,
+                rust_type
             },
         )?;
     }
@@ -409,7 +416,7 @@ cpp! {{{{
             "{}\n",
             &VectorBasicImpl {
                 cpp_type,
-                rust_type,
+                rust_type
             },
         )?;
     }
