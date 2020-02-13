@@ -112,8 +112,12 @@ where
     }
 
     /// Sets the number of threads available to the interpreter
-    #[cfg(feature = "multi_thread")]
-    pub fn set_num_threads(&mut self, threads: std::os::raw::c_int) {
+    /// `threads` should be >= -1
+    /// Passing in a value of -1 will let the interpreter set the number
+    /// of threads available to itself.
+    ///
+    /// Note that increasing the number of threads does not always speed up inference
+    pub fn set_num_threads(&mut self, threads: c_int) {
         let interpreter = self.handle_mut();
 
         #[allow(clippy::forget_copy)]

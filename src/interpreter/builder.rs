@@ -5,6 +5,7 @@ use super::op_resolver::OpResolver;
 use super::FlatBufferModel;
 use super::Interpreter;
 use crate::bindings::tflite as bindings;
+use std::os::raw::c_int;
 
 cpp! {{
     #include "tensorflow/lite/model.h"
@@ -68,20 +69,28 @@ where
         })
     }
 
-    pub fn build(mut self) -> Fallible<Interpreter<'a, Op>> {
+    pub fn build(self) -> Fallible<Interpreter<'a, Op>> {
+        self.build_with_threads(-1)
+    }
+
+    pub fn build_with_threads(mut self, threads: c_int) -> Fallible<Interpreter<'a, Op>> {
         #[allow(clippy::forget_copy)]
         let handle = {
             let builder = &mut *self.handle;
             unsafe {
-                cpp!([builder as "InterpreterBuilder*"] -> *mut bindings::Interpreter as "Interpreter*" {
+                cpp!([builder as "InterpreterBuilder*", threads as "int"] -> *mut bindings::Interpreter as "Interpreter*" {
                     std::unique_ptr<Interpreter> interpreter;
-                    (*builder)(&interpreter);
+                    (*builder)(&interpreter, threads);
                     return interpreter.release();
                 })
             }
         };
         ensure!(!handle.is_null(), "Building Interpreter failed.");
         let handle = unsafe { Box::from_raw(handle) };
-        Ok(Interpreter::new(handle, self))
+        let mut interpreter = Interpreter::new(handle, self);
+        // Always allocate tensors so we don't get into a state
+        // where we try to read from or write to unallocated memory
+        interpreter.allocate_tensors()?;
+        Ok(interpreter)
     }
 }
