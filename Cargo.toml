@@ -51,7 +51,7 @@ maybe-owned = "0.3"
 [build-dependencies]
 bart = { version = "0.1", optional = true }
 bart_derive = { version = "0.1", optional = true }
-bindgen = "0.51"
+bindgen = "0.53.1"
 cpp_build = "0.5"
 fs_extra = { version = "1.1", optional = true }
 

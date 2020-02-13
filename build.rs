@@ -179,6 +179,7 @@ fn import_tflite_types() {
         .layout_tests(false)
         .enable_cxx_namespaces()
         .derive_default(true)
+        .size_t_is_usize(true)
         // for model APIs
         .whitelist_type("tflite::ModelT")
         .whitelist_type(".+OptionsT")
