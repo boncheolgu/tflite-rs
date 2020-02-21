@@ -5,7 +5,6 @@ use super::op_resolver::OpResolver;
 use super::FlatBufferModel;
 use super::Interpreter;
 use crate::bindings::tflite as bindings;
-use std::os::raw::c_int;
 
 cpp! {{
     #include "tensorflow/lite/model.h"
@@ -85,7 +84,10 @@ where
     }
 
     #[cfg(feature = "multi_thread")]
-    pub fn build_with_threads(mut self, threads: c_int) -> Fallible<Interpreter<'a, Op>> {
+    pub fn build_with_threads(
+        mut self,
+        threads: std::os::raw::c_int,
+    ) -> Fallible<Interpreter<'a, Op>> {
         #[allow(clippy::forget_copy)]
         let handle = {
             let builder = &mut *self.handle;
