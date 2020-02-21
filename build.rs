@@ -158,7 +158,7 @@ fn prepare_tensorflow_library() {
         } else {
             "dylib"
         };
-        println!("cargo:rustc-link-lib={}={}", static_dynamic, lib_dir);
+        println!("cargo:rustc-link-lib={}=tensorflow-lite", static_dynamic);
         println!("cargo:rerun-if-changed={}", lib_dir);
     }
     println!("cargo:rustc-link-lib=dylib=pthread");
