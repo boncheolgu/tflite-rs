@@ -88,8 +88,11 @@ where
         ensure!(!handle.is_null(), "Building Interpreter failed.");
         let handle = unsafe { Box::from_raw(handle) };
         let mut interpreter = Interpreter::new(handle, self);
+        // # Safety
         // Always allocate tensors so we don't get into a state
         // where we try to read from or write to unallocated memory
+        // without doing this it is possible to have undefined behavior
+        // outside of an unsafe block
         interpreter.allocate_tensors()?;
         Ok(interpreter)
     }
