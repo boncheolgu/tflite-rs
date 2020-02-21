@@ -92,10 +92,9 @@ fn prepare_tensorflow_library() {
         let out_dir = env::var("OUT_DIR").unwrap();
         // append tf_lib_name with features that can change how it is built
         // so a cached version that doesn't match expectations isn't used
-        let tf_lib_name = Path::new(&out_dir).join(format!(
-            "libtensorflow-lite{}.a",
-            binary_changing_features(),
-        ));
+        let binary_changing_features = binary_changing_features();
+        let tf_lib_name =
+            Path::new(&out_dir).join(format!("libtensorflow-lite{}.a", binary_changing_features,));
         let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
         if !tf_lib_name.exists() {
             println!("Building tflite");
@@ -155,13 +154,20 @@ fn prepare_tensorflow_library() {
                 .filter_map(|de| Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
-            std::fs::copy(&library, &tf_lib_name)
-                .expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
+            std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
+                panic!(format!(
+                    "Unable to copy libtensorflow-lite.a to {}",
+                    tf_lib_name.display()
+                ))
+            });
 
             println!("Building tflite from source took {:?}", start.elapsed());
         }
         println!("cargo:rustc-link-search=native={}", out_dir);
-        println!("cargo:rustc-link-lib=static=tensorflow-lite");
+        println!(
+            "cargo:rustc-link-lib=static=tensorflow-lite{}",
+            binary_changing_features
+        );
     }
     #[cfg(not(feature = "build"))]
     {
