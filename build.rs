@@ -72,6 +72,17 @@ fn prepare_tensorflow_source() -> PathBuf {
     tf_src_dir
 }
 
+fn binary_changing_features() -> String {
+    let mut features = String::new();
+    if cfg!(feature = "debug_tflite") {
+        features.push_str("-debug");
+    }
+    if cfg!(feature = "multi_thread") {
+        features.push_str("-multithread");
+    }
+    features
+}
+
 fn prepare_tensorflow_library() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("Unable to get TARGET_ARCH");
 
@@ -79,7 +90,12 @@ fn prepare_tensorflow_library() {
     {
         let tflite = prepare_tensorflow_source();
         let out_dir = env::var("OUT_DIR").unwrap();
-        let tf_lib_name = Path::new(&out_dir).join("libtensorflow-lite.a");
+        // append tf_lib_name with features that can change how it is built
+        // so a cached version that doesn't match expectations isn't used
+        let tf_lib_name = Path::new(&out_dir).join(format!(
+            "libtensorflow-lite{}.a",
+            binary_changing_features(),
+        ));
         let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
         if !tf_lib_name.exists() {
             println!("Building tflite");
@@ -123,6 +139,7 @@ fn prepare_tensorflow_library() {
 
             if cfg!(feature = "multi_thread") {
                 println!("Building with pthreads");
+                println!("cargo:rustc-link-lib=dylib=pthread");
             } else {
                 make.arg("micro");
             }
@@ -166,8 +183,8 @@ fn prepare_tensorflow_library() {
         };
         println!("cargo:rustc-link-lib={}={}", static_dynamic, lib_dir);
         println!("cargo:rerun-if-changed={}", lib_dir);
+        println!("cargo:rustc-link-lib=dylib=pthread");
     }
-    println!("cargo:rustc-link-lib=dylib=pthread");
     println!("cargo:rustc-link-lib=dylib=dl");
 }
 

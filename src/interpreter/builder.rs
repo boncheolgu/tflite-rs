@@ -69,10 +69,22 @@ where
         })
     }
 
-    pub fn build(self) -> Fallible<Interpreter<'a, Op>> {
-        self.build_with_threads(-1)
+    pub fn build(mut self) -> Fallible<Interpreter<'a, Op>> {
+        #[allow(clippy::forget_copy)]
+        let handle = {
+            let builder = &mut *self.handle;
+            unsafe {
+                cpp!([builder as "InterpreterBuilder*"] -> *mut bindings::Interpreter as "Interpreter*" {
+                    std::unique_ptr<Interpreter> interpreter;
+                    (*builder)(&interpreter);
+                    return interpreter.release();
+                })
+            }
+        };
+        Interpreter::new(handle, self)
     }
 
+    #[cfg(feature = "multi_thread")]
     pub fn build_with_threads(mut self, threads: c_int) -> Fallible<Interpreter<'a, Op>> {
         #[allow(clippy::forget_copy)]
         let handle = {
@@ -85,15 +97,6 @@ where
                 })
             }
         };
-        ensure!(!handle.is_null(), "Building Interpreter failed.");
-        let handle = unsafe { Box::from_raw(handle) };
-        let mut interpreter = Interpreter::new(handle, self);
-        // # Safety
-        // Always allocate tensors so we don't get into a state
-        // where we try to read from or write to unallocated memory
-        // without doing this it is possible to have undefined behavior
-        // outside of an unsafe block
-        interpreter.allocate_tensors()?;
-        Ok(interpreter)
+        Interpreter::new(handle, self)
     }
 }

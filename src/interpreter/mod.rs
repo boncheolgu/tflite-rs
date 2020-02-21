@@ -62,13 +62,22 @@ where
         self.handle.deref_mut()
     }
     pub(crate) fn new(
-        handle: Box<bindings::tflite::Interpreter>,
+        handle: *mut bindings::tflite::Interpreter,
         builder: InterpreterBuilder<'a, Op>,
-    ) -> Self {
-        Self {
+    ) -> Fallible<Self> {
+        ensure!(!handle.is_null(), "Building Interpreter failed.");
+        let handle = unsafe { Box::from_raw(handle) };
+        let mut interpreter = Self {
             handle,
             _builder: builder,
-        }
+        };
+        // # Safety
+        // Always allocate tensors so we don't get into a state
+        // where we try to read from or write to unallocated memory
+        // without doing this it is possible to have undefined behavior
+        // outside of an unsafe block
+        interpreter.allocate_tensors()?;
+        Ok(interpreter)
     }
     /// Update allocations for all tensors. This will redim dependent tensors using
     /// the input tensor dimensionality as given. This is relatively expensive.
@@ -117,6 +126,7 @@ where
     /// of threads available to itself.
     ///
     /// Note that increasing the number of threads does not always speed up inference
+    #[cfg(feature = "multi_thread")]
     pub fn set_num_threads(&mut self, threads: c_int) {
         let interpreter = self.handle_mut();
 
