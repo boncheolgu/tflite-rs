@@ -132,12 +132,10 @@ fn prepare_tensorflow_library() {
                     env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or_else(|_| {
                         env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())
                     }),
-                );
-            // Only turn off NNAPI with no_micro because micro turns it appropriately otherwise.
-            if cfg!(feature = "no_micro") {
-                make.arg("BUILD_WITH_NNAPI=false")
-            }
-            make.arg("-f").arg("tensorflow/lite/tools/make/Makefile");
+                )
+                .arg("BUILD_WITH_NNAPI=false")
+                .arg("-f")
+                .arg("tensorflow/lite/tools/make/Makefile");
 
             if cfg!(feature = "no_micro") {
                 println!("Building lib but no micro");
