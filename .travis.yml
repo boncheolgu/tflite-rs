@@ -1,6 +1,6 @@
 os:
-  - linux
   - osx
+  - linux
 language: rust
 rust:
   - stable
@@ -14,7 +14,7 @@ script:
   - gcc -v && g++ -v
   - cargo build --verbose
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test -- --nocapture ; fi
-  - cargo build --verbose --features debug_tflite,multi_thread
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test --features debug_tflite,multi_thread -- --nocapture ; fi
+  - cargo build --verbose --features debug_tflite
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test --features debug_tflite -- --nocapture ; fi
   # Make sure package size is under 10 MB
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo package --verbose && [ $(stat -c %s target/package/tflite-*.crate) -le 10485760 ] ; fi

@@ -60,7 +60,7 @@ build = ["fs_extra"]
 default = ["build"]
 debug_tflite = ["build"] # use "libtensorflow-lite.a" built in debug mode
 generate_model_apis = ["bart", "bart_derive"]
-multi_thread = []
+no_micro = ["build"]
 
 [package.metadata.docs.rs]
 all-features = false

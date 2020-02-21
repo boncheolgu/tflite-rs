@@ -126,7 +126,6 @@ where
     /// of threads available to itself.
     ///
     /// Note that increasing the number of threads does not always speed up inference
-    #[cfg(feature = "multi_thread")]
     pub fn set_num_threads(&mut self, threads: c_int) {
         let interpreter = self.handle_mut();
 

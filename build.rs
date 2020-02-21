@@ -77,8 +77,8 @@ fn binary_changing_features() -> String {
     if cfg!(feature = "debug_tflite") {
         features.push_str("-debug");
     }
-    if cfg!(feature = "multi_thread") {
-        features.push_str("-multithread");
+    if cfg!(feature = "no_micro") {
+        features.push_str("-no_micro");
     }
     features
 }
@@ -133,12 +133,13 @@ fn prepare_tensorflow_library() {
                         env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())
                     }),
                 )
+                .arg("BUILD_WITH_NNAPI=false")
                 .arg("-f")
                 .arg("tensorflow/lite/tools/make/Makefile");
 
-            if cfg!(feature = "multi_thread") {
-                println!("Building with pthreads");
-                println!("cargo:rustc-link-lib=dylib=pthread");
+            if cfg!(feature = "no_micro") {
+                println!("Building lib but no micro");
+                make.arg("lib");
             } else {
                 make.arg("micro");
             }
@@ -189,8 +190,8 @@ fn prepare_tensorflow_library() {
         };
         println!("cargo:rustc-link-lib={}={}", static_dynamic, lib_dir);
         println!("cargo:rerun-if-changed={}", lib_dir);
-        println!("cargo:rustc-link-lib=dylib=pthread");
     }
+    println!("cargo:rustc-link-lib=dylib=pthread");
     println!("cargo:rustc-link-lib=dylib=dl");
 }
 

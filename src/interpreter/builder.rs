@@ -83,7 +83,6 @@ where
         Interpreter::new(handle, self)
     }
 
-    #[cfg(feature = "multi_thread")]
     pub fn build_with_threads(
         mut self,
         threads: std::os::raw::c_int,
