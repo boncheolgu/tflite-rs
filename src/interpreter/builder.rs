@@ -80,8 +80,24 @@ where
                 })
             }
         };
-        ensure!(!handle.is_null(), "Building Interpreter failed.");
-        let handle = unsafe { Box::from_raw(handle) };
-        Ok(Interpreter::new(handle, self))
+        Interpreter::new(handle, self)
+    }
+
+    pub fn build_with_threads(
+        mut self,
+        threads: std::os::raw::c_int,
+    ) -> Fallible<Interpreter<'a, Op>> {
+        #[allow(clippy::forget_copy)]
+        let handle = {
+            let builder = &mut *self.handle;
+            unsafe {
+                cpp!([builder as "InterpreterBuilder*", threads as "int"] -> *mut bindings::Interpreter as "Interpreter*" {
+                    std::unique_ptr<Interpreter> interpreter;
+                    (*builder)(&interpreter, threads);
+                    return interpreter.release();
+                })
+            }
+        };
+        Interpreter::new(handle, self)
     }
 }

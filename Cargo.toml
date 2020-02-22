@@ -23,9 +23,7 @@ include = [
   "submodules/downloads",
   "submodules/tensorflow/tensorflow/lite/c",
   "submodules/tensorflow/tensorflow/lite/core",
-  "submodules/tensorflow/tensorflow/lite/delegates/nnapi/nnapi_delegate.*",
-  "submodules/tensorflow/tensorflow/lite/delegates/nnapi/nnapi_delegate_kernel.h",
-  "submodules/tensorflow/tensorflow/lite/delegates/nnapi/quant_lstm_sup.*",
+  "submodules/tensorflow/tensorflow/lite/delegates/nnapi",
   "submodules/tensorflow/tensorflow/lite/experimental/resource_variable",
   "submodules/tensorflow/tensorflow/lite/experimental/ruy",
   "submodules/tensorflow/tensorflow/lite/kernels",
@@ -60,6 +58,7 @@ build = ["fs_extra"]
 default = ["build"]
 debug_tflite = ["build"] # use "libtensorflow-lite.a" built in debug mode
 generate_model_apis = ["bart", "bart_derive"]
+no_micro = ["build"]
 
 [package.metadata.docs.rs]
 all-features = false

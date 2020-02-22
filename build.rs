@@ -41,7 +41,7 @@ fn prepare_tensorflow_source() -> PathBuf {
                 manifest_dir().join("data").join(f),
                 tf_src_dir.join("lite/tools/make/targets").join(f),
             )
-            .expect(&format!("Unable to copy makefile {}", f));
+            .unwrap_or_else(|_| panic!("Unable to copy makefile {}", f));
         }
     }
 
@@ -72,6 +72,17 @@ fn prepare_tensorflow_source() -> PathBuf {
     tf_src_dir
 }
 
+fn binary_changing_features() -> String {
+    let mut features = String::new();
+    if cfg!(feature = "debug_tflite") {
+        features.push_str("-debug");
+    }
+    if cfg!(feature = "no_micro") {
+        features.push_str("-no_micro");
+    }
+    features
+}
+
 fn prepare_tensorflow_library() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("Unable to get TARGET_ARCH");
 
@@ -79,7 +90,11 @@ fn prepare_tensorflow_library() {
     {
         let tflite = prepare_tensorflow_source();
         let out_dir = env::var("OUT_DIR").unwrap();
-        let tf_lib_name = Path::new(&out_dir).join("libtensorflow-lite.a");
+        // append tf_lib_name with features that can change how it is built
+        // so a cached version that doesn't match expectations isn't used
+        let binary_changing_features = binary_changing_features();
+        let tf_lib_name =
+            Path::new(&out_dir).join(format!("libtensorflow-lite{}.a", binary_changing_features,));
         let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
         if !tf_lib_name.exists() {
             println!("Building tflite");
@@ -114,13 +129,21 @@ fn prepare_tensorflow_library() {
                 .arg("-j")
                 // allow parallelism to be overridden
                 .arg(
-                    env::var("TFLITE_RS_MAKE_PARALLELISM")
-                        .unwrap_or(env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())),
+                    env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or_else(|_| {
+                        env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())
+                    }),
                 )
+                .arg("BUILD_WITH_NNAPI=false")
                 .arg("-f")
-                .arg("tensorflow/lite/tools/make/Makefile")
-                .arg("micro")
-                .current_dir(make_dir);
+                .arg("tensorflow/lite/tools/make/Makefile");
+
+            if cfg!(feature = "no_micro") {
+                println!("Building lib but no micro");
+                make.arg("lib");
+            } else {
+                make.arg("micro");
+            }
+            make.current_dir(make_dir);
             eprintln!("make command = {:?} in dir  {:?}", make, make_dir);
             if !make.status().expect("failed to run make command").success() {
                 panic!("Failed to build tensorflow");
@@ -132,13 +155,20 @@ fn prepare_tensorflow_library() {
                 .filter_map(|de| Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
-            std::fs::copy(&library, &tf_lib_name)
-                .expect("Unable to copy libtensorflow-lite.a to OUT_DIR");
+            std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
+                panic!(format!(
+                    "Unable to copy libtensorflow-lite.a to {}",
+                    tf_lib_name.display()
+                ))
+            });
 
             println!("Building tflite from source took {:?}", start.elapsed());
         }
         println!("cargo:rustc-link-search=native={}", out_dir);
-        println!("cargo:rustc-link-lib=static=tensorflow-lite");
+        println!(
+            "cargo:rustc-link-lib=static=tensorflow-lite{}",
+            binary_changing_features
+        );
     }
     #[cfg(not(feature = "build"))]
     {

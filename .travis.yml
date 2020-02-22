@@ -7,12 +7,14 @@ rust:
   - beta
   - nightly
 script:
+  # required for bindgen
+  - rustup component add rustfmt
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ln -s -f $(which clang) /usr/bin/gcc ; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ln -s -f $(which clang++) /usr/bin/g++ ; fi
   - gcc -v && g++ -v
   - cargo build --verbose
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test -- --nocapture ; fi
-  - cargo build --verbose --features debug_tflite
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test --features debug_tflite -- --nocapture ; fi
+  - cargo build --verbose --features debug_tflite,no_micro
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo test --features debug_tflite,no_micro -- --nocapture ; fi
   # Make sure package size is under 10 MB
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then cargo package --verbose && [ $(stat -c %s target/package/tflite-*.crate) -le 10485760 ] ; fi
