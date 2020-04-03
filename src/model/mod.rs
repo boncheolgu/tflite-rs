@@ -144,7 +144,12 @@ impl Clone for UniquePtr<BufferT> {
         let cloned_ref = &mut cloned;
         unsafe {
             cpp!([self as "const std::unique_ptr<BufferT>*", cloned_ref as "std::unique_ptr<BufferT>*"] {
-                new (cloned_ref) std::unique_ptr<BufferT>(new BufferT(**self));
+                if(*self) {
+                    new (cloned_ref) std::unique_ptr<BufferT>(new BufferT(**self));
+                }
+                else {
+                    new (cloned_ref) std::unique_ptr<BufferT>();
+                }
             });
         }
         cloned
@@ -167,7 +172,12 @@ impl Clone for UniquePtr<QuantizationParametersT> {
         let cloned_ref = &mut cloned;
         unsafe {
             cpp!([self as "const std::unique_ptr<QuantizationParametersT>*", cloned_ref as "std::unique_ptr<QuantizationParametersT>*"] {
-                new (cloned_ref) std::unique_ptr<QuantizationParametersT>(new QuantizationParametersT(**self));
+                if(*self) {
+                    new (cloned_ref) std::unique_ptr<QuantizationParametersT>(new QuantizationParametersT(**self));
+                }
+                else {
+                    new (cloned_ref) std::unique_ptr<QuantizationParametersT>();
+                }
             });
         }
         cloned
