@@ -169,6 +169,21 @@ impl PartialEq for BuiltinOptionsUnion {
         compare!(BuiltinOptions::BuiltinOptions_MirrorPadOptions, MirrorPadOptionsT);
         compare!(BuiltinOptions::BuiltinOptions_AbsOptions, AbsOptionsT);
         compare!(BuiltinOptions::BuiltinOptions_SplitVOptions, SplitVOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_UniqueOptions, UniqueOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_ReverseV2Options, ReverseV2OptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_AddNOptions, AddNOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_GatherNdOptions, GatherNdOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_CosOptions, CosOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_WhereOptions, WhereOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_RankOptions, RankOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_ReverseSequenceOptions, ReverseSequenceOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_MatrixDiagOptions, MatrixDiagOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_QuantizeOptions, QuantizeOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_MatrixSetDiagOptions, MatrixSetDiagOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_HardSwishOptions, HardSwishOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_IfOptions, IfOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_WhileOptions, WhileOptionsT);
+        compare!(BuiltinOptions::BuiltinOptions_DepthToSpaceOptions, DepthToSpaceOptionsT);
         return false;
     }
 }
@@ -271,4 +286,19 @@ add_impl_options! {
     MirrorPadOptionsT,
     AbsOptionsT,
     SplitVOptionsT,
+    UniqueOptionsT,
+    ReverseV2OptionsT,
+    AddNOptionsT,
+    GatherNdOptionsT,
+    CosOptionsT,
+    WhereOptionsT,
+    RankOptionsT,
+    ReverseSequenceOptionsT,
+    MatrixDiagOptionsT,
+    QuantizeOptionsT,
+    MatrixSetDiagOptionsT,
+    HardSwishOptionsT,
+    IfOptionsT,
+    WhileOptionsT,
+    DepthToSpaceOptionsT,
 }
