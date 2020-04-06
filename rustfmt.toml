@@ -1,0 +1,4 @@
+edition = "2018"
+
+# https://github.com/rust-lang/rustfmt/blob/master/Configurations.md#use_small_heuristics
+use_small_heuristics = "Max"

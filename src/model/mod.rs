@@ -204,9 +204,7 @@ impl Clone for UniquePtr<OperatorT> {
         cloned.inputs.assign(self.inputs.iter().cloned());
         cloned.outputs.assign(self.outputs.iter().cloned());
         cloned.builtin_options = self.builtin_options.clone();
-        cloned
-            .custom_options
-            .assign(self.custom_options.iter().cloned());
+        cloned.custom_options.assign(self.custom_options.iter().cloned());
         cloned.custom_options_format = self.custom_options_format;
         cloned.mutating_variable_inputs = self.mutating_variable_inputs.clone();
         cloned
@@ -319,10 +317,7 @@ mod tests {
         assert_eq!(model.operator_codes.size(), 5);
         assert_eq!(model.subgraphs.size(), 1);
         assert_eq!(model.buffers.size(), 24);
-        assert_eq!(
-            model.description.c_str().to_string_lossy(),
-            "TOCO Converted."
-        );
+        assert_eq!(model.description.c_str().to_string_lossy(), "TOCO Converted.");
 
         assert_eq!(
             model.operator_codes[0].builtin_code,
@@ -330,11 +325,7 @@ mod tests {
         );
 
         assert_eq!(
-            model
-                .operator_codes
-                .iter()
-                .map(|oc| oc.builtin_code)
-                .collect::<Vec<_>>(),
+            model.operator_codes.iter().map(|oc| oc.builtin_code).collect::<Vec<_>>(),
             vec![
                 BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D,
                 BuiltinOperator::BuiltinOperator_CONV_2D,
@@ -378,9 +369,7 @@ mod tests {
         model.operator_codes.erase(4);
         model.buffers.erase(22);
         model.buffers.erase(23);
-        model
-            .description
-            .assign(&CString::new("flatbuffer").unwrap());
+        model.description.assign(&CString::new("flatbuffer").unwrap());
 
         {
             let subgraph = &mut model.subgraphs[0];
@@ -435,9 +424,7 @@ mod tests {
             model.version = source_model.version;
             model.description.assign(&source_model.description);
             model.buffers.assign(
-                tensors
-                    .clone()
-                    .map(|tensor| source_model.buffers[tensor.buffer as usize].clone()),
+                tensors.clone().map(|tensor| source_model.buffers[tensor.buffer as usize].clone()),
             );
             model.operator_codes.push_back(
                 source_model.operator_codes[source_operator.opcode_index as usize].clone(),
@@ -453,16 +440,12 @@ mod tests {
             let num_inputs = operator.inputs.len() as i32;
             let num_outputs = operator.outputs.len() as i32;
             operator.inputs.assign(0..num_inputs);
-            operator
-                .outputs
-                .assign(num_inputs..num_inputs + num_outputs);
+            operator.outputs.assign(num_inputs..num_inputs + num_outputs);
             subgraph.operators.push_back(operator);
             subgraph
                 .inputs
                 .assign((0..num_inputs).filter(|&i| model.buffers[i as usize].data.is_empty()));
-            subgraph
-                .outputs
-                .assign(num_inputs..num_inputs + num_outputs);
+            subgraph.outputs.assign(num_inputs..num_inputs + num_outputs);
             model.subgraphs.push_back(subgraph);
 
             let subgraph = &model.subgraphs[0];
@@ -502,14 +485,8 @@ mod tests {
         );
         assert_eq!(operator.builtin_options, source_operator.builtin_options);
         assert_eq!(operator.custom_options, source_operator.custom_options);
-        assert_eq!(
-            operator.custom_options_format,
-            source_operator.custom_options_format
-        );
-        assert_eq!(
-            operator.mutating_variable_inputs,
-            source_operator.mutating_variable_inputs
-        );
+        assert_eq!(operator.custom_options_format, source_operator.custom_options_format);
+        assert_eq!(operator.mutating_variable_inputs, source_operator.mutating_variable_inputs);
 
         let tensors: Vec<_> = operator
             .inputs
@@ -576,23 +553,11 @@ mod tests {
         assert_eq!(operator1.inputs.as_slice(), operator2.inputs.as_slice());
         assert_eq!(operator1.outputs.as_slice(), operator2.outputs.as_slice());
         assert_eq!(operator1.builtin_options.typ, operator2.builtin_options.typ);
+        assert_eq!(operator1.custom_options.as_slice(), operator2.custom_options.as_slice());
+        assert_eq!(operator1.custom_options_format, operator2.custom_options_format);
         assert_eq!(
-            operator1.custom_options.as_slice(),
-            operator2.custom_options.as_slice()
-        );
-        assert_eq!(
-            operator1.custom_options_format,
-            operator2.custom_options_format
-        );
-        assert_eq!(
-            operator1
-                .mutating_variable_inputs
-                .iter()
-                .collect::<Vec<_>>(),
-            operator2
-                .mutating_variable_inputs
-                .iter()
-                .collect::<Vec<_>>()
+            operator1.mutating_variable_inputs.iter().collect::<Vec<_>>(),
+            operator2.mutating_variable_inputs.iter().collect::<Vec<_>>()
         );
     }
 
@@ -600,9 +565,7 @@ mod tests {
     fn unittest_build_model() {
         let mut model = Model::default();
         model.version = 3;
-        model
-            .description
-            .assign(&CString::new("model pad").unwrap());
+        model.description.assign(&CString::new("model pad").unwrap());
 
         {
             let mut pad: UniquePtr<OperatorCodeT> = Default::default();
@@ -611,9 +574,7 @@ mod tests {
             model.operator_codes.push_back(pad);
         }
 
-        model
-            .buffers
-            .assign(vec![UniquePtr::<BufferT>::default(); 3]);
+        model.buffers.assign(vec![UniquePtr::<BufferT>::default(); 3]);
 
         let mut subgraph: UniquePtr<SubGraphT> = Default::default();
 
@@ -646,9 +607,7 @@ mod tests {
         tensor.buffer = 1;
         tensor.name.assign(&CString::new("shape_tensor").unwrap());
         subgraph.tensors.push_back(tensor);
-        model.buffers[1]
-            .data
-            .assign(vec![0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
+        model.buffers[1].data.assign(vec![0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
 
         let mut tensor: UniquePtr<TensorT> = Default::default();
         tensor.shape.assign(vec![2, 2]);
@@ -668,15 +627,9 @@ mod tests {
         let mut interpreter = builder.build().unwrap();
 
         interpreter.allocate_tensors().unwrap();
-        interpreter
-            .tensor_data_mut(0)
-            .unwrap()
-            .copy_from_slice(&[0u8]);
+        interpreter.tensor_data_mut(0).unwrap().copy_from_slice(&[0u8]);
 
         interpreter.invoke().unwrap();
-        assert_eq!(
-            interpreter.tensor_data::<u8>(2).unwrap(),
-            &[119u8, 0, 119, 119]
-        );
+        assert_eq!(interpreter.tensor_data::<u8>(2).unwrap(), &[119u8, 0, 119, 119]);
     }
 }

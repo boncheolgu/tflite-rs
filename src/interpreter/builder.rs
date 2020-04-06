@@ -61,11 +61,7 @@ where
         };
         ensure!(!handle.is_null(), "Creating InterpreterBuilder failed.");
         let handle = unsafe { Box::from_raw(handle) };
-        Ok(Self {
-            handle,
-            _model: model,
-            _resolver: resolver,
-        })
+        Ok(Self { handle, _model: model, _resolver: resolver })
     }
 
     pub fn build(mut self) -> Fallible<Interpreter<'a, Op>> {

@@ -41,12 +41,7 @@ fn test_mnist(model: &FlatBufferModel) -> Fallible<()> {
         interpreter.invoke()?;
 
         let output: &[u8] = interpreter.tensor_data(output_index)?;
-        let guess = output
-            .iter()
-            .enumerate()
-            .max_by(|x, y| x.1.cmp(y.1))
-            .unwrap()
-            .0;
+        let guess = output.iter().enumerate().max_by(|x, y| x.1.cmp(y.1)).unwrap().0;
 
         println!("{}: {:?}", i, output);
         assert_eq!(i, guess);

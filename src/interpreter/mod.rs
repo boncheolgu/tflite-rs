@@ -67,10 +67,7 @@ where
     ) -> Fallible<Self> {
         ensure!(!handle.is_null(), "Building Interpreter failed.");
         let handle = unsafe { Box::from_raw(handle) };
-        let mut interpreter = Self {
-            handle,
-            _builder: builder,
-        };
+        let mut interpreter = Self { handle, _builder: builder };
         // # Safety
         // Always allocate tensors so we don't get into a state
         // where we try to read from or write to unallocated memory
@@ -235,10 +232,7 @@ where
                 return interpreter->AddTensors(count, &index);
             })
         };
-        ensure!(
-            result == bindings::TfLiteStatus::kTfLiteOk,
-            "AddTensors failed."
-        );
+        ensure!(result == bindings::TfLiteStatus::kTfLiteOk, "AddTensors failed.");
         Ok(index)
     }
 
@@ -261,10 +255,7 @@ where
                 return interpreter->SetInputs(inputs);
             })
         };
-        ensure!(
-            result == bindings::TfLiteStatus::kTfLiteOk,
-            "SetInputs failed."
-        );
+        ensure!(result == bindings::TfLiteStatus::kTfLiteOk, "SetInputs failed.");
         Ok(())
     }
 
@@ -287,10 +278,7 @@ where
                 return interpreter->SetOutputs(outputs);
             })
         };
-        ensure!(
-            result == bindings::TfLiteStatus::kTfLiteOk,
-            "SetInputs failed."
-        );
+        ensure!(result == bindings::TfLiteStatus::kTfLiteOk, "SetInputs failed.");
         Ok(())
     }
 
@@ -313,10 +301,7 @@ where
                 return interpreter->SetVariables(variables);
             })
         };
-        ensure!(
-            result == bindings::TfLiteStatus::kTfLiteOk,
-            "SetInputs failed."
-        );
+        ensure!(result == bindings::TfLiteStatus::kTfLiteOk, "SetInputs failed.");
         Ok(())
     }
 
@@ -398,10 +383,7 @@ where
         );
 
         Ok(unsafe {
-            slice::from_raw_parts(
-                inner.data.raw_const as *const T,
-                inner.bytes / size_of::<T>(),
-            )
+            slice::from_raw_parts(inner.data.raw_const as *const T, inner.bytes / size_of::<T>())
         })
     }
 

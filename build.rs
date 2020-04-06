@@ -113,9 +113,7 @@ fn prepare_tensorflow_library() {
                 let makefile = tflite.join("lite/tools/make/Makefile");
                 let makefile_contents =
                     std::fs::read_to_string(&makefile).expect("Unable to read Makefile");
-                let replaced = makefile_contents
-                    .replace("-O3", "-Og -g")
-                    .replace("-DNDEBUG", "");
+                let replaced = makefile_contents.replace("-O3", "-Og -g").replace("-DNDEBUG", "");
                 std::fs::write(&makefile, &replaced).expect("Unable to write Makefile");
                 if !replaced.contains("-Og") {
                     panic!("Unable to change optimization settings");
@@ -156,32 +154,24 @@ fn prepare_tensorflow_library() {
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
             std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
-                panic!(format!(
-                    "Unable to copy libtensorflow-lite.a to {}",
-                    tf_lib_name.display()
-                ))
+                panic!(format!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display()))
             });
 
             println!("Building tflite from source took {:?}", start.elapsed());
         }
         println!("cargo:rustc-link-search=native={}", out_dir);
-        println!(
-            "cargo:rustc-link-lib=static=tensorflow-lite{}",
-            binary_changing_features
-        );
+        println!("cargo:rustc-link-lib=static=tensorflow-lite{}", binary_changing_features);
     }
     #[cfg(not(feature = "build"))]
     {
         let arch_var = format!("TFLITE_{}_LIB_DIR", arch.replace("-", "_").to_uppercase());
         let all_var = "TFLITE_LIB_DIR".to_string();
-        let lib_dir = env::var(&arch_var)
-            .or(env::var(&all_var))
-            .unwrap_or_else(|_| {
-                panic!(
-                    "[feature = build] not set and environment variables {} and {} are not set",
-                    arch_var, all_var
-                )
-            });
+        let lib_dir = env::var(&arch_var).or(env::var(&all_var)).unwrap_or_else(|_| {
+            panic!(
+                "[feature = build] not set and environment variables {} and {} are not set",
+                arch_var, all_var
+            )
+        });
         println!("cargo:rustc-link-search=native={}", lib_dir);
         let static_dynamic = if Path::new(&lib_dir).join("libtensorflow-lite.a").exists() {
             "static"
@@ -231,17 +221,12 @@ fn import_tflite_types() {
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
         .blacklist_type("tflite::Interpreter_State")
-        .default_enum_style(EnumVariation::Rust {
-            non_exhaustive: false,
-        })
+        .default_enum_style(EnumVariation::Rust { non_exhaustive: false })
         .derive_partialeq(true)
         .derive_eq(true)
         .header("csrc/tflite_wrapper.hpp")
         .clang_arg(format!("-I{}/tensorflow", submodules_str))
-        .clang_arg(format!(
-            "-I{}/downloads/flatbuffers/include",
-            submodules_str
-        ))
+        .clang_arg(format!("-I{}/downloads/flatbuffers/include", submodules_str))
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
@@ -253,9 +238,7 @@ fn import_tflite_types() {
 
     // Write the bindings to the $OUT_DIR/tflite_types.rs file.
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("tflite_types.rs");
-    bindings
-        .write_to_file(out_path)
-        .expect("Couldn't write bindings!");
+    bindings.write_to_file(out_path).expect("Couldn't write bindings!");
 }
 
 fn build_inline_cpp() {
@@ -296,9 +279,7 @@ fn import_stl_types() {
 
     // Write the bindings to the $OUT_DIR/tflite_types.rs file.
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("stl_types.rs");
-    bindings
-        .write_to_file(out_path)
-        .expect("Couldn't write bindings!");
+    bindings.write_to_file(out_path).expect("Couldn't write bindings!");
 }
 
 #[cfg(feature = "generate_model_apis")]
@@ -328,23 +309,13 @@ use crate::model::stl::memory::UniquePtr;
         ("OperatorT", "crate::model::OperatorT"),
         ("SubGraphT", "crate::model::SubGraphT"),
         ("BufferT", "crate::model::BufferT"),
-        (
-            "QuantizationParametersT",
-            "crate::model::QuantizationParametersT",
-        ),
+        ("QuantizationParametersT", "crate::model::QuantizationParametersT"),
         ("ModelT", "crate::model::ModelT"),
         ("MetadataT", "crate::model::MetadataT"),
     ];
 
     for (cpp_type, rust_type) in memory_types {
-        writeln!(
-            &mut file,
-            "{}\n",
-            &MemoryBasicImpl {
-                cpp_type,
-                rust_type,
-            },
-        )?;
+        writeln!(&mut file, "{}\n", &MemoryBasicImpl { cpp_type, rust_type },)?;
     }
     Ok(())
 }
@@ -389,15 +360,7 @@ cpp! {{{{
 
     #[allow(non_snake_case)]
     for (cpp_type, rust_type, RustType) in vector_types {
-        writeln!(
-            &mut file,
-            "{}\n",
-            &VectorPrimitiveImpl {
-                cpp_type,
-                rust_type,
-                RustType,
-            },
-        )?;
+        writeln!(&mut file, "{}\n", &VectorPrimitiveImpl { cpp_type, rust_type, RustType },)?;
     }
 
     #[derive(BartDisplay)]
@@ -408,41 +371,16 @@ cpp! {{{{
     }
 
     let vector_types = vec![
-        (
-            "std::unique_ptr<OperatorCodeT>",
-            "UniquePtr<crate::model::OperatorCodeT>",
-        ),
-        (
-            "std::unique_ptr<TensorT>",
-            "UniquePtr<crate::model::TensorT>",
-        ),
-        (
-            "std::unique_ptr<OperatorT>",
-            "UniquePtr<crate::model::OperatorT>",
-        ),
-        (
-            "std::unique_ptr<SubGraphT>",
-            "UniquePtr<crate::model::SubGraphT>",
-        ),
-        (
-            "std::unique_ptr<BufferT>",
-            "UniquePtr<crate::model::BufferT>",
-        ),
-        (
-            "std::unique_ptr<MetadataT>",
-            "UniquePtr<crate::model::MetadataT>",
-        ),
+        ("std::unique_ptr<OperatorCodeT>", "UniquePtr<crate::model::OperatorCodeT>"),
+        ("std::unique_ptr<TensorT>", "UniquePtr<crate::model::TensorT>"),
+        ("std::unique_ptr<OperatorT>", "UniquePtr<crate::model::OperatorT>"),
+        ("std::unique_ptr<SubGraphT>", "UniquePtr<crate::model::SubGraphT>"),
+        ("std::unique_ptr<BufferT>", "UniquePtr<crate::model::BufferT>"),
+        ("std::unique_ptr<MetadataT>", "UniquePtr<crate::model::MetadataT>"),
     ];
 
     for (cpp_type, rust_type) in vector_types {
-        writeln!(
-            &mut file,
-            "{}\n",
-            &VectorBasicImpl {
-                cpp_type,
-                rust_type,
-            },
-        )?;
+        writeln!(&mut file, "{}\n", &VectorBasicImpl { cpp_type, rust_type },)?;
     }
     Ok(())
 }

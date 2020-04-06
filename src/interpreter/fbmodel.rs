@@ -54,10 +54,7 @@ impl FlatBufferModel {
         };
         ensure!(!handle.is_null(), "Building Model failed.");
         let handle = unsafe { Box::from_raw(handle) };
-        Ok(Self {
-            handle,
-            model_buffer,
-        })
+        Ok(Self { handle, model_buffer })
     }
 
     pub fn build_from_model(model: &Model) -> Fallible<Self> {
