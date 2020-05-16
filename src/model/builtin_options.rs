@@ -20,6 +20,7 @@ impl Default for BuiltinOptionsUnion {
 impl Drop for BuiltinOptionsUnion {
     fn drop(&mut self) {
         let ptr = self.value;
+        #[allow(deprecated)]
         unsafe {
             cpp!([ptr as "flatbuffers::NativeTable*"] {
                 delete ptr;
@@ -52,6 +53,7 @@ pub struct SqueezeOptionsT {
 }
 
 impl PartialEq for BuiltinOptionsUnion {
+    #[allow(clippy::cognitive_complexity)]
     fn eq(&self, other: &Self) -> bool {
         macro_rules! compare {
             ($e:expr, $t:ty) => {
@@ -184,7 +186,7 @@ impl PartialEq for BuiltinOptionsUnion {
         compare!(BuiltinOptions::BuiltinOptions_IfOptions, IfOptionsT);
         compare!(BuiltinOptions::BuiltinOptions_WhileOptions, WhileOptionsT);
         compare!(BuiltinOptions::BuiltinOptions_DepthToSpaceOptions, DepthToSpaceOptionsT);
-        return false;
+        false
     }
 }
 

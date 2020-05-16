@@ -1,17 +1,10 @@
-#[macro_use]
-extern crate failure;
-
-extern crate tflite;
-
 use std::env::args;
 
-use failure::Fallible;
-
 use tflite::ops::builtin::BuiltinOpResolver;
-use tflite::{FlatBufferModel, InterpreterBuilder};
+use tflite::{FlatBufferModel, InterpreterBuilder, Result};
 
-pub fn main() -> Fallible<()> {
-    ensure!(args().len() == 2, "minimal <tflite model>");
+pub fn main() -> Result<()> {
+    assert_eq!(args().len(), 2, "minimal <tflite model>");
 
     let filename = args().nth(1).unwrap();
 

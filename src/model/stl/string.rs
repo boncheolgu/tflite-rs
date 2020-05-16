@@ -55,7 +55,12 @@ impl AsRef<CStr> for String {
 }
 
 impl String {
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn len(&self) -> size_t {
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::string*"] -> size_t as "size_t" {
                 return self->size();
@@ -64,6 +69,7 @@ impl String {
     }
 
     pub fn c_str(&self) -> &CStr {
+        #[allow(deprecated)]
         unsafe {
             CStr::from_ptr(cpp!([self as "const std::string*"]
                   -> *const c_char as "const char*" {
@@ -75,6 +81,7 @@ impl String {
     pub fn assign<S: AsRef<CStr>>(&mut self, s: &S) {
         let s = s.as_ref();
         let ptr = s.as_ptr();
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "std::string*", ptr as "const char*"] {
                 self->assign(ptr);
@@ -97,6 +104,7 @@ mod tests {
 
     #[test]
     fn unittest_struct_with_strings() {
+        #[allow(deprecated)]
         let x = unsafe {
             cpp!([] -> &mut StructWithStrings as "struct_with_strings*" {
                 static struct_with_strings x{23, "boncheol", "gu"};

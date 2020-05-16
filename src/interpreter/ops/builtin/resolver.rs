@@ -1,3 +1,5 @@
+use std::mem;
+
 use crate::bindings::tflite as bindings;
 use crate::interpreter::op_resolver::OpResolver;
 
@@ -12,10 +14,9 @@ pub struct Resolver {
 }
 
 impl Drop for Resolver {
-    #[allow(clippy::useless_transmute, clippy::forget_copy)]
+    #[allow(clippy::useless_transmute, clippy::forget_copy, deprecated)]
     fn drop(&mut self) {
-        let handle = std::mem::replace(&mut self.handle, Default::default());
-        let handle = Box::into_raw(handle);
+        let handle = Box::into_raw(mem::take(&mut self.handle));
         unsafe {
             cpp!([handle as "BuiltinOpResolver*"] {
                 delete handle;
@@ -31,7 +32,7 @@ impl OpResolver for Resolver {
 }
 
 impl Default for Resolver {
-    #[allow(clippy::forget_copy)]
+    #[allow(clippy::forget_copy, deprecated)]
     fn default() -> Self {
         let handle = unsafe {
             cpp!([] -> *mut bindings::OpResolver as "OpResolver*" {

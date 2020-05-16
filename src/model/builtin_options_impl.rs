@@ -1,7 +1,7 @@
 use super::{BuiltinOptions, BuiltinOptionsUnion, NativeTable};
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn Conv2DOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -14,7 +14,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn DepthwiseConv2DOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -27,7 +27,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ConcatEmbeddingsOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -40,7 +40,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LSHProjectionOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -53,7 +53,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn Pool2DOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -66,7 +66,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SVDFOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -79,7 +79,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn RNNOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -92,7 +92,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn FullyConnectedOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -105,7 +105,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SoftmaxOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -118,7 +118,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ConcatenationOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -131,7 +131,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn AddOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -144,7 +144,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn L2NormOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -157,7 +157,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LocalResponseNormalizationOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -170,7 +170,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LSTMOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -183,7 +183,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ResizeBilinearOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -196,7 +196,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn CallOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -209,7 +209,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ReshapeOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -222,7 +222,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SkipGramOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -235,7 +235,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SpaceToDepthOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -248,7 +248,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn EmbeddingLookupSparseOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -261,7 +261,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn MulOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -274,7 +274,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn PadOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -287,7 +287,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn GatherOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -300,7 +300,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn BatchToSpaceNDOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -313,7 +313,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SpaceToBatchNDOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -326,7 +326,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn TransposeOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -339,7 +339,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ReducerOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -352,7 +352,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SubOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -365,7 +365,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn DivOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -378,7 +378,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SqueezeOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -391,7 +391,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SequenceRNNOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -404,7 +404,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn StridedSliceOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -417,7 +417,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ExpOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -430,7 +430,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn TopKV2Options() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -443,7 +443,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SplitOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -456,7 +456,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LogSoftmaxOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -469,7 +469,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn CastOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -482,7 +482,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn DequantizeOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -495,7 +495,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn MaximumMinimumOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -508,7 +508,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ArgMaxOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -521,7 +521,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LessOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -534,7 +534,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn NegOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -547,7 +547,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn PadV2Options() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -560,7 +560,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn GreaterOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -573,7 +573,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn GreaterEqualOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -586,7 +586,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LessEqualOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -599,7 +599,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SelectOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -612,7 +612,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SliceOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -625,7 +625,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn TransposeConvOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -638,7 +638,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SparseToDenseOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -651,7 +651,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn TileOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -664,7 +664,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ExpandDimsOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -677,7 +677,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn EqualOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -690,7 +690,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn NotEqualOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -703,7 +703,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ShapeOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -716,7 +716,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn PowOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -729,7 +729,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ArgMinOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -742,7 +742,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn FakeQuantOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -755,7 +755,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn PackOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -768,7 +768,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LogicalOrOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -781,7 +781,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn OneHotOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -794,7 +794,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LogicalAndOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -807,7 +807,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LogicalNotOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -820,7 +820,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn UnpackOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -833,7 +833,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn FloorDivOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -846,7 +846,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SquareOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -859,7 +859,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ZerosLikeOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -872,7 +872,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn FillOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -885,7 +885,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn BidirectionalSequenceLSTMOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -898,7 +898,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn BidirectionalSequenceRNNOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -911,7 +911,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn UnidirectionalSequenceLSTMOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -924,7 +924,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn FloorModOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -937,7 +937,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn RangeOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -950,7 +950,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ResizeNearestNeighborOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -963,7 +963,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn LeakyReluOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -976,7 +976,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SquaredDifferenceOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -989,7 +989,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn MirrorPadOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1002,7 +1002,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn AbsOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1015,7 +1015,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn SplitVOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1028,7 +1028,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn UniqueOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1041,7 +1041,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ReverseV2Options() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1054,7 +1054,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn AddNOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1067,7 +1067,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn GatherNdOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1080,7 +1080,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn CosOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1093,7 +1093,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn WhereOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1106,7 +1106,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn RankOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1119,7 +1119,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn ReverseSequenceOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1132,7 +1132,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn MatrixDiagOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1145,7 +1145,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn QuantizeOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1158,7 +1158,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn MatrixSetDiagOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1171,7 +1171,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn HardSwishOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1184,7 +1184,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn IfOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1197,7 +1197,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn WhileOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {
@@ -1210,7 +1210,7 @@ impl BuiltinOptionsUnion {
 }
 
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn DepthToSpaceOptions() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {

@@ -3,13 +3,11 @@ mod builtin_options_impl;
 pub mod stl;
 
 use std::ffi::c_void;
-use std::fs::File;
-use std::io::{Read, Write};
+use std::fs;
 use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::{fmt, mem, slice};
 
-use failure::Fallible;
 use libc::size_t;
 use stl::memory::UniquePtr;
 use stl::string::String as StlString;
@@ -20,6 +18,7 @@ use stl::vector::{
 
 pub use crate::bindings::flatbuffers::NativeTable;
 pub use crate::bindings::tflite::*;
+use crate::{Error, Result};
 pub use builtin_options::{
     BuiltinOptionsUnion, ConcatEmbeddingsOptionsT, ReshapeOptionsT, SqueezeOptionsT,
 };
@@ -129,6 +128,7 @@ impl Clone for BuiltinOptionsUnion {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
         let cloned_ref = &mut cloned;
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const BuiltinOptionsUnion*", cloned_ref as "BuiltinOptionsUnion*"] {
                 new (cloned_ref) BuiltinOptionsUnion(*self);
@@ -142,6 +142,7 @@ impl Clone for UniquePtr<BufferT> {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
         let cloned_ref = &mut cloned;
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::unique_ptr<BufferT>*", cloned_ref as "std::unique_ptr<BufferT>*"] {
                 if(*self) {
@@ -170,6 +171,7 @@ impl Clone for UniquePtr<QuantizationParametersT> {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
         let cloned_ref = &mut cloned;
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::unique_ptr<QuantizationParametersT>*", cloned_ref as "std::unique_ptr<QuantizationParametersT>*"] {
                 if(*self) {
@@ -247,6 +249,7 @@ impl Model {
         let buffer = buffer.as_ptr();
         let mut model: UniquePtr<ModelT> = unsafe { mem::zeroed() };
         let model_ref = &mut model;
+        #[allow(deprecated)]
         let r = unsafe {
             cpp!([buffer as "const void*", len as "size_t", model_ref as "std::unique_ptr<ModelT>*"]
                   -> bool as "bool" {
@@ -267,17 +270,16 @@ impl Model {
         }
     }
 
-    pub fn from_file<P: AsRef<Path>>(filepath: P) -> Fallible<Self> {
-        let mut buf = Vec::new();
-        File::open(filepath.as_ref())?.read_to_end(&mut buf)?;
-
-        Ok(Self::from_buffer(&buf).ok_or_else(|| format_err!("unpacking model failed."))?)
+    pub fn from_file<P: AsRef<Path>>(filepath: P) -> Result<Self> {
+        Self::from_buffer(&fs::read(filepath)?)
+            .ok_or_else(|| Error::internal_error("failed to unpack the flatbuffer model"))
     }
 
     pub fn to_buffer(&self) -> Vec<u8> {
         let mut buffer = Vec::new();
         let buffer_ptr = &mut buffer;
         let model_ref = &self.0;
+        #[allow(deprecated)]
         unsafe {
             cpp!([model_ref as "const std::unique_ptr<ModelT>*", buffer_ptr as "void*"] {
                 flatbuffers::FlatBufferBuilder fbb;
@@ -293,8 +295,8 @@ impl Model {
         buffer
     }
 
-    pub fn to_file<P: AsRef<Path>>(&self, filepath: P) -> Fallible<()> {
-        File::create(filepath.as_ref())?.write_all(&mut self.to_buffer())?;
+    pub fn to_file<P: AsRef<Path>>(&self, filepath: P) -> Result<()> {
+        fs::write(filepath, self.to_buffer())?;
         Ok(())
     }
 }
@@ -359,7 +361,11 @@ mod tests {
 
         let softmax_options: &SoftmaxOptionsT =
             subgraph.operators[softmax].builtin_options.as_ref();
-        assert_eq!(softmax_options.beta, 1.);
+
+        #[allow(clippy::float_cmp)]
+        {
+            assert_eq!(softmax_options.beta, 1.);
+        }
     }
 
     #[test]
@@ -579,9 +585,9 @@ mod tests {
         let mut subgraph: UniquePtr<SubGraphT> = Default::default();
 
         let mut quantization: UniquePtr<QuantizationParametersT> = Default::default();
-        quantization.min.push_back(-1.1106453);
-        quantization.max.push_back(1.2742002);
-        quantization.scale.push_back(0.009352336);
+        quantization.min.push_back(-1.110_645_3);
+        quantization.max.push_back(1.274_200_2);
+        quantization.scale.push_back(0.009_352_336);
         quantization.zero_point.push_back(119);
 
         let mut pad: UniquePtr<OperatorT> = Default::default();
