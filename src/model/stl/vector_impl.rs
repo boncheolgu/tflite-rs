@@ -14,6 +14,7 @@ cpp! {{
 #[repr(C)]
 pub struct VectorOfU8(dummy_vector);
 
+#[allow(deprecated)]
 impl Default for VectorOfU8 {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -27,6 +28,7 @@ impl Default for VectorOfU8 {
     }
 }
 
+#[allow(deprecated)]
 impl Drop for VectorOfU8 {
     fn drop(&mut self) {
         unsafe {
@@ -37,6 +39,7 @@ impl Drop for VectorOfU8 {
     }
 }
 
+#[allow(deprecated)]
 impl Clone for VectorOfU8 {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
@@ -58,6 +61,7 @@ impl PartialEq for VectorOfU8 {
 
 impl Eq for VectorOfU8 {}
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfU8 {
     type Item = u8;
 
@@ -88,6 +92,7 @@ impl VectorSlice for VectorOfU8 {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfU8 {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -100,6 +105,7 @@ impl VectorErase for VectorOfU8 {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<u8> for VectorOfU8 {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
@@ -108,10 +114,10 @@ impl VectorInsert<u8> for VectorOfU8 {
                 self->push_back(std::move(*vref));
             })
         }
-        mem::forget(v);
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<u8> for VectorOfU8 {
     fn extract(&mut self, index: usize) -> u8 {
         assert!(index < self.size());
@@ -131,6 +137,7 @@ add_impl!(VectorOfU8);
 #[repr(C)]
 pub struct VectorOfI32(dummy_vector);
 
+#[allow(deprecated)]
 impl Default for VectorOfI32 {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -144,6 +151,7 @@ impl Default for VectorOfI32 {
     }
 }
 
+#[allow(deprecated)]
 impl Drop for VectorOfI32 {
     fn drop(&mut self) {
         unsafe {
@@ -154,6 +162,7 @@ impl Drop for VectorOfI32 {
     }
 }
 
+#[allow(deprecated)]
 impl Clone for VectorOfI32 {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
@@ -175,6 +184,7 @@ impl PartialEq for VectorOfI32 {
 
 impl Eq for VectorOfI32 {}
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfI32 {
     type Item = i32;
 
@@ -205,6 +215,7 @@ impl VectorSlice for VectorOfI32 {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfI32 {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -217,6 +228,7 @@ impl VectorErase for VectorOfI32 {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<i32> for VectorOfI32 {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
@@ -225,10 +237,10 @@ impl VectorInsert<i32> for VectorOfI32 {
                 self->push_back(std::move(*vref));
             })
         }
-        mem::forget(v);
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<i32> for VectorOfI32 {
     fn extract(&mut self, index: usize) -> i32 {
         assert!(index < self.size());
@@ -248,6 +260,7 @@ add_impl!(VectorOfI32);
 #[repr(C)]
 pub struct VectorOfI64(dummy_vector);
 
+#[allow(deprecated)]
 impl Default for VectorOfI64 {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -261,6 +274,7 @@ impl Default for VectorOfI64 {
     }
 }
 
+#[allow(deprecated)]
 impl Drop for VectorOfI64 {
     fn drop(&mut self) {
         unsafe {
@@ -271,6 +285,7 @@ impl Drop for VectorOfI64 {
     }
 }
 
+#[allow(deprecated)]
 impl Clone for VectorOfI64 {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
@@ -292,6 +307,7 @@ impl PartialEq for VectorOfI64 {
 
 impl Eq for VectorOfI64 {}
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfI64 {
     type Item = i64;
 
@@ -322,6 +338,7 @@ impl VectorSlice for VectorOfI64 {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfI64 {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -334,6 +351,7 @@ impl VectorErase for VectorOfI64 {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<i64> for VectorOfI64 {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
@@ -342,10 +360,10 @@ impl VectorInsert<i64> for VectorOfI64 {
                 self->push_back(std::move(*vref));
             })
         }
-        mem::forget(v);
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<i64> for VectorOfI64 {
     fn extract(&mut self, index: usize) -> i64 {
         assert!(index < self.size());
@@ -365,6 +383,7 @@ add_impl!(VectorOfI64);
 #[repr(C)]
 pub struct VectorOfF32(dummy_vector);
 
+#[allow(deprecated)]
 impl Default for VectorOfF32 {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -378,6 +397,7 @@ impl Default for VectorOfF32 {
     }
 }
 
+#[allow(deprecated)]
 impl Drop for VectorOfF32 {
     fn drop(&mut self) {
         unsafe {
@@ -388,6 +408,7 @@ impl Drop for VectorOfF32 {
     }
 }
 
+#[allow(deprecated)]
 impl Clone for VectorOfF32 {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
@@ -409,6 +430,7 @@ impl PartialEq for VectorOfF32 {
 
 impl Eq for VectorOfF32 {}
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfF32 {
     type Item = f32;
 
@@ -439,6 +461,7 @@ impl VectorSlice for VectorOfF32 {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfF32 {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -451,6 +474,7 @@ impl VectorErase for VectorOfF32 {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<f32> for VectorOfF32 {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
@@ -459,10 +483,10 @@ impl VectorInsert<f32> for VectorOfF32 {
                 self->push_back(std::move(*vref));
             })
         }
-        mem::forget(v);
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<f32> for VectorOfF32 {
     fn extract(&mut self, index: usize) -> f32 {
         assert!(index < self.size());
@@ -479,6 +503,7 @@ impl VectorExtract<f32> for VectorOfF32 {
 
 add_impl!(VectorOfF32);
 
+#[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -492,6 +517,7 @@ impl Default for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     type Item = UniquePtr<crate::model::OperatorCodeT>;
 
@@ -522,6 +548,7 @@ impl VectorSlice for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -534,6 +561,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>>
     for VectorOfUniquePtr<crate::model::OperatorCodeT>
 {
@@ -548,6 +576,7 @@ impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>>
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>>
     for VectorOfUniquePtr<crate::model::OperatorCodeT>
 {
@@ -566,6 +595,7 @@ impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>>
 
 add_impl!(VectorOfUniquePtr<crate::model::OperatorCodeT>);
 
+#[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::TensorT> {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -579,6 +609,7 @@ impl Default for VectorOfUniquePtr<crate::model::TensorT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfUniquePtr<crate::model::TensorT> {
     type Item = UniquePtr<crate::model::TensorT>;
 
@@ -609,6 +640,7 @@ impl VectorSlice for VectorOfUniquePtr<crate::model::TensorT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfUniquePtr<crate::model::TensorT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -621,6 +653,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::TensorT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate::model::TensorT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
@@ -633,6 +666,7 @@ impl VectorInsert<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate:
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate::model::TensorT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::TensorT> {
         assert!(index < self.size());
@@ -649,6 +683,7 @@ impl VectorExtract<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate
 
 add_impl!(VectorOfUniquePtr<crate::model::TensorT>);
 
+#[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::OperatorT> {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -662,6 +697,7 @@ impl Default for VectorOfUniquePtr<crate::model::OperatorT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfUniquePtr<crate::model::OperatorT> {
     type Item = UniquePtr<crate::model::OperatorT>;
 
@@ -692,6 +728,7 @@ impl VectorSlice for VectorOfUniquePtr<crate::model::OperatorT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfUniquePtr<crate::model::OperatorT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -704,6 +741,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::OperatorT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<UniquePtr<crate::model::OperatorT>>
     for VectorOfUniquePtr<crate::model::OperatorT>
 {
@@ -718,6 +756,7 @@ impl VectorInsert<UniquePtr<crate::model::OperatorT>>
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<UniquePtr<crate::model::OperatorT>>
     for VectorOfUniquePtr<crate::model::OperatorT>
 {
@@ -736,6 +775,7 @@ impl VectorExtract<UniquePtr<crate::model::OperatorT>>
 
 add_impl!(VectorOfUniquePtr<crate::model::OperatorT>);
 
+#[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -749,6 +789,7 @@ impl Default for VectorOfUniquePtr<crate::model::SubGraphT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfUniquePtr<crate::model::SubGraphT> {
     type Item = UniquePtr<crate::model::SubGraphT>;
 
@@ -779,6 +820,7 @@ impl VectorSlice for VectorOfUniquePtr<crate::model::SubGraphT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -791,6 +833,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::SubGraphT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<UniquePtr<crate::model::SubGraphT>>
     for VectorOfUniquePtr<crate::model::SubGraphT>
 {
@@ -805,6 +848,7 @@ impl VectorInsert<UniquePtr<crate::model::SubGraphT>>
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<UniquePtr<crate::model::SubGraphT>>
     for VectorOfUniquePtr<crate::model::SubGraphT>
 {
@@ -823,6 +867,7 @@ impl VectorExtract<UniquePtr<crate::model::SubGraphT>>
 
 add_impl!(VectorOfUniquePtr<crate::model::SubGraphT>);
 
+#[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::BufferT> {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -836,6 +881,7 @@ impl Default for VectorOfUniquePtr<crate::model::BufferT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfUniquePtr<crate::model::BufferT> {
     type Item = UniquePtr<crate::model::BufferT>;
 
@@ -866,6 +912,7 @@ impl VectorSlice for VectorOfUniquePtr<crate::model::BufferT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfUniquePtr<crate::model::BufferT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -878,6 +925,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::BufferT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate::model::BufferT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
@@ -890,6 +938,7 @@ impl VectorInsert<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate:
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate::model::BufferT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::BufferT> {
         assert!(index < self.size());
@@ -906,6 +955,7 @@ impl VectorExtract<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate
 
 add_impl!(VectorOfUniquePtr<crate::model::BufferT>);
 
+#[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::MetadataT> {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
@@ -919,6 +969,7 @@ impl Default for VectorOfUniquePtr<crate::model::MetadataT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOfUniquePtr<crate::model::MetadataT> {
     type Item = UniquePtr<crate::model::MetadataT>;
 
@@ -949,6 +1000,7 @@ impl VectorSlice for VectorOfUniquePtr<crate::model::MetadataT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOfUniquePtr<crate::model::MetadataT> {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -961,6 +1013,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::MetadataT> {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<UniquePtr<crate::model::MetadataT>>
     for VectorOfUniquePtr<crate::model::MetadataT>
 {
@@ -975,6 +1028,7 @@ impl VectorInsert<UniquePtr<crate::model::MetadataT>>
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<UniquePtr<crate::model::MetadataT>>
     for VectorOfUniquePtr<crate::model::MetadataT>
 {

@@ -1,3 +1,4 @@
+#[allow(deprecated)]
 impl Default for UniquePtr<{{{rust_type}}}> {
     fn default() -> Self {
         let mut this: Self = unsafe { mem::zeroed() };
@@ -11,6 +12,7 @@ impl Default for UniquePtr<{{{rust_type}}}> {
     }
 }
 
+#[allow(deprecated)]
 impl Deref for UniquePtr<{{{rust_type}}}> {
     type Target = {{{rust_type}}};
 
@@ -25,6 +27,7 @@ impl Deref for UniquePtr<{{{rust_type}}}> {
     }
 }
 
+#[allow(deprecated)]
 impl DerefMut for UniquePtr<{{{rust_type}}}> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe {
@@ -37,6 +40,7 @@ impl DerefMut for UniquePtr<{{{rust_type}}}> {
     }
 }
 
+#[allow(deprecated)]
 impl fmt::Debug for UniquePtr<{{{rust_type}}}>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

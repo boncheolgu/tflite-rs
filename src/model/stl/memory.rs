@@ -28,6 +28,7 @@ where
 
 impl<T> Drop for UniquePtr<T> {
     fn drop(&mut self) {
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "std::unique_ptr<flatbuffers::NativeTable>*"] {
                 self->reset();
@@ -38,6 +39,7 @@ impl<T> Drop for UniquePtr<T> {
 
 impl<T> UniquePtr<T> {
     pub fn is_valid(&self) -> bool {
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::unique_ptr<flatbuffers::NativeTable>*"] -> bool as "bool" {
                 return static_cast<bool>(*self);

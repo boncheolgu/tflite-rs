@@ -1,5 +1,5 @@
 impl BuiltinOptionsUnion {
-    #[allow(non_snake_case)]
+    #[allow(non_snake_case, deprecated)]
     pub fn {{{name}}}() -> Self {
         let value = unsafe {
             cpp!([] -> *mut NativeTable as "flatbuffers::NativeTable*" {

@@ -1,16 +1,10 @@
-extern crate failure;
-
-extern crate tflite;
-
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Read;
 
-use failure::Fallible;
-
 use tflite::ops::builtin::BuiltinOpResolver;
-use tflite::{FlatBufferModel, InterpreterBuilder};
+use tflite::{FlatBufferModel, InterpreterBuilder, Result};
 
-fn test_mnist(model: &FlatBufferModel) -> Fallible<()> {
+fn test_mnist(model: &FlatBufferModel) -> Result<()> {
     let resolver = BuiltinOpResolver::default();
 
     let builder = InterpreterBuilder::new(model, &resolver)?;
@@ -28,10 +22,10 @@ fn test_mnist(model: &FlatBufferModel) -> Fallible<()> {
 
     let output_index = outputs[0];
 
-    let input_tensor = interpreter.tensor_info(input_index)?;
+    let input_tensor = interpreter.tensor_info(input_index).unwrap();
     assert_eq!(input_tensor.dims, vec![1, 28, 28, 1]);
 
-    let output_tensor = interpreter.tensor_info(output_index)?;
+    let output_tensor = interpreter.tensor_info(output_index).unwrap();
     assert_eq!(output_tensor.dims, vec![1, 10]);
 
     let mut input_file = File::open("data/mnist10.bin")?;
@@ -50,23 +44,17 @@ fn test_mnist(model: &FlatBufferModel) -> Fallible<()> {
 }
 
 #[test]
-fn mobilenetv1_mnist() {
-    test_mnist(&FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite").unwrap())
-        .unwrap();
+fn mobilenetv1_mnist() -> Result<()> {
+    test_mnist(&FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite")?)?;
 
-    let mut f = File::open("data/MNISTnet_uint8_quant.tflite").unwrap();
-    let mut buf = Vec::new();
-    f.read_to_end(&mut buf).unwrap();
-    test_mnist(&FlatBufferModel::build_from_buffer(buf).unwrap()).unwrap();
+    let buf = fs::read("data/MNISTnet_uint8_quant.tflite")?;
+    test_mnist(&FlatBufferModel::build_from_buffer(buf)?)
 }
 
 #[test]
-fn mobilenetv2_mnist() {
-    test_mnist(&FlatBufferModel::build_from_file("data/MNISTnet_v2_uint8_quant.tflite").unwrap())
-        .unwrap();
+fn mobilenetv2_mnist() -> Result<()> {
+    test_mnist(&FlatBufferModel::build_from_file("data/MNISTnet_v2_uint8_quant.tflite")?)?;
 
-    let mut f = File::open("data/MNISTnet_v2_uint8_quant.tflite").unwrap();
-    let mut buf = Vec::new();
-    f.read_to_end(&mut buf).unwrap();
-    test_mnist(&FlatBufferModel::build_from_buffer(buf).unwrap()).unwrap();
+    let buf = fs::read("data/MNISTnet_v2_uint8_quant.tflite")?;
+    test_mnist(&FlatBufferModel::build_from_buffer(buf)?)
 }

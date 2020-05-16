@@ -1,11 +1,9 @@
-use std::fs::File;
-use std::io::Read;
 use std::path::Path;
-
-use failure::Fallible;
+use std::{fs, mem};
 
 use crate::bindings::tflite as bindings;
 use crate::model::Model;
+use crate::{Error, Result};
 
 cpp! {{
     #include "tensorflow/lite/model.h"
@@ -22,10 +20,9 @@ pub struct FlatBufferModel {
 
 impl Drop for FlatBufferModel {
     fn drop(&mut self) {
-        let handle = std::mem::replace(&mut self.handle, Default::default());
-        let handle = Box::into_raw(handle);
+        let handle = Box::into_raw(mem::take(&mut self.handle));
 
-        #[allow(clippy::forget_copy, clippy::useless_transmute)]
+        #[allow(clippy::forget_copy, clippy::useless_transmute, deprecated)]
         unsafe {
             cpp!([handle as "FlatBufferModel*"] {
                 delete handle;
@@ -35,29 +32,29 @@ impl Drop for FlatBufferModel {
 }
 
 impl FlatBufferModel {
-    pub fn build_from_file<P: AsRef<Path>>(path: P) -> Fallible<Self> {
-        let mut model_buffer = Vec::new();
-        File::open(path.as_ref())?.read_to_end(&mut model_buffer)?;
-        Self::build_from_buffer(model_buffer)
+    pub fn build_from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
+        Self::build_from_buffer(fs::read(path)?)
     }
 
-    pub fn build_from_buffer(model_buffer: Vec<u8>) -> Fallible<Self> {
+    pub fn build_from_buffer(model_buffer: Vec<u8>) -> Result<Self> {
         let ptr = model_buffer.as_ptr();
         let size = model_buffer.len();
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let handle = unsafe {
             cpp!([ptr as "const char*", size as "size_t"]
                   -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
                 return FlatBufferModel::BuildFromBuffer(ptr, size).release();
             })
         };
-        ensure!(!handle.is_null(), "Building Model failed.");
+        if handle.is_null() {
+            return Err(Error::internal_error("failed to build model"));
+        }
         let handle = unsafe { Box::from_raw(handle) };
         Ok(Self { handle, model_buffer })
     }
 
-    pub fn build_from_model(model: &Model) -> Fallible<Self> {
+    pub fn build_from_model(model: &Model) -> Result<Self> {
         FlatBufferModel::build_from_buffer(model.to_buffer())
     }
 
@@ -66,7 +63,6 @@ impl FlatBufferModel {
     }
 
     pub fn release_buffer(mut self) -> Vec<u8> {
-        use std::mem;
         mem::replace(&mut self.model_buffer, Vec::new())
     }
 }

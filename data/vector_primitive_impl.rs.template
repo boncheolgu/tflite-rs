@@ -1,6 +1,7 @@
 #[repr(C)]
 pub struct VectorOf{{{RustType}}}(dummy_vector);
 
+#[allow(deprecated)]
 impl Default for VectorOf{{{RustType}}} {
     fn default() -> Self {
         let mut this = unsafe{ mem::zeroed() };
@@ -14,6 +15,7 @@ impl Default for VectorOf{{{RustType}}} {
     }
 }
 
+#[allow(deprecated)]
 impl Drop for VectorOf{{{RustType}}} {
     fn drop(&mut self) {
         unsafe {
@@ -24,6 +26,7 @@ impl Drop for VectorOf{{{RustType}}} {
     }
 }
 
+#[allow(deprecated)]
 impl Clone for VectorOf{{{RustType}}} {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
@@ -45,6 +48,7 @@ impl PartialEq for VectorOf{{{RustType}}} {
 
 impl Eq for VectorOf{{{RustType}}} {}
 
+#[allow(deprecated)]
 impl VectorSlice for VectorOf{{{RustType}}} {
     type Item = {{{rust_type}}};
 
@@ -75,6 +79,7 @@ impl VectorSlice for VectorOf{{{RustType}}} {
     }
 }
 
+#[allow(deprecated)]
 impl VectorErase for VectorOf{{{RustType}}} {
     fn erase_range(&mut self, offset: usize, size: usize) {
         let begin = offset as size_t;
@@ -87,6 +92,7 @@ impl VectorErase for VectorOf{{{RustType}}} {
     }
 }
 
+#[allow(deprecated)]
 impl VectorInsert<{{{rust_type}}}> for VectorOf{{{RustType}}} {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
@@ -95,10 +101,10 @@ impl VectorInsert<{{{rust_type}}}> for VectorOf{{{RustType}}} {
                 self->push_back(std::move(*vref));
             })
         }
-        mem::forget(v);
     }
 }
 
+#[allow(deprecated)]
 impl VectorExtract<{{{rust_type}}}> for VectorOf{{{RustType}}} {
     fn extract(&mut self, index: usize) -> {{{rust_type}}} {
         assert!(index < self.size());

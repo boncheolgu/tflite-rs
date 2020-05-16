@@ -4,13 +4,12 @@ mod fbmodel;
 pub mod op_resolver;
 pub mod ops;
 
-use std::mem::size_of;
+use std::mem;
 use std::slice;
 
-use failure::Fallible;
 use libc::{c_int, size_t};
 
-use crate::bindings;
+use crate::{bindings, Error, Result};
 pub use builder::InterpreterBuilder;
 use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
 pub use fbmodel::FlatBufferModel;
@@ -38,9 +37,8 @@ where
     Op: OpResolver,
 {
     fn drop(&mut self) {
-        let handle = std::mem::replace(&mut self.handle, Default::default());
-        let handle = Box::into_raw(handle);
-        #[allow(clippy::forget_copy, clippy::useless_transmute)]
+        let handle = Box::into_raw(mem::take(&mut self.handle));
+        #[allow(clippy::forget_copy, clippy::useless_transmute, deprecated)]
         unsafe {
             cpp!([handle as "Interpreter*"] {
                 delete handle;
@@ -64,8 +62,7 @@ where
     pub(crate) fn new(
         handle: *mut bindings::tflite::Interpreter,
         builder: InterpreterBuilder<'a, Op>,
-    ) -> Fallible<Self> {
-        ensure!(!handle.is_null(), "Building Interpreter failed.");
+    ) -> Result<Self> {
         let handle = unsafe { Box::from_raw(handle) };
         let mut interpreter = Self { handle, _builder: builder };
         // # Safety
@@ -79,24 +76,27 @@ where
     /// Update allocations for all tensors. This will redim dependent tensors using
     /// the input tensor dimensionality as given. This is relatively expensive.
     /// If you know that your sizes are not changing, you need not call this.
-    pub fn allocate_tensors(&mut self) -> Fallible<()> {
+    pub fn allocate_tensors(&mut self) -> Result<()> {
         let interpreter = self.handle_mut();
 
-        #[allow(clippy::forget_copy)]
-        let result = unsafe {
+        #[allow(clippy::forget_copy, deprecated)]
+        let r = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->AllocateTensors() == kTfLiteOk;
             })
         };
-        ensure!(result, "Interpreter::allocate_tensors failed");
-        Ok(())
+        if r {
+            Ok(())
+        } else {
+            Err(Error::internal_error("failed to allocate tensors"))
+        }
     }
 
     /// Prints a dump of what tensors and what nodes are in the interpreter.
     pub fn print_state(&self) {
         let interpreter = self.handle();
 
-        #[allow(clippy::forget_copy, clippy::useless_transmute)]
+        #[allow(clippy::forget_copy, clippy::useless_transmute, deprecated)]
         unsafe {
             cpp!([interpreter as "Interpreter*"] {
                 PrintInterpreterState(interpreter);
@@ -105,16 +105,20 @@ where
     }
 
     /// Invoke the interpreter (run the whole graph in dependency order).
-    pub fn invoke(&mut self) -> Fallible<()> {
+    pub fn invoke(&mut self) -> Result<()> {
         let interpreter = self.handle_mut();
 
-        let result = unsafe {
+        #[allow(deprecated)]
+        let r = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->Invoke() == kTfLiteOk;
             })
         };
-        ensure!(result, "Interpreter::allocate_tensors failed");
-        Ok(())
+        if r {
+            Ok(())
+        } else {
+            Err(Error::internal_error("failed to invoke interpreter"))
+        }
     }
 
     /// Sets the number of threads available to the interpreter
@@ -126,7 +130,7 @@ where
     pub fn set_num_threads(&mut self, threads: c_int) {
         let interpreter = self.handle_mut();
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         unsafe {
             cpp!([interpreter as "Interpreter*", threads as "int"] {
                 interpreter->SetNumThreads(threads);
@@ -140,7 +144,7 @@ where
         let interpreter = self.handle();
         let mut count: size_t = 0;
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -159,7 +163,7 @@ where
         let interpreter = self.handle();
         let mut count: size_t = 0;
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -178,7 +182,7 @@ where
         let interpreter = self.handle();
         let mut count: size_t = 0;
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -196,7 +200,7 @@ where
     pub fn tensors_size(&self) -> size_t {
         let interpreter = self.handle();
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         unsafe {
             cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
                 return interpreter->tensors_size();
@@ -208,7 +212,7 @@ where
     pub fn nodes_size(&self) -> size_t {
         let interpreter = self.handle();
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         unsafe {
             cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
                 return interpreter->nodes_size();
@@ -218,11 +222,11 @@ where
 
     /// Adds `count` tensors, preserving pre-existing Tensor entries.
     /// Return the index of the first new tensor.
-    pub fn add_tensors(&mut self, count: size_t) -> Fallible<TensorIndex> {
+    pub fn add_tensors(&mut self, count: size_t) -> Result<TensorIndex> {
         let interpreter = self.handle();
         let mut index: TensorIndex = 0;
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -232,19 +236,22 @@ where
                 return interpreter->AddTensors(count, &index);
             })
         };
-        ensure!(result == bindings::TfLiteStatus::kTfLiteOk, "AddTensors failed.");
-        Ok(index)
+        if result == bindings::TfLiteStatus::kTfLiteOk {
+            Ok(index)
+        } else {
+            Err(Error::internal_error("failed to add tensors"))
+        }
     }
 
     /// Provide a list of tensor indexes that are inputs to the model.
     /// Each index is bound check and this modifies the consistent_ flag of the
     /// interpreter.
-    pub fn set_inputs(&mut self, inputs: &[TensorIndex]) -> Fallible<()> {
+    pub fn set_inputs(&mut self, inputs: &[TensorIndex]) -> Result<()> {
         let interpreter = self.handle_mut();
         let ptr = inputs.as_ptr();
         let len = inputs.len() as size_t;
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -255,19 +262,22 @@ where
                 return interpreter->SetInputs(inputs);
             })
         };
-        ensure!(result == bindings::TfLiteStatus::kTfLiteOk, "SetInputs failed.");
-        Ok(())
+        if result == bindings::TfLiteStatus::kTfLiteOk {
+            Ok(())
+        } else {
+            Err(Error::internal_error("failed to set inputs"))
+        }
     }
 
     /// Provide a list of tensor indexes that are outputs to the model
     /// Each index is bound check and this modifies the consistent_ flag of the
     /// interpreter.
-    pub fn set_outputs(&mut self, outputs: &[TensorIndex]) -> Fallible<()> {
+    pub fn set_outputs(&mut self, outputs: &[TensorIndex]) -> Result<()> {
         let interpreter = self.handle_mut();
         let ptr = outputs.as_ptr();
         let len = outputs.len() as size_t;
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -278,19 +288,22 @@ where
                 return interpreter->SetOutputs(outputs);
             })
         };
-        ensure!(result == bindings::TfLiteStatus::kTfLiteOk, "SetInputs failed.");
-        Ok(())
+        if result == bindings::TfLiteStatus::kTfLiteOk {
+            Ok(())
+        } else {
+            Err(Error::internal_error("failed to set outputs"))
+        }
     }
 
     /// Provide a list of tensor indexes that are variable tensors.
     /// Each index is bound check and this modifies the consistent_ flag of the
     /// interpreter.
-    pub fn set_variables(&mut self, variables: &[TensorIndex]) -> Fallible<()> {
+    pub fn set_variables(&mut self, variables: &[TensorIndex]) -> Result<()> {
         let interpreter = self.handle_mut();
         let ptr = variables.as_ptr();
         let len = variables.len() as size_t;
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -301,10 +314,14 @@ where
                 return interpreter->SetVariables(variables);
             })
         };
-        ensure!(result == bindings::TfLiteStatus::kTfLiteOk, "SetInputs failed.");
-        Ok(())
+        if result == bindings::TfLiteStatus::kTfLiteOk {
+            Ok(())
+        } else {
+            Err(Error::internal_error("failed to set variables"))
+        }
     }
 
+    #[allow(clippy::cognitive_complexity)]
     pub fn set_tensor_parameters_read_write(
         &mut self,
         tensor_index: TensorIndex,
@@ -313,7 +330,7 @@ where
         dims: &[usize],
         quantization: QuantizationParams,
         is_variable: bool,
-    ) -> Fallible<()> {
+    ) -> Result<()> {
         let interpreter = self.handle_mut();
 
         let name_ptr = name.as_ptr();
@@ -323,7 +340,7 @@ where
         let dims_ptr = dims.as_ptr();
         let dims_len = dims.len() as size_t;
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -341,17 +358,17 @@ where
                     dims_len, dims_ptr, quantization, is_variable);
             })
         };
-        ensure!(
-            result == bindings::TfLiteStatus::kTfLiteOk,
-            "SetTensorParametersReadWrite failed."
-        );
-        Ok(())
+        if result == bindings::TfLiteStatus::kTfLiteOk {
+            Ok(())
+        } else {
+            Err(Error::internal_error("failed to set tensor parameters"))
+        }
     }
 
-    fn tensor_inner(&self, tensor_index: TensorIndex) -> Fallible<&bindings::TfLiteTensor> {
+    fn tensor_inner(&self, tensor_index: TensorIndex) -> Option<&bindings::TfLiteTensor> {
         let interpreter = self.handle();
 
-        #[allow(clippy::forget_copy)]
+        #[allow(clippy::forget_copy, deprecated)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -360,62 +377,74 @@ where
                 return interpreter->tensor(tensor_index);
             })
         };
-        ensure!(!ptr.is_null(), "Invalid tensor index");
-        Ok(unsafe { &*ptr })
+        if ptr.is_null() {
+            None
+        } else {
+            Some(unsafe { &*ptr })
+        }
     }
 
-    pub fn tensor_info(&self, tensor_index: TensorIndex) -> Fallible<TensorInfo> {
-        Ok(self.tensor_inner(tensor_index)?.into())
+    pub fn tensor_info(&self, tensor_index: TensorIndex) -> Option<TensorInfo> {
+        Some(self.tensor_inner(tensor_index)?.into())
     }
 
-    pub fn tensor_data<T>(&self, tensor_index: TensorIndex) -> Fallible<&[T]>
+    pub fn tensor_data<T>(&self, tensor_index: TensorIndex) -> Result<&[T]>
     where
         T: ElemKindOf,
     {
-        let inner = self.tensor_inner(tensor_index)?;
+        let inner = self
+            .tensor_inner(tensor_index)
+            .ok_or_else(|| Error::internal_error("invalid tensor index"))?;
         let tensor_info: TensorInfo = inner.into();
 
-        ensure!(
-            tensor_info.element_kind == T::elem_kind_of(),
-            "Invalid type reference of `{:?}` to the original type `{:?}`",
-            T::elem_kind_of(),
-            tensor_info.element_kind
-        );
+        if tensor_info.element_kind != T::elem_kind_of() {
+            return Err(Error::InternalError(format!(
+                "Invalid type reference of `{:?}` to the original type `{:?}`",
+                T::elem_kind_of(),
+                tensor_info.element_kind
+            )));
+        }
 
         Ok(unsafe {
-            slice::from_raw_parts(inner.data.raw_const as *const T, inner.bytes / size_of::<T>())
+            slice::from_raw_parts(
+                inner.data.raw_const as *const T,
+                inner.bytes / mem::size_of::<T>(),
+            )
         })
     }
 
-    pub fn tensor_data_mut<T>(&mut self, tensor_index: TensorIndex) -> Fallible<&mut [T]>
+    pub fn tensor_data_mut<T>(&mut self, tensor_index: TensorIndex) -> Result<&mut [T]>
     where
         T: ElemKindOf,
     {
-        let inner = self.tensor_inner(tensor_index)?;
+        let inner = self
+            .tensor_inner(tensor_index)
+            .ok_or_else(|| Error::internal_error("invalid tensor index"))?;
         let tensor_info: TensorInfo = inner.into();
 
-        ensure!(
-            tensor_info.element_kind == T::elem_kind_of(),
-            "Invalid type reference of `{:?}` to the original type `{:?}`",
-            T::elem_kind_of(),
-            tensor_info.element_kind
-        );
+        if tensor_info.element_kind != T::elem_kind_of() {
+            return Err(Error::InternalError(format!(
+                "Invalid type reference of `{:?}` to the original type `{:?}`",
+                T::elem_kind_of(),
+                tensor_info.element_kind
+            )));
+        }
 
         Ok(unsafe {
-            slice::from_raw_parts_mut(inner.data.raw as *mut T, inner.bytes / size_of::<T>())
+            slice::from_raw_parts_mut(inner.data.raw as *mut T, inner.bytes / mem::size_of::<T>())
         })
     }
 
-    pub fn tensor_buffer(&self, tensor_index: TensorIndex) -> Fallible<&[u8]> {
+    pub fn tensor_buffer(&self, tensor_index: TensorIndex) -> Option<&[u8]> {
         let inner = self.tensor_inner(tensor_index)?;
 
-        Ok(unsafe { slice::from_raw_parts(inner.data.raw_const as *mut u8, inner.bytes) })
+        Some(unsafe { slice::from_raw_parts(inner.data.raw_const as *mut u8, inner.bytes) })
     }
 
-    pub fn tensor_buffer_mut(&mut self, tensor_index: TensorIndex) -> Fallible<&mut [u8]> {
+    pub fn tensor_buffer_mut(&mut self, tensor_index: TensorIndex) -> Option<&mut [u8]> {
         let inner = self.tensor_inner(tensor_index)?;
 
-        Ok(unsafe { slice::from_raw_parts_mut(inner.data.raw as *mut u8, inner.bytes) })
+        Some(unsafe { slice::from_raw_parts_mut(inner.data.raw as *mut u8, inner.bytes) })
     }
 }
 

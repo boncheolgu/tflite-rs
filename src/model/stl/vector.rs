@@ -169,6 +169,7 @@ impl Default for VectorOfBool {
     fn default() -> Self {
         let mut this = unsafe { mem::zeroed() };
         let this_ref = &mut this;
+        #[allow(deprecated)]
         unsafe {
             cpp!([this_ref as "std::vector<bool>*"] {
                 new (this_ref) const std::vector<bool>;
@@ -180,6 +181,7 @@ impl Default for VectorOfBool {
 
 impl Drop for VectorOfBool {
     fn drop(&mut self) {
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::vector<bool>*"] {
                 self->~vector<bool>();
@@ -192,6 +194,7 @@ impl Clone for VectorOfBool {
     fn clone(&self) -> Self {
         let mut cloned = unsafe { mem::zeroed() };
         let cloned_ref = &mut cloned;
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::vector<bool>*", cloned_ref as "std::vector<bool>*"] {
                 new (cloned_ref) std::vector<bool>(*self);
@@ -214,6 +217,7 @@ impl Eq for VectorOfBool {}
 
 impl VectorOfBool {
     pub fn get(&self, index: usize) -> bool {
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::vector<bool>*", index as "size_t"] -> bool as "bool" {
                 return (*self)[index];
@@ -222,6 +226,7 @@ impl VectorOfBool {
     }
 
     pub fn set(&mut self, index: usize, v: bool) {
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "std::vector<bool>*", index as "size_t", v as "bool"] {
                 (*self)[index] = v;
@@ -230,6 +235,7 @@ impl VectorOfBool {
     }
 
     pub fn size(&self) -> usize {
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::vector<bool>*"] -> usize as "size_t" {
                 return self->size();
@@ -264,6 +270,7 @@ where
 
 impl<T> Drop for VectorOfUniquePtr<T> {
     fn drop(&mut self) {
+        #[allow(deprecated)]
         unsafe {
             cpp!([self as "const std::vector<std::unique_ptr<flatbuffers::NativeTable>>*"] {
                 self->~vector<std::unique_ptr<flatbuffers::NativeTable>>();
