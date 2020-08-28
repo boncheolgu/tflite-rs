@@ -23,13 +23,8 @@ fn prepare_tensorflow_source() -> PathBuf {
     let tf_src_dir = out_dir.join("tensorflow/tensorflow");
     let submodules = submodules();
 
-    let copy_dir = fs_extra::dir::CopyOptions {
-        overwrite: true,
-        skip_exist: false,
-        buffer_size: 65536,
-        copy_inside: false,
-        depth: 0,
-    };
+    let copy_dir =
+        fs_extra::dir::CopyOptions { overwrite: true, buffer_size: 65536, ..Default::default() };
 
     if !tf_src_dir.exists() {
         fs_extra::dir::copy(submodules.join("tensorflow"), &out_dir, &copy_dir)
