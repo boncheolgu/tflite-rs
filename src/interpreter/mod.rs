@@ -63,6 +63,9 @@ where
         handle: *mut bindings::tflite::Interpreter,
         builder: InterpreterBuilder<'a, Op>,
     ) -> Result<Self> {
+        if handle.is_null() {
+            return Err(Error::internal_error("failed to create interpreter"));
+        }
         let handle = unsafe { Box::from_raw(handle) };
         let mut interpreter = Self { handle, _builder: builder };
         // # Safety

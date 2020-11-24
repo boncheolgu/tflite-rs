@@ -77,6 +77,9 @@ where
                 })
             }
         };
+        if handle.is_null() {
+            return Err(Error::InternalError("failed to build".to_string()));
+        }
         Interpreter::new(handle, self)
     }
 
@@ -95,6 +98,9 @@ where
                 })
             }
         };
+        if handle.is_null() {
+            return Err(Error::InternalError("failed to build with threads".to_string()));
+        }
         Interpreter::new(handle, self)
     }
 }
