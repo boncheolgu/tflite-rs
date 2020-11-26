@@ -229,6 +229,10 @@ where
         let interpreter = self.handle();
         let mut index: TensorIndex = 0;
 
+        if interpreter.is_null() {
+            Err(Error::internal_error("failed to add tensors"))
+        }
+
         #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
             cpp!([
@@ -253,6 +257,10 @@ where
         let interpreter = self.handle_mut();
         let ptr = inputs.as_ptr();
         let len = inputs.len() as size_t;
+
+        if interpreter.is_null() {
+            Err(Error::internal_error("failed to set inputs"))
+        }
 
         #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
@@ -280,6 +288,10 @@ where
         let ptr = outputs.as_ptr();
         let len = outputs.len() as size_t;
 
+        if interpreter.is_null() {
+            Err(Error::internal_error("failed to set outputs"))
+        }
+
         #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
             cpp!([
@@ -305,6 +317,10 @@ where
         let interpreter = self.handle_mut();
         let ptr = variables.as_ptr();
         let len = variables.len() as size_t;
+
+        if interpreter.is_null() {
+            Err(Error::internal_error("failed to set variables"))
+        }
 
         #[allow(clippy::forget_copy, deprecated)]
         let result = unsafe {
@@ -335,6 +351,10 @@ where
         is_variable: bool,
     ) -> Result<()> {
         let interpreter = self.handle_mut();
+
+        if interpreter.is_null() {
+            Err(Error::internal_error("failed to set tensor parameters"))
+        }
 
         let name_ptr = name.as_ptr();
         let name_len = name.len() as size_t;
