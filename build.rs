@@ -270,6 +270,7 @@ fn import_stl_types() {
         .clang_arg("c++")
         .clang_arg("-std=c++14")
         .clang_arg("-fms-extensions")
+        .rustfmt_bindings(false)
         .generate()
         .expect("Unable to generate STL bindings");
 
