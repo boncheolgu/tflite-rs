@@ -6,6 +6,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 #[cfg(feature = "build")]
 use std::time::Instant;
+use std::env::VarError;
 
 fn manifest_dir() -> PathBuf {
     PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
@@ -118,9 +119,7 @@ fn prepare_tensorflow_library() {
 
             let make_dir = tflite.parent().unwrap();
 
-            make.arg(format!("TARGET={}", target))
-                .arg(format!("TARGET_ARCH={}", arch))
-                .arg("-j")
+            make.arg("-j")
                 // allow parallelism to be overridden
                 .arg(
                     env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or_else(|_| {
@@ -130,6 +129,35 @@ fn prepare_tensorflow_library() {
                 .arg("BUILD_WITH_NNAPI=false")
                 .arg("-f")
                 .arg("tensorflow/lite/tools/make/Makefile");
+
+            for &make_var in &[
+                "TARGET_TOOLCHAIN_PREFIX",
+                "EXTRA_CFLAGS"
+            ] {
+                let env_var = format!("TFLITE_RS_MAKE_{}", make_var);
+                println!("cargo:rerun-if-env-changed={}", env_var);
+
+                match env::var(&env_var) {
+                    Ok(result) => {
+                        make.arg(format!("{}={}", make_var, result));
+                    }
+                    Err(VarError::NotPresent) => {
+                        // Try and set some reasonable default values
+                        match make_var {
+                            "TARGET" => {
+                                make.arg(format!("TARGET={}", target));
+                            }
+                            "TARGET_ARCH" => {
+                                make.arg(format!("TARGET_ARCH={}", arch));
+                            }
+                            _ => {}
+                        }
+                    }
+                    Err(VarError::NotUnicode(_)) => {
+                        panic!("Provided a non-unicode value for {}", env_var)
+                    }
+                }
+            }
 
             if cfg!(feature = "no_micro") {
                 println!("Building lib but no micro");
