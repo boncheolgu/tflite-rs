@@ -131,8 +131,10 @@ fn prepare_tensorflow_library() {
                 .arg("tensorflow/lite/tools/make/Makefile");
 
             for &make_var in &[
+                "TARGET",
+                "TARGET_ARCH",
                 "TARGET_TOOLCHAIN_PREFIX",
-                "EXTRA_CFLAGS"
+                "EXTRA_CFLAGS",
             ] {
                 let env_var = format!("TFLITE_RS_MAKE_{}", make_var);
                 println!("cargo:rerun-if-env-changed={}", env_var);
