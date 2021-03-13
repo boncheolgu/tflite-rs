@@ -130,11 +130,11 @@ fn prepare_tensorflow_library() {
                 .arg("-f")
                 .arg("tensorflow/lite/tools/make/Makefile");
 
-            for &make_var in &[
-                "TARGET",
-                "TARGET_ARCH",
-                "TARGET_TOOLCHAIN_PREFIX",
-                "EXTRA_CFLAGS",
+            for (make_var, default) in &[
+                ("TARGET", Some(target.as_str())),
+                ("TARGET_ARCH", Some(arch.as_str())),
+                ("TARGET_TOOLCHAIN_PREFIX", None),
+                ("EXTRA_CFLAGS", None),
             ] {
                 let env_var = format!("TFLITE_RS_MAKE_{}", make_var);
                 println!("cargo:rerun-if-env-changed={}", env_var);
@@ -145,14 +145,8 @@ fn prepare_tensorflow_library() {
                     }
                     Err(VarError::NotPresent) => {
                         // Try and set some reasonable default values
-                        match make_var {
-                            "TARGET" => {
-                                make.arg(format!("TARGET={}", target));
-                            }
-                            "TARGET_ARCH" => {
-                                make.arg(format!("TARGET_ARCH={}", arch));
-                            }
-                            _ => {}
+                        if let Some(result) = default {
+                            make.arg(format!("{}={}", make_var, result));
                         }
                     }
                     Err(VarError::NotUnicode(_)) => {
