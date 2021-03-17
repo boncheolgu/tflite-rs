@@ -3,10 +3,10 @@
 extern crate bart_derive;
 
 use std::env;
+use std::env::VarError;
 use std::path::{Path, PathBuf};
 #[cfg(feature = "build")]
 use std::time::Instant;
-use std::env::VarError;
 
 fn manifest_dir() -> PathBuf {
     PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
@@ -536,5 +536,7 @@ fn main() {
     }
     import_tflite_types();
     build_inline_cpp();
-    prepare_tensorflow_library();
+    if env::var("DOCS_RS").is_err() {
+        prepare_tensorflow_library();
+    }
 }
