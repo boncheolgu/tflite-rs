@@ -243,6 +243,7 @@ impl VectorOfBool {
         }
     }
 
+    #[allow(clippy::needless_lifetimes)]
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = bool> + 'a {
         (0..self.size()).map(move |i| self.get(i))
     }

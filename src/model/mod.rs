@@ -414,6 +414,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::field_reassign_with_default)]
     fn flatbuffer_model_apis_extract() {
         let source_model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
         let source_subgraph = &source_model.subgraphs[0];
@@ -568,6 +569,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::field_reassign_with_default)]
     fn unittest_build_model() {
         let mut model = Model::default();
         model.version = 3;
