@@ -3,7 +3,6 @@
 extern crate bart_derive;
 
 use std::env;
-use std::env::VarError;
 use std::path::{Path, PathBuf};
 #[cfg(feature = "build")]
 use std::time::Instant;
@@ -31,15 +30,6 @@ fn prepare_tensorflow_source() -> PathBuf {
     if !tf_src_dir.exists() {
         fs_extra::dir::copy(submodules.join("tensorflow"), &out_dir, &copy_dir)
             .expect("Unable to copy tensorflow");
-
-        // TODO: remove these when we upgrade tensorflow far enough that they exist
-        for f in &["aarch64_makefile.inc", "linux_makefile.inc"] {
-            std::fs::copy(
-                manifest_dir().join("data").join(f),
-                tf_src_dir.join("lite/tools/make/targets").join(f),
-            )
-            .unwrap_or_else(|_| panic!("Unable to copy makefile {}", f));
-        }
     }
 
     let download_dir = tf_src_dir.join("lite/tools/make/downloads");
@@ -69,6 +59,7 @@ fn prepare_tensorflow_source() -> PathBuf {
     tf_src_dir
 }
 
+#[cfg(feature = "build")]
 fn binary_changing_features() -> String {
     let mut features = String::new();
     if cfg!(feature = "debug_tflite") {
@@ -143,13 +134,13 @@ fn prepare_tensorflow_library() {
                     Ok(result) => {
                         make.arg(format!("{}={}", make_var, result));
                     }
-                    Err(VarError::NotPresent) => {
+                    Err(env::VarError::NotPresent) => {
                         // Try and set some reasonable default values
                         if let Some(result) = default {
                             make.arg(format!("{}={}", make_var, result));
                         }
                     }
-                    Err(VarError::NotUnicode(_)) => {
+                    Err(env::VarError::NotUnicode(_)) => {
                         panic!("Provided a non-unicode value for {}", env_var)
                     }
                 }
@@ -213,7 +204,8 @@ fn import_tflite_types() {
     let submodules = submodules();
     let submodules_str = submodules.to_string_lossy();
     let bindings = Builder::default()
-        .whitelist_recursively(true)
+        .rustfmt_bindings(false)
+        .allowlist_recursively(true)
         .prepend_enum_name(false)
         .impl_debug(true)
         .with_codegen_config(CodegenConfig::TYPES)
@@ -222,26 +214,26 @@ fn import_tflite_types() {
         .derive_default(true)
         .size_t_is_usize(true)
         // for model APIs
-        .whitelist_type("tflite::ModelT")
-        .whitelist_type(".+OptionsT")
-        .blacklist_type(".+_TableType")
+        .allowlist_type("tflite::ModelT")
+        .allowlist_type(".+OptionsT")
+        .blocklist_type(".+_TableType")
         // for interpreter
-        .whitelist_type("tflite::FlatBufferModel")
+        .allowlist_type("tflite::FlatBufferModel")
         .opaque_type("tflite::FlatBufferModel")
-        .whitelist_type("tflite::InterpreterBuilder")
+        .allowlist_type("tflite::InterpreterBuilder")
         .opaque_type("tflite::InterpreterBuilder")
-        .whitelist_type("tflite::Interpreter")
+        .allowlist_type("tflite::Interpreter")
         .opaque_type("tflite::Interpreter")
-        .whitelist_type("tflite::ops::builtin::BuiltinOpResolver")
+        .allowlist_type("tflite::ops::builtin::BuiltinOpResolver")
         .opaque_type("tflite::ops::builtin::BuiltinOpResolver")
-        .whitelist_type("tflite::OpResolver")
+        .allowlist_type("tflite::OpResolver")
         .opaque_type("tflite::OpResolver")
-        .whitelist_type("TfLiteTensor")
+        .allowlist_type("TfLiteTensor")
         .opaque_type("std::string")
         .opaque_type("flatbuffers::NativeTable")
-        .blacklist_type("std")
-        .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
-        .blacklist_type("tflite::Interpreter_State")
+        .blocklist_type("std")
+        .blocklist_type("tflite::Interpreter_TfLiteDelegatePtr")
+        .blocklist_type("tflite::Interpreter_State")
         .default_enum_style(EnumVariation::Rust { non_exhaustive: false })
         .derive_partialeq(true)
         .derive_eq(true)
@@ -282,11 +274,11 @@ fn import_stl_types() {
 
     let bindings = Builder::default()
         .enable_cxx_namespaces()
-        .whitelist_type("std::string")
+        .allowlist_type("std::string")
         .opaque_type("std::string")
-        .whitelist_type("rust::.+")
+        .allowlist_type("rust::.+")
         .opaque_type("rust::.+")
-        .blacklist_type("std")
+        .blocklist_type("std")
         .header("csrc/stl_wrapper.hpp")
         .layout_tests(false)
         .derive_partialeq(true)
