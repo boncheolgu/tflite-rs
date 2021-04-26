@@ -31,7 +31,7 @@ include = [
   "submodules/downloads/fp16",
   "submodules/tensorflow/tensorflow/lite/c",
   "submodules/tensorflow/tensorflow/lite/core",
-  "submodules/tensorflow/tensorflow/lite/delegates/nnapi/nnapi_delegate.h",
+  "submodules/tensorflow/tensorflow/lite/delegates/nnapi",
   "submodules/tensorflow/tensorflow/lite/delegates/status.h",
   "submodules/tensorflow/tensorflow/lite/experimental/resource_variable",
   "submodules/tensorflow/tensorflow/lite/experimental/resource",
