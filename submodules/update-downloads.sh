@@ -36,6 +36,9 @@ rm -rf ${thisDir}/downloads/eigen/failtest
 rm -rf ${thisDir}/downloads/eigen/doc
 rm -rf ${thisDir}/downloads/eigen/demos
 rm -rf ${thisDir}/downloads/eigen/bench
+rm -rf ${thisDir}/downloads/eigen/blas/testing
+rm -rf ${thisDir}/downloads/cpuinfo/test
 rm -rf ${thisDir}/downloads/absl/ci
+rm -rf ${thisDir}/downloads/absl/absl/time/internal/cctz/testdata
 
 sed -i "s/struct NativeTable {};/struct NativeTable { virtual ~NativeTable() {} };/" ${thisDir}/downloads/flatbuffers/include/flatbuffers/flatbuffers.h
