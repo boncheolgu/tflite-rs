@@ -1,6 +1,3 @@
-[submodule "submodules/tensorflow"]
-	path = submodules/tensorflow
-	url = https://github.com/tensorflow/tensorflow.git
 [submodule "submodules/downloads"]
 	path = submodules/downloads
 	url = https://github.com/vivint-smarthome/tflite-rs-downloads

@@ -15,43 +15,27 @@ fn submodules() -> PathBuf {
     manifest_dir().join("submodules")
 }
 
+fn downloads() -> PathBuf {
+    submodules().join("downloads")
+}
+
+fn flatbuffers_include() -> PathBuf {
+    downloads().join("tensorflow/lite/tools/make/downloads/flatbuffers/include")
+}
+
 #[cfg(feature = "build")]
 fn prepare_tensorflow_source() -> PathBuf {
     println!("Moving tflite source");
     let start = Instant::now();
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let tf_src_dir = out_dir.join("tensorflow/tensorflow");
-    let submodules = submodules();
+    let tf_src_dir = out_dir.join("downloads");
 
     let mut copy_dir = fs_extra::dir::CopyOptions::new();
     copy_dir.overwrite = true;
     copy_dir.buffer_size = 65536;
 
     if !tf_src_dir.exists() {
-        fs_extra::dir::copy(submodules.join("tensorflow"), &out_dir, &copy_dir)
-            .expect("Unable to copy tensorflow");
-    }
-
-    let download_dir = tf_src_dir.join("lite/tools/make/downloads");
-    if !download_dir.exists() {
-        fs_extra::dir::copy(
-            submodules.join("downloads"),
-            download_dir.parent().unwrap(),
-            &copy_dir,
-        )
-        .expect("Unable to copy download dir");
-
-        let flatbuffers_h = download_dir.join("flatbuffers/include/flatbuffers/flatbuffers.h");
-        let flatbuffers =
-            std::fs::read_to_string(&flatbuffers_h).expect("Unable to read flatbuffers.h");
-        std::fs::write(
-            flatbuffers_h,
-            flatbuffers.replace(
-                "struct NativeTable { virtual ~NativeTable() {} };",
-                "struct NativeTable {};",
-            ),
-        )
-        .expect("Unable to write to flatbuffers.h");
+        fs_extra::dir::copy(downloads(), &out_dir, &copy_dir).expect("Unable to copy tensorflow");
     }
 
     println!("Moving source took {:?}", start.elapsed());
@@ -88,6 +72,7 @@ fn prepare_tensorflow_library() {
             println!("Building tflite");
             let start = Instant::now();
             let mut make = std::process::Command::new("make");
+            make.envs(env::vars_os());
             if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
                 make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
             };
@@ -108,7 +93,7 @@ fn prepare_tensorflow_library() {
                 }
             }
 
-            let make_dir = tflite.parent().unwrap();
+            let make_dir = tflite.as_path();
 
             make.arg("-j")
                 // allow parallelism to be overridden
@@ -159,7 +144,7 @@ fn prepare_tensorflow_library() {
             }
 
             // find library
-            let library = std::fs::read_dir(tflite.join("lite/tools/make/gen"))
+            let library = std::fs::read_dir(tflite.join("tensorflow/lite/tools/make/gen"))
                 .expect("Make gen file should exist")
                 .filter_map(|de| Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
                 .find(|p| p.exists())
@@ -201,8 +186,6 @@ fn prepare_tensorflow_library() {
 fn import_tflite_types() {
     use bindgen::*;
 
-    let submodules = submodules();
-    let submodules_str = submodules.to_string_lossy();
     let bindings = Builder::default()
         .rustfmt_bindings(false)
         .allowlist_recursively(true)
@@ -238,8 +221,8 @@ fn import_tflite_types() {
         .derive_partialeq(true)
         .derive_eq(true)
         .header("csrc/tflite_wrapper.hpp")
-        .clang_arg(format!("-I{}/tensorflow", submodules_str))
-        .clang_arg(format!("-I{}/downloads/flatbuffers/include", submodules_str))
+        .clang_arg(format!("-I{}", downloads().display()))
+        .clang_arg(format!("-I{}", flatbuffers_include().display()))
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
@@ -258,8 +241,8 @@ fn build_inline_cpp() {
     let submodules = submodules();
 
     cpp_build::Config::new()
-        .include(submodules.join("tensorflow"))
-        .include(submodules.join("downloads/flatbuffers/include"))
+        .include(submodules.join("downloads"))
+        .include(flatbuffers_include())
         .flag("-fPIC")
         .flag("-std=c++14")
         .flag("-Wno-sign-compare")
@@ -287,6 +270,7 @@ fn import_stl_types() {
         .clang_arg("c++")
         .clang_arg("-std=c++14")
         .clang_arg("-fms-extensions")
+        .clang_arg(format!("-I{}", downloads().display()))
         .rustfmt_bindings(false)
         .generate()
         .expect("Unable to generate STL bindings");
@@ -527,6 +511,7 @@ fn main() {
         generate_vector_impl().unwrap();
         generate_builtin_options_impl().unwrap();
     }
+    dbg!("here");
     import_tflite_types();
     build_inline_cpp();
     if env::var("DOCS_RS").is_err() {
