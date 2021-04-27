@@ -83,7 +83,7 @@ fn prepare_tensorflow_library() {
             #[cfg(feature = "debug_tflite")]
             {
                 println!("Feature debug_tflite enabled. Changing optimization to 0");
-                let makefile = tflite.join("lite/tools/make/Makefile");
+                let makefile = tflite.join("tensorflow/lite/tools/make/Makefile");
                 let makefile_contents =
                     std::fs::read_to_string(&makefile).expect("Unable to read Makefile");
                 let replaced = makefile_contents.replace("-O3", "-Og -g").replace("-DNDEBUG", "");
@@ -511,7 +511,6 @@ fn main() {
         generate_vector_impl().unwrap();
         generate_builtin_options_impl().unwrap();
     }
-    dbg!("here");
     import_tflite_types();
     build_inline_cpp();
     if env::var("DOCS_RS").is_err() {
