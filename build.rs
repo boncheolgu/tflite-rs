@@ -31,15 +31,6 @@ fn prepare_tensorflow_source() -> PathBuf {
     if !tf_src_dir.exists() {
         fs_extra::dir::copy(submodules.join("tensorflow"), &out_dir, &copy_dir)
             .expect("Unable to copy tensorflow");
-
-        // TODO: remove these when we upgrade tensorflow far enough that they exist
-        for f in &["aarch64_makefile.inc", "linux_makefile.inc"] {
-            std::fs::copy(
-                manifest_dir().join("data").join(f),
-                tf_src_dir.join("lite/tools/make/targets").join(f),
-            )
-            .unwrap_or_else(|_| panic!("Unable to copy makefile {}", f));
-        }
     }
 
     let download_dir = tf_src_dir.join("lite/tools/make/downloads");
