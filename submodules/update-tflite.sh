@@ -33,6 +33,8 @@ rm -rf ${downloads}/${tf_downloads}/farmhash/dev
 rm -rf ${downloads}/${tf_downloads}/farmhash/m4
 rm -rf ${downloads}/tensorflow/lite/toco
 
+fd --type file --hidden '^.gitignore$' ${downloads} --exec rm -f
+
 for language in python java go rust php lua grpc dart android js objc swift ios; do
   echo "removing directories matching ^${language}$"
   fd --type d '^'${language}'$' "${downloads}" --exec rm -rf {}

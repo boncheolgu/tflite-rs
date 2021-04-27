@@ -10,50 +10,6 @@ readme = "README.md"
 edition = "2018"
 documentation = "https://docs.rs/crate/tflite"
 
-# filter in only necessary files
-# tar tvaf target/package/tflite-*.crate | awk '{print $3 "\t" $6}' | sort -n
-#include = [
-#  "build.rs",
-#  "Cargo.toml",
-#  "README.md",
-#  "LICENSE-APACHE",
-#  "LICENSE-MIT",
-#  "data/",
-#  "csrc/",
-#  "src/",
-#  "submodules/downloads/",
-#  "submodules/tensorflow/tensorflow/lite/c",
-#  "submodules/tensorflow/tensorflow/lite/core",
-#  "submodules/tensorflow/tensorflow/lite/delegates/",
-##  "submodules/tensorflow/tensorflow/lite/delegates/nnapi",
-##  "submodules/tensorflow/tensorflow/lite/delegates/status.h",
-#  "submodules/tensorflow/tensorflow/lite/experimental/resource_variable",
-#  "submodules/tensorflow/tensorflow/lite/experimental/resource",
-#  "submodules/tensorflow/tensorflow/lite/experimental/ruy",
-#  "submodules/tensorflow/tensorflow/lite/kernels/",
-##  "submodules/tensorflow/tensorflow/lite/kernels/internal/compatibility.h",
-##  "submodules/tensorflow/tensorflow/lite/kernels/internal/tensor_ctypes.h",
-##  "submodules/tensorflow/tensorflow/lite/kernels/internal/types.h",
-##  "submodules/tensorflow/tensorflow/lite/kernels/op_macros.h",
-##  "submodules/tensorflow/tensorflow/lite/kernels/register.h",
-#  "submodules/tensorflow/tensorflow/lite/nnapi",
-#  "submodules/tensorflow/tensorflow/lite/profiling",
-#  "submodules/tensorflow/tensorflow/lite/schema/schema_generated.h",
-#  "submodules/tensorflow/tensorflow/lite/schema/schema_utils.h",
-#  "submodules/tensorflow/tensorflow/lite/tools/optimize/sparsity",
-#  "submodules/tensorflow/tensorflow/lite/tools/delegates",
-#  "submodules/tensorflow/tensorflow/lite/tools/make",
-#  "submodules/tensorflow/tensorflow/lite/*.cc",
-#  "submodules/tensorflow/tensorflow/lite/*.h",
-#  "submodules/tensorflow/tensorflow/core/kernels/eigen_convolution_helpers.h",
-#  "submodules/tensorflow/tensorflow/core/kernels/eigen_spatial_convolutions-inl.h",
-#  "submodules/tensorflow/tensorflow/core/public/version.h",
-#  "submodules/tensorflow/third_party/eigen3",
-#  "submodules/tensorflow/third_party/fft2d",
-#]
-
-exclude = ["Cargo.lock"]
-
 [dependencies]
 cpp = "0.5"
 libc = "0.2"
