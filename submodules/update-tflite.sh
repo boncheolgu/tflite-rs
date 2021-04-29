@@ -15,11 +15,10 @@ fd --type l . . --exec rm -f {}
 
 rm -rf ${downloads}/*
 mkdir -p ${downloads}/tensorflow/core/kernels/
-mkdir -p ${downloads}/tensorflow/core/public/
 mkdir -p ${downloads}/tensorflow/lite
 mkdir -p ${downloads}/third_party
 
-cp -a tensorflow/core/public/* ${downloads}/tensorflow/core/public/
+cp -a tensorflow/core/public ${downloads}/tensorflow/core/
 cp -a tensorflow/core/kernels/*.h ${downloads}/tensorflow/core/kernels/
 cp -a tensorflow/lite/* ${downloads}/tensorflow/lite/
 cp -a third_party/eigen3 ${downloads}/third_party/
@@ -31,7 +30,6 @@ rm -rf ${downloads}/${tf_downloads}/gemmlowp/meta/generators
 rm -rf ${downloads}/${tf_downloads}/flatbuffers/net
 rm -rf ${downloads}/${tf_downloads}/farmhash/dev
 rm -rf ${downloads}/${tf_downloads}/farmhash/m4
-rm -rf ${downloads}/tensorflow/lite/toco
 
 fd --type file --hidden '^.gitignore$' ${downloads} --exec rm -f
 

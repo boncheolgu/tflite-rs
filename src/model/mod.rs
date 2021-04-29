@@ -67,6 +67,8 @@ pub struct TensorT {
     pub name: StlString,
     pub quantization: UniquePtr<QuantizationParametersT>,
     pub is_variable: bool,
+    pub sparsity: UniquePtr<Self>,
+    pub shape_signature: VectorOfU8,
 }
 
 #[repr(C)]
@@ -122,6 +124,7 @@ pub struct ModelT {
     pub buffers: VectorOfUniquePtr<BufferT>,
     pub metadata_buffer: VectorOfI32,
     pub metadata: VectorOfUniquePtr<MetadataT>,
+    pub signature_defs: VectorOfU8,
 }
 
 impl Clone for BuiltinOptionsUnion {
@@ -247,8 +250,8 @@ impl Model {
     pub fn from_buffer(buffer: &[u8]) -> Option<Self> {
         let len = buffer.len();
         let buffer = buffer.as_ptr();
-        let mut model: UniquePtr<ModelT> = unsafe { mem::zeroed() };
-        let model_ref = &mut model;
+        let mut model = mem::MaybeUninit::<UniquePtr<ModelT>>::uninit();
+        let model_ref = model.as_mut_ptr();
         #[allow(deprecated)]
         let r = unsafe {
             cpp!([buffer as "const void*", len as "size_t", model_ref as "std::unique_ptr<ModelT>*"]
@@ -263,6 +266,7 @@ impl Model {
                 return true;
             })
         };
+        let model = unsafe { model.assume_init() };
         if r && model.is_valid() {
             Some(Self(model))
         } else {

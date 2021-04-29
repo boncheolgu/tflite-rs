@@ -9,6 +9,7 @@ use std::slice;
 
 use libc::{c_int, size_t};
 
+use crate::ops::builtin::BuiltinOpResolver;
 use crate::{bindings, Error, Result};
 pub use builder::InterpreterBuilder;
 use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
@@ -372,18 +373,14 @@ where
         let interpreter = self.handle();
 
         #[allow(clippy::forget_copy, deprecated)]
-        let ptr = unsafe {
+        unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
                 tensor_index as "int"
             ] -> *const bindings::TfLiteTensor as "const TfLiteTensor*" {
                 return interpreter->tensor(tensor_index);
             })
-        };
-        if ptr.is_null() {
-            None
-        } else {
-            Some(unsafe { &*ptr })
+            .as_ref()
         }
     }
 
@@ -441,34 +438,21 @@ where
     pub fn tensor_buffer(&self, tensor_index: TensorIndex) -> Option<&[u8]> {
         let inner = self.tensor_inner(tensor_index)?;
 
-        Some(unsafe { slice::from_raw_parts(inner.data.raw_const as *mut u8, inner.bytes) })
+        Some(unsafe { slice::from_raw_parts(inner.data.uint8, inner.bytes) })
     }
 
     pub fn tensor_buffer_mut(&mut self, tensor_index: TensorIndex) -> Option<&mut [u8]> {
         let inner = self.tensor_inner(tensor_index)?;
 
-        Some(unsafe { slice::from_raw_parts_mut(inner.data.raw as *mut u8, inner.bytes) })
+        Some(unsafe { slice::from_raw_parts_mut(inner.data.uint8, inner.bytes) })
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::Arc;
-
-    use crate::ops::builtin::BuiltinOpResolver;
-
-    #[test]
-    fn threadsafe_types() {
-        fn send_sync<T: Send + Sync>(_t: &T) {}
-        let model = FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite")
-            .expect("Unable to build flatbuffer model");
-        send_sync(&model);
-        let resolver = Arc::new(BuiltinOpResolver::default());
-        send_sync(&resolver);
-        let builder = InterpreterBuilder::new(model, resolver).expect("Not able to build builder");
-        send_sync(&builder);
-        let interpreter = builder.build().expect("Not able to build model");
-        send_sync(&interpreter);
-    }
+#[allow(unused)]
+fn threadsafe_types() {
+    fn send_sync<T: Send + Sync>() {}
+    send_sync::<FlatBufferModel>();
+    send_sync::<BuiltinOpResolver>();
+    send_sync::<InterpreterBuilder<BuiltinOpResolver>>();
+    send_sync::<Interpreter<BuiltinOpResolver>>();
 }

@@ -13,19 +13,19 @@ cpp! {{
 }}
 
 #[repr(C)]
-pub struct VectorOfU8(dummy_vector);
+pub struct VectorOfU8(pub(crate) dummy_vector);
 
 #[allow(deprecated)]
 impl Default for VectorOfU8 {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<uint8_t>*"] {
                 new (this_ref) const std::vector<uint8_t>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -43,14 +43,14 @@ impl Drop for VectorOfU8 {
 #[allow(deprecated)]
 impl Clone for VectorOfU8 {
     fn clone(&self) -> Self {
-        let mut cloned = unsafe { mem::zeroed() };
-        let cloned_ref = &mut cloned;
+        let mut cloned = mem::MaybeUninit::uninit();
+        let cloned_ref = cloned.as_mut_ptr();
         unsafe {
             cpp!([self as "const std::vector<uint8_t>*", cloned_ref as "std::vector<uint8_t>*"] {
                 new (cloned_ref) std::vector<uint8_t>(*self);
             });
+            cloned.assume_init()
         }
-        cloned
     }
 }
 
@@ -122,14 +122,14 @@ impl VectorInsert<u8> for VectorOfU8 {
 impl VectorExtract<u8> for VectorOfU8 {
     fn extract(&mut self, index: usize) -> u8 {
         assert!(index < self.size());
-        let mut v: u8 = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<uint8_t>*", index as "size_t", vref as "uint8_t*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -137,19 +137,19 @@ add_impl!(VectorOfU8);
 
 
 #[repr(C)]
-pub struct VectorOfI32(dummy_vector);
+pub struct VectorOfI32(pub(crate) dummy_vector);
 
 #[allow(deprecated)]
 impl Default for VectorOfI32 {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<int32_t>*"] {
                 new (this_ref) const std::vector<int32_t>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -167,14 +167,14 @@ impl Drop for VectorOfI32 {
 #[allow(deprecated)]
 impl Clone for VectorOfI32 {
     fn clone(&self) -> Self {
-        let mut cloned = unsafe { mem::zeroed() };
-        let cloned_ref = &mut cloned;
+        let mut cloned = mem::MaybeUninit::uninit();
+        let cloned_ref = cloned.as_mut_ptr();
         unsafe {
             cpp!([self as "const std::vector<int32_t>*", cloned_ref as "std::vector<int32_t>*"] {
                 new (cloned_ref) std::vector<int32_t>(*self);
             });
+            cloned.assume_init()
         }
-        cloned
     }
 }
 
@@ -246,14 +246,14 @@ impl VectorInsert<i32> for VectorOfI32 {
 impl VectorExtract<i32> for VectorOfI32 {
     fn extract(&mut self, index: usize) -> i32 {
         assert!(index < self.size());
-        let mut v: i32 = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<int32_t>*", index as "size_t", vref as "int32_t*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -261,19 +261,19 @@ add_impl!(VectorOfI32);
 
 
 #[repr(C)]
-pub struct VectorOfI64(dummy_vector);
+pub struct VectorOfI64(pub(crate) dummy_vector);
 
 #[allow(deprecated)]
 impl Default for VectorOfI64 {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<int64_t>*"] {
                 new (this_ref) const std::vector<int64_t>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -291,14 +291,14 @@ impl Drop for VectorOfI64 {
 #[allow(deprecated)]
 impl Clone for VectorOfI64 {
     fn clone(&self) -> Self {
-        let mut cloned = unsafe { mem::zeroed() };
-        let cloned_ref = &mut cloned;
+        let mut cloned = mem::MaybeUninit::uninit();
+        let cloned_ref = cloned.as_mut_ptr();
         unsafe {
             cpp!([self as "const std::vector<int64_t>*", cloned_ref as "std::vector<int64_t>*"] {
                 new (cloned_ref) std::vector<int64_t>(*self);
             });
+            cloned.assume_init()
         }
-        cloned
     }
 }
 
@@ -370,14 +370,14 @@ impl VectorInsert<i64> for VectorOfI64 {
 impl VectorExtract<i64> for VectorOfI64 {
     fn extract(&mut self, index: usize) -> i64 {
         assert!(index < self.size());
-        let mut v: i64 = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<int64_t>*", index as "size_t", vref as "int64_t*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -385,19 +385,19 @@ add_impl!(VectorOfI64);
 
 
 #[repr(C)]
-pub struct VectorOfF32(dummy_vector);
+pub struct VectorOfF32(pub(crate) dummy_vector);
 
 #[allow(deprecated)]
 impl Default for VectorOfF32 {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<float>*"] {
                 new (this_ref) const std::vector<float>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -415,14 +415,14 @@ impl Drop for VectorOfF32 {
 #[allow(deprecated)]
 impl Clone for VectorOfF32 {
     fn clone(&self) -> Self {
-        let mut cloned = unsafe { mem::zeroed() };
-        let cloned_ref = &mut cloned;
+        let mut cloned = mem::MaybeUninit::uninit();
+        let cloned_ref = cloned.as_mut_ptr();
         unsafe {
             cpp!([self as "const std::vector<float>*", cloned_ref as "std::vector<float>*"] {
                 new (cloned_ref) std::vector<float>(*self);
             });
+            cloned.assume_init()
         }
-        cloned
     }
 }
 
@@ -494,14 +494,14 @@ impl VectorInsert<f32> for VectorOfF32 {
 impl VectorExtract<f32> for VectorOfF32 {
     fn extract(&mut self, index: usize) -> f32 {
         assert!(index < self.size());
-        let mut v: f32 = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<float>*", index as "size_t", vref as "float*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -511,14 +511,14 @@ add_impl!(VectorOfF32);
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<OperatorCodeT>>*"] {
                 new (this_ref) const std::vector<std::unique_ptr<OperatorCodeT>>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -583,14 +583,14 @@ impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<
 impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::OperatorCodeT> {
         assert!(index < self.size());
-        let mut v: UniquePtr<crate::model::OperatorCodeT> = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<std::unique_ptr<OperatorCodeT>>*", index as "size_t", vref as "std::unique_ptr<OperatorCodeT>*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -600,14 +600,14 @@ add_impl!(VectorOfUniquePtr<crate::model::OperatorCodeT>);
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::TensorT> {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<TensorT>>*"] {
                 new (this_ref) const std::vector<std::unique_ptr<TensorT>>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -672,14 +672,14 @@ impl VectorInsert<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate:
 impl VectorExtract<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate::model::TensorT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::TensorT> {
         assert!(index < self.size());
-        let mut v: UniquePtr<crate::model::TensorT> = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<std::unique_ptr<TensorT>>*", index as "size_t", vref as "std::unique_ptr<TensorT>*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -689,14 +689,14 @@ add_impl!(VectorOfUniquePtr<crate::model::TensorT>);
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::OperatorT> {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<OperatorT>>*"] {
                 new (this_ref) const std::vector<std::unique_ptr<OperatorT>>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -761,14 +761,14 @@ impl VectorInsert<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crat
 impl VectorExtract<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crate::model::OperatorT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::OperatorT> {
         assert!(index < self.size());
-        let mut v: UniquePtr<crate::model::OperatorT> = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<std::unique_ptr<OperatorT>>*", index as "size_t", vref as "std::unique_ptr<OperatorT>*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -778,14 +778,14 @@ add_impl!(VectorOfUniquePtr<crate::model::OperatorT>);
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<SubGraphT>>*"] {
                 new (this_ref) const std::vector<std::unique_ptr<SubGraphT>>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -850,14 +850,14 @@ impl VectorInsert<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crat
 impl VectorExtract<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::SubGraphT> {
         assert!(index < self.size());
-        let mut v: UniquePtr<crate::model::SubGraphT> = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<std::unique_ptr<SubGraphT>>*", index as "size_t", vref as "std::unique_ptr<SubGraphT>*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -867,14 +867,14 @@ add_impl!(VectorOfUniquePtr<crate::model::SubGraphT>);
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::BufferT> {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<BufferT>>*"] {
                 new (this_ref) const std::vector<std::unique_ptr<BufferT>>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -939,14 +939,14 @@ impl VectorInsert<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate:
 impl VectorExtract<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate::model::BufferT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::BufferT> {
         assert!(index < self.size());
-        let mut v: UniquePtr<crate::model::BufferT> = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<std::unique_ptr<BufferT>>*", index as "size_t", vref as "std::unique_ptr<BufferT>*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
@@ -956,14 +956,14 @@ add_impl!(VectorOfUniquePtr<crate::model::BufferT>);
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::MetadataT> {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<MetadataT>>*"] {
                 new (this_ref) const std::vector<std::unique_ptr<MetadataT>>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -1028,14 +1028,14 @@ impl VectorInsert<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crat
 impl VectorExtract<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crate::model::MetadataT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::MetadataT> {
         assert!(index < self.size());
-        let mut v: UniquePtr<crate::model::MetadataT> = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<std::unique_ptr<MetadataT>>*", index as "size_t", vref as "std::unique_ptr<MetadataT>*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 

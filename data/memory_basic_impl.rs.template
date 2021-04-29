@@ -1,14 +1,16 @@
 #[allow(deprecated)]
 impl Default for UniquePtr<{{{rust_type}}}> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<{{{cpp_type}}}>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<{{{cpp_type}}}>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<{{{cpp_type}}}>(new {{{cpp_type}}});
-            })
+                return sizeof({{{cpp_type}}});
+            });
+            debug_assert_eq!(mem::size_of::<{{{rust_type}}}>(), size, "{{{rust_type}}} and {{{cpp_type}}} are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -45,5 +47,15 @@ impl fmt::Debug for UniquePtr<{{{rust_type}}}>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
+    }
+}
+
+impl {{{rust_type}}} {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, {{{rust_original_type}}}>(t);
+        }
     }
 }

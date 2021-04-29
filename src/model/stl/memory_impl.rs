@@ -7,14 +7,16 @@ use crate::model::stl::memory::UniquePtr;
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::OperatorCodeT> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<OperatorCodeT>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<OperatorCodeT>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<OperatorCodeT>(new OperatorCodeT);
-            })
+                return sizeof(OperatorCodeT);
+            });
+            debug_assert_eq!(mem::size_of::<crate::model::OperatorCodeT>(), size, "crate::model::OperatorCodeT and OperatorCodeT are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -54,18 +56,29 @@ impl fmt::Debug for UniquePtr<crate::model::OperatorCodeT>
     }
 }
 
+impl crate::model::OperatorCodeT {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, crate::bindings::tflite::OperatorCodeT>(t);
+        }
+    }
+}
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::TensorT> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<TensorT>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<TensorT>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<TensorT>(new TensorT);
-            })
+                return sizeof(TensorT);
+            });
+            debug_assert_eq!(mem::size_of::<crate::model::TensorT>(), size, "crate::model::TensorT and TensorT are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -105,18 +118,29 @@ impl fmt::Debug for UniquePtr<crate::model::TensorT>
     }
 }
 
+impl crate::model::TensorT {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, crate::bindings::tflite::TensorT>(t);
+        }
+    }
+}
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::OperatorT> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<OperatorT>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<OperatorT>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<OperatorT>(new OperatorT);
-            })
+                return sizeof(OperatorT);
+            });
+            debug_assert_eq!(mem::size_of::<crate::model::OperatorT>(), size, "crate::model::OperatorT and OperatorT are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -156,18 +180,29 @@ impl fmt::Debug for UniquePtr<crate::model::OperatorT>
     }
 }
 
+impl crate::model::OperatorT {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, crate::bindings::tflite::OperatorT>(t);
+        }
+    }
+}
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::SubGraphT> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<SubGraphT>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<SubGraphT>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<SubGraphT>(new SubGraphT);
-            })
+                return sizeof(SubGraphT);
+            });
+            debug_assert_eq!(mem::size_of::<crate::model::SubGraphT>(), size, "crate::model::SubGraphT and SubGraphT are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -207,18 +242,29 @@ impl fmt::Debug for UniquePtr<crate::model::SubGraphT>
     }
 }
 
+impl crate::model::SubGraphT {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, crate::bindings::tflite::SubGraphT>(t);
+        }
+    }
+}
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::BufferT> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<BufferT>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<BufferT>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<BufferT>(new BufferT);
-            })
+                return sizeof(BufferT);
+            });
+            debug_assert_eq!(mem::size_of::<crate::model::BufferT>(), size, "crate::model::BufferT and BufferT are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -258,18 +304,29 @@ impl fmt::Debug for UniquePtr<crate::model::BufferT>
     }
 }
 
+impl crate::model::BufferT {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, crate::bindings::tflite::BufferT>(t);
+        }
+    }
+}
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::QuantizationParametersT> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<QuantizationParametersT>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<QuantizationParametersT>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<QuantizationParametersT>(new QuantizationParametersT);
-            })
+                return sizeof(QuantizationParametersT);
+            });
+            debug_assert_eq!(mem::size_of::<crate::model::QuantizationParametersT>(), size, "crate::model::QuantizationParametersT and QuantizationParametersT are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -309,18 +366,29 @@ impl fmt::Debug for UniquePtr<crate::model::QuantizationParametersT>
     }
 }
 
+impl crate::model::QuantizationParametersT {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, crate::bindings::tflite::QuantizationParametersT>(t);
+        }
+    }
+}
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::ModelT> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<ModelT>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<ModelT>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<ModelT>(new ModelT);
-            })
+                return sizeof(ModelT);
+            });
+            debug_assert_eq!(mem::size_of::<crate::model::ModelT>(), size, "crate::model::ModelT and ModelT are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -360,18 +428,29 @@ impl fmt::Debug for UniquePtr<crate::model::ModelT>
     }
 }
 
+impl crate::model::ModelT {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, crate::bindings::tflite::ModelT>(t);
+        }
+    }
+}
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::MetadataT> {
     fn default() -> Self {
-        let mut this: Self = unsafe { mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
-            cpp!([this_ref as "std::unique_ptr<MetadataT>*"] {
+            let size = cpp!([this_ref as "std::unique_ptr<MetadataT>*"] -> usize as "size_t" {
                 new (this_ref) std::unique_ptr<MetadataT>(new MetadataT);
-            })
+                return sizeof(MetadataT);
+            });
+            debug_assert_eq!(mem::size_of::<crate::model::MetadataT>(), size, "crate::model::MetadataT and MetadataT are not equal sizes");
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -411,4 +490,13 @@ impl fmt::Debug for UniquePtr<crate::model::MetadataT>
     }
 }
 
+impl crate::model::MetadataT {
+    #[allow(unused)]
+    fn transmute() {
+        unsafe {
+            let t = mem::MaybeUninit::<Self>::uninit();
+            mem::transmute::<_, crate::bindings::tflite::MetadataT>(t);
+        }
+    }
+}
 

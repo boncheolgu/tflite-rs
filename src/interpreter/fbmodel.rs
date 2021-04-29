@@ -15,7 +15,7 @@ cpp! {{
 #[derive(Default)]
 pub struct FlatBufferModel {
     pub(crate) handle: Box<bindings::FlatBufferModel>,
-    model_buffer: Vec<u8>,
+    model_buffer: std::borrow::Cow<'static, [u8]>,
 }
 
 impl Drop for FlatBufferModel {
@@ -36,7 +36,10 @@ impl FlatBufferModel {
         Self::build_from_buffer(fs::read(path)?)
     }
 
-    pub fn build_from_buffer(model_buffer: Vec<u8>) -> Result<Self> {
+    pub fn build_from_buffer(
+        model_buffer: impl Into<std::borrow::Cow<'static, [u8]>>,
+    ) -> Result<Self> {
+        let model_buffer = model_buffer.into();
         let ptr = model_buffer.as_ptr();
         let size = model_buffer.len();
 
@@ -59,10 +62,10 @@ impl FlatBufferModel {
     }
 
     pub fn buffer(&self) -> &[u8] {
-        &self.model_buffer
+        &self.model_buffer.as_ref()
     }
 
-    pub fn release_buffer(mut self) -> Vec<u8> {
-        mem::replace(&mut self.model_buffer, Vec::new())
+    pub fn release_buffer(mut self) -> std::borrow::Cow<'static, [u8]> {
+        mem::replace(&mut self.model_buffer, Vec::new().into())
     }
 }

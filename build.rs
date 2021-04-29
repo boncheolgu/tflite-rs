@@ -3,7 +3,7 @@
 extern crate bart_derive;
 
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 #[cfg(feature = "build")]
 use std::time::Instant;
 
@@ -23,11 +23,15 @@ fn flatbuffers_include() -> PathBuf {
     downloads().join("tensorflow/lite/tools/make/downloads/flatbuffers/include")
 }
 
+fn out_dir() -> PathBuf {
+    PathBuf::from(env::var("OUT_DIR").unwrap())
+}
+
 #[cfg(feature = "build")]
 fn prepare_tensorflow_source() -> PathBuf {
     println!("Moving tflite source");
     let start = Instant::now();
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_dir = out_dir();
     let tf_src_dir = out_dir.join("downloads");
 
     let mut copy_dir = fs_extra::dir::CopyOptions::new();
@@ -61,12 +65,12 @@ fn prepare_tensorflow_library() {
     #[cfg(feature = "build")]
     {
         let tflite = prepare_tensorflow_source();
-        let out_dir = env::var("OUT_DIR").unwrap();
+        let out_dir = out_dir();
         // append tf_lib_name with features that can change how it is built
         // so a cached version that doesn't match expectations isn't used
         let binary_changing_features = binary_changing_features();
         let tf_lib_name =
-            Path::new(&out_dir).join(format!("libtensorflow-lite{}.a", binary_changing_features,));
+            out_dir.join(format!("libtensorflow-lite{}.a", binary_changing_features,));
         let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
         if !tf_lib_name.exists() {
             println!("Building tflite");
@@ -78,7 +82,8 @@ fn prepare_tensorflow_library() {
             };
             // Use cargo's cross-compilation information while building tensorflow
             // Now that tensorflow has an aarch64_makefile.inc use theirs
-            let target = if &arch == "aarch64" { &arch } else { &os };
+            //let target = if &arch == "aarch64" { &arch } else { &os };
+            let target = &os;
 
             #[cfg(feature = "debug_tflite")]
             {
@@ -111,6 +116,7 @@ fn prepare_tensorflow_library() {
                 ("TARGET_ARCH", Some(arch.as_str())),
                 ("TARGET_TOOLCHAIN_PREFIX", None),
                 ("EXTRA_CFLAGS", None),
+                ("EXTRA_CXXFLAGS", None),
             ] {
                 let env_var = format!("TFLITE_RS_MAKE_{}", make_var);
                 println!("cargo:rerun-if-env-changed={}", env_var);
@@ -156,7 +162,7 @@ fn prepare_tensorflow_library() {
 
             println!("Building tflite from source took {:?}", start.elapsed());
         }
-        println!("cargo:rustc-link-search=native={}", out_dir);
+        println!("cargo:rustc-link-search=native={}", out_dir.display());
         println!("cargo:rustc-link-lib=static=tensorflow-lite{}", binary_changing_features);
     }
     #[cfg(not(feature = "build"))]
@@ -170,7 +176,8 @@ fn prepare_tensorflow_library() {
             )
         });
         println!("cargo:rustc-link-search=native={}", lib_dir);
-        let static_dynamic = if Path::new(&lib_dir).join("libtensorflow-lite.a").exists() {
+        let static_dynamic = if std::path::Path::new(&lib_dir).join("libtensorflow-lite.a").exists()
+        {
             "static"
         } else {
             "dylib"
@@ -192,7 +199,7 @@ fn import_tflite_types() {
         .prepend_enum_name(false)
         .impl_debug(true)
         .with_codegen_config(CodegenConfig::TYPES)
-        .layout_tests(false)
+        .layout_tests(true)
         .enable_cxx_namespaces()
         .derive_default(true)
         .size_t_is_usize(true)
@@ -226,15 +233,44 @@ fn import_tflite_types() {
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
-        .clang_arg("-std=c++11")
+        .clang_arg("-std=c++14")
         // required to get cross compilation for aarch64 to work because of an issue in flatbuffers
         .clang_arg("-fms-extensions");
 
     let bindings = bindings.generate().expect("Unable to generate bindings");
-
+    let binding_string = bindings
+        .to_string()
+        // make vec 3 usizes not 3 bytes
+        .replace(
+            "pub struct __alloc_traits { pub _address : u8",
+            "pub struct __alloc_traits { pub _address: usize",
+        )
+        // make any struct that only contains a NativeTable the size of one byte
+        .replace("{ pub _base : root :: flatbuffers :: NativeTable , }", "{ pub _base: u8 }")
+        // make NativeTable a zero-sized struct
+        .replace(
+            "pub struct NativeTable { pub _bindgen_opaque_blob : u8 , }",
+            "pub struct NativeTable { pub _bindgen_opaque_blob: () }",
+        )
+        // make tuple a usize and not a u8 since it is the implementation for UniquePtr
+        .replace(
+            "pub struct tuple { pub _address : u8 , }",
+            "pub struct tuple { pub _address: usize }",
+        )
+        // ignore tests that expect UniquePtr to be 2 usizes
+        .replace(
+            "fn __bindgen_test_layout_unique_ptr_open0_TfLiteDelegate",
+            "#[ignore]fn __bindgen_test_layout_unique_ptr_open0_TfLiteDelegate",
+        )
+        // ignore test for now changed NativeTable layout
+        .replace(
+            "fn bindgen_test_layout_NativeTable",
+            "#[ignore] fn bindgen_test_layout_NativeTable",
+        );
     // Write the bindings to the $OUT_DIR/tflite_types.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("tflite_types.rs");
-    bindings.write_to_file(out_path).expect("Couldn't write bindings!");
+    let out_path = out_dir().join("tflite_types.rs");
+    std::fs::write(out_path, binding_string).expect("Couldn't write tflite bindings!");
+    // bindings.write_to_file(out_path).expect("Couldn't write bindings!");
 }
 
 fn build_inline_cpp() {
@@ -250,6 +286,7 @@ fn build_inline_cpp() {
         .debug(true)
         .opt_level(if cfg!(debug_assertions) { 0 } else { 2 })
         .build("src/lib.rs");
+    println!("cargo:rerun-if-changed={}", out_dir().join("rust_cpp").display());
 }
 
 fn import_stl_types() {
@@ -263,7 +300,7 @@ fn import_stl_types() {
         .opaque_type("rust::.+")
         .blocklist_type("std")
         .header("csrc/stl_wrapper.hpp")
-        .layout_tests(false)
+        .layout_tests(true)
         .derive_partialeq(true)
         .derive_eq(true)
         .clang_arg("-x")
@@ -275,8 +312,8 @@ fn import_stl_types() {
         .generate()
         .expect("Unable to generate STL bindings");
 
-    // Write the bindings to the $OUT_DIR/tflite_types.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("stl_types.rs");
+    // Write the bindings to the $OUT_DIR/stl_types.rs file.
+    let out_path = out_dir().join("stl_types.rs");
     bindings.write_to_file(out_path).expect("Couldn't write bindings!");
 }
 
@@ -299,21 +336,30 @@ use crate::model::stl::memory::UniquePtr;
     struct MemoryBasicImpl<'a> {
         cpp_type: &'a str,
         rust_type: &'a str,
+        rust_original_type: &'a str,
     }
 
-    let memory_types = vec![
-        ("OperatorCodeT", "crate::model::OperatorCodeT"),
-        ("TensorT", "crate::model::TensorT"),
-        ("OperatorT", "crate::model::OperatorT"),
-        ("SubGraphT", "crate::model::SubGraphT"),
-        ("BufferT", "crate::model::BufferT"),
-        ("QuantizationParametersT", "crate::model::QuantizationParametersT"),
-        ("ModelT", "crate::model::ModelT"),
-        ("MetadataT", "crate::model::MetadataT"),
+    let memory_types = [
+        "OperatorCodeT",
+        "TensorT",
+        "OperatorT",
+        "SubGraphT",
+        "BufferT",
+        "QuantizationParametersT",
+        "ModelT",
+        "MetadataT",
     ];
 
-    for (cpp_type, rust_type) in memory_types {
-        writeln!(&mut file, "{}\n", &MemoryBasicImpl { cpp_type, rust_type },)?;
+    for t in memory_types.iter() {
+        writeln!(
+            &mut file,
+            "{}\n",
+            &MemoryBasicImpl {
+                cpp_type: t,
+                rust_type: &format!("crate::model::{}", t),
+                rust_original_type: &format!("crate::bindings::tflite::{}", t)
+            },
+        )?;
     }
     Ok(())
 }
