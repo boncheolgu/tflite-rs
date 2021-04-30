@@ -404,14 +404,21 @@ mod tests {
 
     #[test]
     fn flatbuffer_model_apis_insert() {
+        println!("0");
         let mut model1 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+        println!("1");
         let mut model2 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+        println!("2");
 
         let num_buffers = model1.buffers.size();
+        println!("3");
 
         let data = model1.buffers[0].data.to_vec();
+        println!("4: {}, {:?}", data.len(), &data[..20.min(data.len())]);
         let buffer = model1.buffers.extract(0);
+        println!("5");
         model2.buffers.push_back(buffer);
+        println!("6");
         assert_eq!(model2.buffers.size(), num_buffers + 1);
 
         assert_eq!(model2.buffers[num_buffers].data.to_vec(), data);

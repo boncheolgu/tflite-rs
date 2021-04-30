@@ -1,6 +1,5 @@
-
-use std::{fmt, mem};
 use std::ops::{Deref, DerefMut};
+use std::{fmt, mem};
 
 use crate::model::stl::memory::UniquePtr;
 
@@ -14,7 +13,11 @@ impl Default for UniquePtr<crate::model::OperatorCodeT> {
                 new (this_ref) std::unique_ptr<OperatorCodeT>(new OperatorCodeT);
                 return sizeof(OperatorCodeT);
             });
-            debug_assert_eq!(mem::size_of::<crate::model::OperatorCodeT>(), size, "crate::model::OperatorCodeT and OperatorCodeT are not equal sizes");
+            debug_assert_eq!(
+                mem::size_of::<crate::model::OperatorCodeT>(),
+                size,
+                "crate::model::OperatorCodeT and OperatorCodeT are not equal sizes"
+            );
             this.assume_init()
         }
     }
@@ -49,8 +52,7 @@ impl DerefMut for UniquePtr<crate::model::OperatorCodeT> {
 }
 
 #[allow(deprecated)]
-impl fmt::Debug for UniquePtr<crate::model::OperatorCodeT>
-{
+impl fmt::Debug for UniquePtr<crate::model::OperatorCodeT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
@@ -76,7 +78,11 @@ impl Default for UniquePtr<crate::model::TensorT> {
                 new (this_ref) std::unique_ptr<TensorT>(new TensorT);
                 return sizeof(TensorT);
             });
-            debug_assert_eq!(mem::size_of::<crate::model::TensorT>(), size, "crate::model::TensorT and TensorT are not equal sizes");
+            debug_assert_eq!(
+                mem::size_of::<crate::model::TensorT>(),
+                size,
+                "crate::model::TensorT and TensorT are not equal sizes"
+            );
             this.assume_init()
         }
     }
@@ -111,8 +117,7 @@ impl DerefMut for UniquePtr<crate::model::TensorT> {
 }
 
 #[allow(deprecated)]
-impl fmt::Debug for UniquePtr<crate::model::TensorT>
-{
+impl fmt::Debug for UniquePtr<crate::model::TensorT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
@@ -138,7 +143,11 @@ impl Default for UniquePtr<crate::model::OperatorT> {
                 new (this_ref) std::unique_ptr<OperatorT>(new OperatorT);
                 return sizeof(OperatorT);
             });
-            debug_assert_eq!(mem::size_of::<crate::model::OperatorT>(), size, "crate::model::OperatorT and OperatorT are not equal sizes");
+            debug_assert_eq!(
+                mem::size_of::<crate::model::OperatorT>(),
+                size,
+                "crate::model::OperatorT and OperatorT are not equal sizes"
+            );
             this.assume_init()
         }
     }
@@ -173,8 +182,7 @@ impl DerefMut for UniquePtr<crate::model::OperatorT> {
 }
 
 #[allow(deprecated)]
-impl fmt::Debug for UniquePtr<crate::model::OperatorT>
-{
+impl fmt::Debug for UniquePtr<crate::model::OperatorT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
@@ -200,7 +208,11 @@ impl Default for UniquePtr<crate::model::SubGraphT> {
                 new (this_ref) std::unique_ptr<SubGraphT>(new SubGraphT);
                 return sizeof(SubGraphT);
             });
-            debug_assert_eq!(mem::size_of::<crate::model::SubGraphT>(), size, "crate::model::SubGraphT and SubGraphT are not equal sizes");
+            debug_assert_eq!(
+                mem::size_of::<crate::model::SubGraphT>(),
+                size,
+                "crate::model::SubGraphT and SubGraphT are not equal sizes"
+            );
             this.assume_init()
         }
     }
@@ -235,8 +247,7 @@ impl DerefMut for UniquePtr<crate::model::SubGraphT> {
 }
 
 #[allow(deprecated)]
-impl fmt::Debug for UniquePtr<crate::model::SubGraphT>
-{
+impl fmt::Debug for UniquePtr<crate::model::SubGraphT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
@@ -262,7 +273,11 @@ impl Default for UniquePtr<crate::model::BufferT> {
                 new (this_ref) std::unique_ptr<BufferT>(new BufferT);
                 return sizeof(BufferT);
             });
-            debug_assert_eq!(mem::size_of::<crate::model::BufferT>(), size, "crate::model::BufferT and BufferT are not equal sizes");
+            debug_assert_eq!(
+                mem::size_of::<crate::model::BufferT>(),
+                size,
+                "crate::model::BufferT and BufferT are not equal sizes"
+            );
             this.assume_init()
         }
     }
@@ -297,8 +312,7 @@ impl DerefMut for UniquePtr<crate::model::BufferT> {
 }
 
 #[allow(deprecated)]
-impl fmt::Debug for UniquePtr<crate::model::BufferT>
-{
+impl fmt::Debug for UniquePtr<crate::model::BufferT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
@@ -359,8 +373,7 @@ impl DerefMut for UniquePtr<crate::model::QuantizationParametersT> {
 }
 
 #[allow(deprecated)]
-impl fmt::Debug for UniquePtr<crate::model::QuantizationParametersT>
-{
+impl fmt::Debug for UniquePtr<crate::model::QuantizationParametersT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
@@ -386,7 +399,11 @@ impl Default for UniquePtr<crate::model::ModelT> {
                 new (this_ref) std::unique_ptr<ModelT>(new ModelT);
                 return sizeof(ModelT);
             });
-            debug_assert_eq!(mem::size_of::<crate::model::ModelT>(), size, "crate::model::ModelT and ModelT are not equal sizes");
+            debug_assert_eq!(
+                mem::size_of::<crate::model::ModelT>(),
+                size,
+                "crate::model::ModelT and ModelT are not equal sizes"
+            );
             this.assume_init()
         }
     }
@@ -421,8 +438,7 @@ impl DerefMut for UniquePtr<crate::model::ModelT> {
 }
 
 #[allow(deprecated)]
-impl fmt::Debug for UniquePtr<crate::model::ModelT>
-{
+impl fmt::Debug for UniquePtr<crate::model::ModelT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
@@ -448,7 +464,11 @@ impl Default for UniquePtr<crate::model::MetadataT> {
                 new (this_ref) std::unique_ptr<MetadataT>(new MetadataT);
                 return sizeof(MetadataT);
             });
-            debug_assert_eq!(mem::size_of::<crate::model::MetadataT>(), size, "crate::model::MetadataT and MetadataT are not equal sizes");
+            debug_assert_eq!(
+                mem::size_of::<crate::model::MetadataT>(),
+                size,
+                "crate::model::MetadataT and MetadataT are not equal sizes"
+            );
             this.assume_init()
         }
     }
@@ -483,8 +503,7 @@ impl DerefMut for UniquePtr<crate::model::MetadataT> {
 }
 
 #[allow(deprecated)]
-impl fmt::Debug for UniquePtr<crate::model::MetadataT>
-{
+impl fmt::Debug for UniquePtr<crate::model::MetadataT> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({:?})", self.deref())
     }
@@ -499,4 +518,3 @@ impl crate::model::MetadataT {
         }
     }
 }
-

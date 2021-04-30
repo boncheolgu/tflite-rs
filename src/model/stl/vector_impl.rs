@@ -1,11 +1,10 @@
-
-use std::{fmt, mem, slice};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
+use std::{fmt, mem, slice};
 
 use libc::size_t;
 
 use super::memory::UniquePtr;
-use super::vector::{VectorOfUniquePtr, VectorErase, VectorExtract, VectorInsert, VectorSlice};
+use super::vector::{VectorErase, VectorExtract, VectorInsert, VectorOfUniquePtr, VectorSlice};
 use crate::model::stl::bindings::root::rust::dummy_vector;
 
 cpp! {{
@@ -135,7 +134,6 @@ impl VectorExtract<u8> for VectorOfU8 {
 
 add_impl!(VectorOfU8);
 
-
 #[repr(C)]
 pub struct VectorOfI32(pub(crate) dummy_vector);
 
@@ -258,7 +256,6 @@ impl VectorExtract<i32> for VectorOfI32 {
 }
 
 add_impl!(VectorOfI32);
-
 
 #[repr(C)]
 pub struct VectorOfI64(pub(crate) dummy_vector);
@@ -383,7 +380,6 @@ impl VectorExtract<i64> for VectorOfI64 {
 
 add_impl!(VectorOfI64);
 
-
 #[repr(C)]
 pub struct VectorOfF32(pub(crate) dummy_vector);
 
@@ -507,7 +503,6 @@ impl VectorExtract<f32> for VectorOfF32 {
 
 add_impl!(VectorOfF32);
 
-
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn default() -> Self {
@@ -567,7 +562,9 @@ impl VectorErase for VectorOfUniquePtr<crate::model::OperatorCodeT> {
 }
 
 #[allow(deprecated)]
-impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<crate::model::OperatorCodeT> {
+impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>>
+    for VectorOfUniquePtr<crate::model::OperatorCodeT>
+{
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -580,7 +577,9 @@ impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<
 }
 
 #[allow(deprecated)]
-impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<crate::model::OperatorCodeT> {
+impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>>
+    for VectorOfUniquePtr<crate::model::OperatorCodeT>
+{
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::OperatorCodeT> {
         assert!(index < self.size());
         let mut v = mem::MaybeUninit::uninit();
@@ -595,7 +594,6 @@ impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr
 }
 
 add_impl!(VectorOfUniquePtr<crate::model::OperatorCodeT>);
-
 
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::TensorT> {
@@ -685,7 +683,6 @@ impl VectorExtract<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate
 
 add_impl!(VectorOfUniquePtr<crate::model::TensorT>);
 
-
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::OperatorT> {
     fn default() -> Self {
@@ -745,7 +742,9 @@ impl VectorErase for VectorOfUniquePtr<crate::model::OperatorT> {
 }
 
 #[allow(deprecated)]
-impl VectorInsert<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crate::model::OperatorT> {
+impl VectorInsert<UniquePtr<crate::model::OperatorT>>
+    for VectorOfUniquePtr<crate::model::OperatorT>
+{
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -758,7 +757,9 @@ impl VectorInsert<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crat
 }
 
 #[allow(deprecated)]
-impl VectorExtract<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crate::model::OperatorT> {
+impl VectorExtract<UniquePtr<crate::model::OperatorT>>
+    for VectorOfUniquePtr<crate::model::OperatorT>
+{
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::OperatorT> {
         assert!(index < self.size());
         let mut v = mem::MaybeUninit::uninit();
@@ -773,7 +774,6 @@ impl VectorExtract<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<cra
 }
 
 add_impl!(VectorOfUniquePtr<crate::model::OperatorT>);
-
 
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::SubGraphT> {
@@ -834,7 +834,9 @@ impl VectorErase for VectorOfUniquePtr<crate::model::SubGraphT> {
 }
 
 #[allow(deprecated)]
-impl VectorInsert<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crate::model::SubGraphT> {
+impl VectorInsert<UniquePtr<crate::model::SubGraphT>>
+    for VectorOfUniquePtr<crate::model::SubGraphT>
+{
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -847,7 +849,9 @@ impl VectorInsert<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crat
 }
 
 #[allow(deprecated)]
-impl VectorExtract<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crate::model::SubGraphT> {
+impl VectorExtract<UniquePtr<crate::model::SubGraphT>>
+    for VectorOfUniquePtr<crate::model::SubGraphT>
+{
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::SubGraphT> {
         assert!(index < self.size());
         let mut v = mem::MaybeUninit::uninit();
@@ -862,7 +866,6 @@ impl VectorExtract<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<cra
 }
 
 add_impl!(VectorOfUniquePtr<crate::model::SubGraphT>);
-
 
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::BufferT> {
@@ -952,7 +955,6 @@ impl VectorExtract<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate
 
 add_impl!(VectorOfUniquePtr<crate::model::BufferT>);
 
-
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::MetadataT> {
     fn default() -> Self {
@@ -1012,7 +1014,9 @@ impl VectorErase for VectorOfUniquePtr<crate::model::MetadataT> {
 }
 
 #[allow(deprecated)]
-impl VectorInsert<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crate::model::MetadataT> {
+impl VectorInsert<UniquePtr<crate::model::MetadataT>>
+    for VectorOfUniquePtr<crate::model::MetadataT>
+{
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -1025,7 +1029,9 @@ impl VectorInsert<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crat
 }
 
 #[allow(deprecated)]
-impl VectorExtract<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crate::model::MetadataT> {
+impl VectorExtract<UniquePtr<crate::model::MetadataT>>
+    for VectorOfUniquePtr<crate::model::MetadataT>
+{
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::MetadataT> {
         assert!(index < self.size());
         let mut v = mem::MaybeUninit::uninit();
@@ -1040,5 +1046,3 @@ impl VectorExtract<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<cra
 }
 
 add_impl!(VectorOfUniquePtr<crate::model::MetadataT>);
-
-

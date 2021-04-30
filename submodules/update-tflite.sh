@@ -31,6 +31,11 @@ rm -rf ${downloads}/${tf_downloads}/flatbuffers/net
 rm -rf ${downloads}/${tf_downloads}/farmhash/dev
 rm -rf ${downloads}/${tf_downloads}/farmhash/m4
 
+# hack to get gcc 11 to work...
+echo '#include <limits>' > /tmp/block_map.cc
+cat ${downloads}/${tf_downloads}/ruy/ruy/block_map.cc >> /tmp/block_map.cc
+mv /tmp/block_map.cc ${downloads}/${tf_downloads}/ruy/ruy/block_map.cc 
+
 fd --type file --hidden '^.gitignore$' ${downloads} --exec rm -f
 
 for language in python java go rust php lua grpc dart android js objc swift ios; do

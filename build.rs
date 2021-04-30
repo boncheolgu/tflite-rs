@@ -29,8 +29,6 @@ fn out_dir() -> PathBuf {
 
 #[cfg(feature = "build")]
 fn prepare_tensorflow_source() -> PathBuf {
-    println!("Moving tflite source");
-    let start = Instant::now();
     let out_dir = out_dir();
     let tf_src_dir = out_dir.join("downloads");
 
@@ -39,10 +37,11 @@ fn prepare_tensorflow_source() -> PathBuf {
     copy_dir.buffer_size = 65536;
 
     if !tf_src_dir.exists() {
+        println!("Moving tflite source");
+        let start = Instant::now();
         fs_extra::dir::copy(downloads(), &out_dir, &copy_dir).expect("Unable to copy tensorflow");
+        println!("Moving source took {:?}", start.elapsed());
     }
-
-    println!("Moving source took {:?}", start.elapsed());
 
     tf_src_dir
 }
@@ -287,6 +286,20 @@ fn build_inline_cpp() {
         .opt_level(if cfg!(debug_assertions) { 0 } else { 2 })
         .build("src/lib.rs");
     println!("cargo:rerun-if-changed={}", out_dir().join("rust_cpp").display());
+
+    let download_deps = downloads().join("tensorflow/lite/tools/make/downloads");
+
+    cxx_build::bridges(&["src/interpreter/cxx.rs"]) // returns a cc::Build
+        .file("cxx/src/interpreter.cc")
+        .flag_if_supported("-std=c++14")
+        .include(downloads())
+        .include(download_deps.join("flatbuffers/include"))
+        .warnings(false)
+        .compile("cxx-tflite");
+
+    println!("cargo:rerun-if-changed=src/interpreter/cxx.rs");
+    println!("cargo:rerun-if-changed=cxx/src/interpreter.cc");
+    println!("cargo:rerun-if-changed=cxx/include/interpreter.h");
 }
 
 fn import_stl_types() {
