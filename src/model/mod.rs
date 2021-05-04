@@ -24,6 +24,15 @@ pub use builtin_options::{
 };
 pub use builtin_options_impl::*;
 
+cpp! {{
+    #include "tensorflow/lite/model.h"
+    #include "tensorflow/lite/kernels/register.h"
+    #include "tensorflow/lite/interpreter.h"
+    #include "tensorflow/lite/optional_debug_tools.h"
+
+    using namespace tflite;
+}}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct QuantizationDetailsUnion {
@@ -313,8 +322,10 @@ mod tests {
     use crate::model::stl::vector::{VectorErase, VectorExtract, VectorInsert, VectorSlice};
     use crate::ops::builtin::BuiltinOpResolver;
     use crate::{FlatBufferModel, InterpreterBuilder};
+    use std::sync::Arc;
 
     #[test]
+    // #[ignore]
     fn flatbuffer_model_apis_inspect() {
         assert!(Model::from_file("data.mnist10.bin").is_err());
 
@@ -326,8 +337,8 @@ mod tests {
         assert_eq!(model.description.c_str().to_string_lossy(), "TOCO Converted.");
 
         assert_eq!(
-            model.operator_codes[0].builtin_code,
-            BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D
+            model.operator_codes[0].builtin_code as u32,
+            BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D as u32
         );
 
         assert_eq!(
@@ -373,6 +384,7 @@ mod tests {
     }
 
     #[test]
+    // #[ignore]
     fn flatbuffer_model_apis_mutate() {
         let mut model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
         model.version = 2;
@@ -403,6 +415,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn flatbuffer_model_apis_insert() {
         println!("0");
         let mut model1 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
@@ -425,6 +438,7 @@ mod tests {
     }
 
     #[test]
+    // #[ignore]
     #[allow(clippy::field_reassign_with_default)]
     fn flatbuffer_model_apis_extract() {
         let source_model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
@@ -638,11 +652,10 @@ mod tests {
 
         model.subgraphs.push_back(subgraph);
 
-        let builder = InterpreterBuilder::new(
-            FlatBufferModel::build_from_model(&model).unwrap(),
-            BuiltinOpResolver::default(),
-        )
-        .unwrap();
+        let fb = Arc::new(FlatBufferModel::build_from_model(&model).unwrap());
+
+        let builder =
+            InterpreterBuilder::new(fb.clone(), Arc::new(BuiltinOpResolver::default())).unwrap();
         let mut interpreter = builder.build().unwrap();
 
         interpreter.allocate_tensors().unwrap();

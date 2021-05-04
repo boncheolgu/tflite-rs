@@ -54,7 +54,7 @@ mod tests {
     use crate::model::Model;
 
     #[test]
-    #[ignore]
+    // #[ignore]
     fn unittest_unique_ptr_drop() {
         let mut model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
         let _subgraph = model.subgraphs.extract(0);

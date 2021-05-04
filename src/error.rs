@@ -7,11 +7,13 @@ pub enum Error {
     #[error(transparent)]
     IoError(#[from] IoError),
     #[error("`{0}`")]
-    InternalError(String),
+    InternalError(std::borrow::Cow<'static, str>),
+    #[error(transparent)]
+    CxxError(#[from] cxx::Exception),
 }
 
 impl Error {
-    pub fn internal_error<T: Into<String>>(s: T) -> Self {
+    pub fn internal_error<T: Into<std::borrow::Cow<'static, str>>>(s: T) -> Self {
         Self::InternalError(s.into())
     }
 }

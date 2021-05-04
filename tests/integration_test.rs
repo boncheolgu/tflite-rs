@@ -1,13 +1,14 @@
 use std::fs::{self, File};
 use std::io::Read;
 
+use std::sync::Arc;
 use tflite::ops::builtin::BuiltinOpResolver;
 use tflite::{FlatBufferModel, InterpreterBuilder, Result};
 
-fn test_mnist(model: &FlatBufferModel) -> Result<()> {
-    let resolver = BuiltinOpResolver::default();
+fn test_mnist(model: Arc<FlatBufferModel>) -> Result<()> {
+    let resolver = Arc::new(BuiltinOpResolver::default());
 
-    let builder = InterpreterBuilder::new(model, &resolver)?;
+    let builder = InterpreterBuilder::new(model, resolver)?;
     let mut interpreter = builder.build()?;
 
     interpreter.allocate_tensors()?;
@@ -45,16 +46,16 @@ fn test_mnist(model: &FlatBufferModel) -> Result<()> {
 
 #[test]
 fn mobilenetv1_mnist() -> Result<()> {
-    test_mnist(&FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite")?)?;
+    test_mnist(Arc::new(FlatBufferModel::build_from_file("data/MNISTnet_uint8_quant.tflite")?))?;
 
     let buf = fs::read("data/MNISTnet_uint8_quant.tflite")?;
-    test_mnist(&FlatBufferModel::build_from_buffer(buf)?)
+    test_mnist(Arc::new(FlatBufferModel::build_from_buffer(buf)?))
 }
 
 #[test]
 fn mobilenetv2_mnist() -> Result<()> {
-    test_mnist(&FlatBufferModel::build_from_file("data/MNISTnet_v2_uint8_quant.tflite")?)?;
+    test_mnist(Arc::new(FlatBufferModel::build_from_file("data/MNISTnet_v2_uint8_quant.tflite")?))?;
 
     let buf = fs::read("data/MNISTnet_v2_uint8_quant.tflite")?;
-    test_mnist(&FlatBufferModel::build_from_buffer(buf)?)
+    test_mnist(Arc::new(FlatBufferModel::build_from_buffer(buf)?))
 }

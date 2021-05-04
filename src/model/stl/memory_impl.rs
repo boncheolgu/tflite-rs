@@ -58,15 +58,15 @@ impl fmt::Debug for UniquePtr<crate::model::OperatorCodeT> {
     }
 }
 
-impl crate::model::OperatorCodeT {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, crate::bindings::tflite::OperatorCodeT>(t);
-        }
-    }
-}
+// impl crate::model::OperatorCodeT {
+//     #[allow(unused)]
+//     fn transmute() {
+//         unsafe {
+//             let t = mem::MaybeUninit::<Self>::uninit();
+//             mem::transmute::<_, crate::bindings::tflite::OperatorCodeT>(t);
+//         }
+//     }
+// }
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::TensorT> {
@@ -123,15 +123,15 @@ impl fmt::Debug for UniquePtr<crate::model::TensorT> {
     }
 }
 
-impl crate::model::TensorT {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, crate::bindings::tflite::TensorT>(t);
-        }
-    }
-}
+// impl crate::model::TensorT {
+//     #[allow(unused)]
+//     fn transmute() {
+//         unsafe {
+//             let t = mem::MaybeUninit::<Self>::uninit();
+//             mem::transmute::<_, crate::bindings::tflite::TensorT>(t);
+//         }
+//     }
+// }
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::OperatorT> {
@@ -188,15 +188,15 @@ impl fmt::Debug for UniquePtr<crate::model::OperatorT> {
     }
 }
 
-impl crate::model::OperatorT {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, crate::bindings::tflite::OperatorT>(t);
-        }
-    }
-}
+// impl crate::model::OperatorT {
+//     #[allow(unused)]
+//     fn transmute() {
+//         unsafe {
+//             let t = mem::MaybeUninit::<Self>::uninit();
+//             mem::transmute::<_, crate::bindings::tflite::OperatorT>(t);
+//         }
+//     }
+// }
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::SubGraphT> {
@@ -253,15 +253,15 @@ impl fmt::Debug for UniquePtr<crate::model::SubGraphT> {
     }
 }
 
-impl crate::model::SubGraphT {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, crate::bindings::tflite::SubGraphT>(t);
-        }
-    }
-}
+// impl crate::model::SubGraphT {
+//     #[allow(unused)]
+//     fn transmute() {
+//         unsafe {
+//             let t = mem::MaybeUninit::<Self>::uninit();
+//             mem::transmute::<_, crate::bindings::tflite::SubGraphT>(t);
+//         }
+//     }
+// }
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::BufferT> {
@@ -318,15 +318,15 @@ impl fmt::Debug for UniquePtr<crate::model::BufferT> {
     }
 }
 
-impl crate::model::BufferT {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, crate::bindings::tflite::BufferT>(t);
-        }
-    }
-}
+// impl crate::model::BufferT {
+//     #[allow(unused)]
+//     fn transmute() {
+//         unsafe {
+//             let t = mem::MaybeUninit::<Self>::uninit();
+//             mem::transmute::<_, crate::bindings::tflite::BufferT>(t);
+//         }
+//     }
+// }
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::QuantizationParametersT> {
@@ -379,15 +379,15 @@ impl fmt::Debug for UniquePtr<crate::model::QuantizationParametersT> {
     }
 }
 
-impl crate::model::QuantizationParametersT {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, crate::bindings::tflite::QuantizationParametersT>(t);
-        }
-    }
-}
+// impl crate::model::QuantizationParametersT {
+//     #[allow(unused)]
+//     fn transmute() {
+//         unsafe {
+//             let t = mem::MaybeUninit::<Self>::uninit();
+//             mem::transmute::<_, crate::bindings::tflite::QuantizationParametersT>(t);
+//         }
+//     }
+// }
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::ModelT> {
@@ -444,15 +444,15 @@ impl fmt::Debug for UniquePtr<crate::model::ModelT> {
     }
 }
 
-impl crate::model::ModelT {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, crate::bindings::tflite::ModelT>(t);
-        }
-    }
-}
+// impl crate::model::ModelT {
+//     #[allow(unused)]
+//     fn transmute() {
+//         unsafe {
+//             let t = mem::MaybeUninit::<Self>::uninit();
+//             mem::transmute::<_, crate::bindings::tflite::ModelT>(t);
+//         }
+//     }
+// }
 
 #[allow(deprecated)]
 impl Default for UniquePtr<crate::model::MetadataT> {
@@ -509,12 +509,12 @@ impl fmt::Debug for UniquePtr<crate::model::MetadataT> {
     }
 }
 
-impl crate::model::MetadataT {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, crate::bindings::tflite::MetadataT>(t);
-        }
-    }
-}
+// impl crate::model::MetadataT {
+//     #[allow(unused)]
+//     fn transmute() {
+//         unsafe {
+//             let t = mem::MaybeUninit::<Self>::uninit();
+//             mem::transmute::<_, crate::bindings::tflite::MetadataT>(t);
+//         }
+//     }
+// }

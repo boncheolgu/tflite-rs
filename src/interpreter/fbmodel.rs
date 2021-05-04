@@ -28,7 +28,7 @@ impl FlatBufferModel {
     ) -> Result<Self> {
         let model_buffer = model_buffer.into();
 
-        let handle = mem::ManuallyDrop::new(super::cxx::flatbuffer_from_buffer(&model_buffer));
+        let handle = mem::ManuallyDrop::new(super::cxx::flatbuffer_from_slice(&model_buffer));
         if handle.as_ref().is_none() {
             return Err(Error::internal_error("failed to build model"));
         }
@@ -40,10 +40,14 @@ impl FlatBufferModel {
     }
 
     pub fn buffer(&self) -> &[u8] {
-        &self.model_buffer.as_ref()
+        self.model_buffer.as_ref()
     }
 
     pub fn release_buffer(mut self) -> std::borrow::Cow<'static, [u8]> {
         mem::replace(&mut self.model_buffer, Vec::new().into())
+    }
+
+    pub fn cxx_flatbuffer_model(&self) -> &super::cxx::FlatBufferModel {
+        self.handle.as_ref().unwrap()
     }
 }

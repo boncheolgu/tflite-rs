@@ -50,12 +50,12 @@ impl fmt::Debug for UniquePtr<{{{rust_type}}}>
     }
 }
 
-impl {{{rust_type}}} {
-    #[allow(unused)]
-    fn transmute() {
-        unsafe {
-            let t = mem::MaybeUninit::<Self>::uninit();
-            mem::transmute::<_, {{{rust_original_type}}}>(t);
-        }
-    }
-}
+//impl {{{rust_type}}} {
+//    #[allow(unused)]
+//    fn transmute() {
+//        unsafe {
+//            let t = mem::MaybeUninit::<Self>::uninit();
+//            mem::transmute::<_, {{{rust_original_type}}}>(t);
+//        }
+//    }
+//}

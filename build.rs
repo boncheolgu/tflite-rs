@@ -273,6 +273,17 @@ fn import_tflite_types() {
 }
 
 fn build_inline_cpp() {
+    let download_deps = downloads().join("tensorflow/lite/tools/make/downloads");
+
+    cxx_build::bridges(&["src/interpreter/cxx.rs"]) // returns a cc::Build
+        .file("cxx/src/interpreter.cc")
+        .flag("-fPIC")
+        .flag_if_supported("-std=c++14")
+        .include(downloads())
+        .include(download_deps.join("flatbuffers/include"))
+        .warnings(false)
+        .compile("cxx-tflite");
+
     let submodules = submodules();
 
     cpp_build::Config::new()
@@ -283,19 +294,8 @@ fn build_inline_cpp() {
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
         .debug(true)
-        .opt_level(if cfg!(debug_assertions) { 0 } else { 2 })
         .build("src/lib.rs");
     println!("cargo:rerun-if-changed={}", out_dir().join("rust_cpp").display());
-
-    let download_deps = downloads().join("tensorflow/lite/tools/make/downloads");
-
-    cxx_build::bridges(&["src/interpreter/cxx.rs"]) // returns a cc::Build
-        .file("cxx/src/interpreter.cc")
-        .flag_if_supported("-std=c++14")
-        .include(downloads())
-        .include(download_deps.join("flatbuffers/include"))
-        .warnings(false)
-        .compile("cxx-tflite");
 
     println!("cargo:rerun-if-changed=src/interpreter/cxx.rs");
     println!("cargo:rerun-if-changed=cxx/src/interpreter.cc");
