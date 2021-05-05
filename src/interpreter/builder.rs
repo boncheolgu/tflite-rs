@@ -27,7 +27,6 @@ impl InterpreterBuilder {
         if handle.is_null() {
             return Err(Error::internal_error("failed to build"));
         }
-        println!("built interpreter");
         Interpreter::new(handle, self.model, self.resolver)
     }
 
