@@ -76,8 +76,8 @@ pub struct TensorT {
     pub name: StlString,
     pub quantization: UniquePtr<QuantizationParametersT>,
     pub is_variable: bool,
-    pub sparsity: UniquePtr<Self>,
-    pub shape_signature: VectorOfU8,
+    pub sparsity: UniquePtr<SparsityParametersT>,
+    pub shape_signature: VectorOfI32,
 }
 
 #[repr(C)]
@@ -325,7 +325,6 @@ mod tests {
     use std::sync::Arc;
 
     #[test]
-    // #[ignore]
     fn flatbuffer_model_apis_inspect() {
         assert!(Model::from_file("data.mnist10.bin").is_err());
 
@@ -384,7 +383,6 @@ mod tests {
     }
 
     #[test]
-    // #[ignore]
     fn flatbuffer_model_apis_mutate() {
         let mut model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
         model.version = 2;
@@ -415,7 +413,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn flatbuffer_model_apis_insert() {
         println!("0");
         let mut model1 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
@@ -438,7 +435,6 @@ mod tests {
     }
 
     #[test]
-    // #[ignore]
     #[allow(clippy::field_reassign_with_default)]
     fn flatbuffer_model_apis_extract() {
         let source_model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
@@ -652,10 +648,9 @@ mod tests {
 
         model.subgraphs.push_back(subgraph);
 
-        let fb = Arc::new(FlatBufferModel::build_from_model(&model).unwrap());
+        let fb = Arc::new(FlatBufferModel::build_from_buffer(model.to_buffer()).unwrap());
 
-        let builder =
-            InterpreterBuilder::new(fb.clone(), Arc::new(BuiltinOpResolver::default())).unwrap();
+        let builder = InterpreterBuilder::new(fb, Arc::new(BuiltinOpResolver::default())).unwrap();
         let mut interpreter = builder.build().unwrap();
 
         interpreter.allocate_tensors().unwrap();

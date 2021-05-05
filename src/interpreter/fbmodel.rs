@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::{fs, mem};
 
-use crate::model::Model;
+// use crate::model::Model;
 use crate::{Error, Result};
 
 pub struct FlatBufferModel {
@@ -35,9 +35,9 @@ impl FlatBufferModel {
         Ok(Self { handle, model_buffer: mem::ManuallyDrop::new(model_buffer) })
     }
 
-    pub fn build_from_model(model: &Model) -> Result<Self> {
-        FlatBufferModel::build_from_buffer(model.to_buffer())
-    }
+    // pub fn build_from_model(model: &Model) -> Result<Self> {
+    //     FlatBufferModel::build_from_buffer(model.to_buffer())
+    // }
 
     pub fn buffer(&self) -> &[u8] {
         self.model_buffer.as_ref()

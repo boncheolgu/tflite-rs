@@ -5,22 +5,21 @@ mod fbmodel;
 pub mod op_resolver;
 pub mod ops;
 
-use crate::ops::builtin::BuiltinOpResolver;
-use crate::{bindings, Error, Result};
+use crate::{Error, Result};
 pub use builder::InterpreterBuilder;
-use context::{ElemKindOf, ElementKind, QuantizationParams, TensorInfo};
+use context::{ElemKindOf, ElementKind};
 pub use fbmodel::FlatBufferModel;
-use libc::{c_int, size_t};
 use op_resolver::OpResolver;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::{mem, slice};
 
-pub type TensorIndex = c_int;
+pub type TensorIndex = i32;
 
 pub struct Interpreter {
     handle: ::cxx::UniquePtr<cxx::Interpreter>,
     _model: Arc<FlatBufferModel>,
+    _op_resolver: Arc<dyn OpResolver>,
 }
 
 impl Interpreter {
@@ -28,14 +27,19 @@ impl Interpreter {
     fn handle(&self) -> &cxx::Interpreter {
         self.handle.as_ref().unwrap()
     }
+    #[track_caller]
     fn handle_mut(&mut self) -> Pin<&mut cxx::Interpreter> {
         self.handle.as_mut().unwrap()
     }
     pub(crate) fn new(
         handle: ::cxx::UniquePtr<cxx::Interpreter>,
         model: Arc<FlatBufferModel>,
+        op_resolver: Arc<dyn OpResolver>,
     ) -> Result<Self> {
-        let mut interpreter = Self { handle, _model: model };
+        if handle.is_null() {
+            return Err(Error::internal_error("Invalid interpreter"));
+        }
+        let mut interpreter = Self { handle, _model: model, _op_resolver: op_resolver };
         // # Safety
         // Always allocate tensors so we don't get into a state
         // where we try to read from or write to unallocated memory
@@ -50,7 +54,7 @@ impl Interpreter {
     pub fn allocate_tensors(&mut self) -> Result<()> {
         cxx::interpreter_allocate_tensors(self.handle_mut())
             .then(|| ())
-            .ok_or(Error::internal_error("failed to allocate tensors"))
+            .ok_or_else(|| Error::internal_error("failed to allocate tensors"))
     }
 
     /// Prints a dump of what tensors and what nodes are in the interpreter.
@@ -62,7 +66,7 @@ impl Interpreter {
     pub fn invoke(&mut self) -> Result<()> {
         cxx::interpreter_invoke(self.handle_mut())
             .then(|| ())
-            .ok_or(Error::internal_error("failed to invoke interpreter"))
+            .ok_or_else(|| Error::internal_error("failed to invoke interpreter"))
     }
 
     /// Sets the number of threads available to the interpreter
@@ -114,7 +118,7 @@ impl Interpreter {
     pub fn set_inputs(&mut self, inputs: &[TensorIndex]) -> Result<()> {
         cxx::interpreter_set_inputs(self.handle_mut(), inputs)
             .then(|| ())
-            .ok_or(Error::internal_error("failed to set inputs"))
+            .ok_or_else(|| Error::internal_error("failed to set inputs"))
     }
 
     /// Provide a list of tensor indexes that are outputs to the model
@@ -123,7 +127,7 @@ impl Interpreter {
     pub fn set_outputs(&mut self, outputs: &[TensorIndex]) -> Result<()> {
         cxx::interpreter_set_outputs(self.handle_mut(), outputs)
             .then(|| ())
-            .ok_or(Error::internal_error("failed to set outputs"))
+            .ok_or_else(|| Error::internal_error("failed to set outputs"))
     }
 
     /// Provide a list of tensor indexes that are variable tensors.
@@ -132,7 +136,7 @@ impl Interpreter {
     pub fn set_variables(&mut self, variables: &[TensorIndex]) -> Result<()> {
         cxx::interpreter_set_variables(self.handle_mut(), variables)
             .then(|| ())
-            .ok_or(Error::internal_error("failed to set variables"))
+            .ok_or_else(|| Error::internal_error("failed to set variables"))
     }
 
     #[allow(clippy::cognitive_complexity)]
@@ -155,7 +159,7 @@ impl Interpreter {
             is_variable,
         )
         .then(|| ())
-        .ok_or(Error::internal_error("failed to set tensor parameters"))
+        .ok_or_else(|| Error::internal_error("failed to set tensor parameters"))
     }
 
     // fn tensor_inner(&self, tensor_index: TensorIndex) -> Option<&bindings::TfLiteTensor> {

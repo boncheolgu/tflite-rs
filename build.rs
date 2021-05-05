@@ -168,7 +168,7 @@ fn prepare_tensorflow_library() {
     {
         let arch_var = format!("TFLITE_{}_LIB_DIR", arch.replace("-", "_").to_uppercase());
         let all_var = "TFLITE_LIB_DIR".to_string();
-        let lib_dir = env::var(&arch_var).or(env::var(&all_var)).unwrap_or_else(|_| {
+        let lib_dir = env::var(&arch_var).or_else(|_| env::var(&all_var)).unwrap_or_else(|_| {
             panic!(
                 "[feature = build] not set and environment variables {} and {} are not set",
                 arch_var, all_var
@@ -207,16 +207,16 @@ fn import_tflite_types() {
         .allowlist_type(".+OptionsT")
         .blocklist_type(".+_TableType")
         // for interpreter
-        .allowlist_type("tflite::FlatBufferModel")
-        .opaque_type("tflite::FlatBufferModel")
-        .allowlist_type("tflite::InterpreterBuilder")
-        .opaque_type("tflite::InterpreterBuilder")
-        .allowlist_type("tflite::Interpreter")
-        .opaque_type("tflite::Interpreter")
-        .allowlist_type("tflite::ops::builtin::BuiltinOpResolver")
-        .opaque_type("tflite::ops::builtin::BuiltinOpResolver")
-        .allowlist_type("tflite::OpResolver")
-        .opaque_type("tflite::OpResolver")
+        // .allowlist_type("tflite::FlatBufferModel")
+        // .opaque_type("tflite::FlatBufferModel")
+        // .allowlist_type("tflite::InterpreterBuilder")
+        // .opaque_type("tflite::InterpreterBuilder")
+        // .allowlist_type("tflite::Interpreter")
+        // .opaque_type("tflite::Interpreter")
+        // .allowlist_type("tflite::ops::builtin::BuiltinOpResolver")
+        // .opaque_type("tflite::ops::builtin::BuiltinOpResolver")
+        // .allowlist_type("tflite::OpResolver")
+        // .opaque_type("tflite::OpResolver")
         .allowlist_type("TfLiteTensor")
         .opaque_type("std::string")
         .opaque_type("flatbuffers::NativeTable")
@@ -272,7 +272,7 @@ fn import_tflite_types() {
     // bindings.write_to_file(out_path).expect("Couldn't write bindings!");
 }
 
-fn build_inline_cpp() {
+fn build_cxx() {
     let download_deps = downloads().join("tensorflow/lite/tools/make/downloads");
 
     cxx_build::bridges(&["src/interpreter/cxx.rs"]) // returns a cc::Build
@@ -284,22 +284,25 @@ fn build_inline_cpp() {
         .warnings(false)
         .compile("cxx-tflite");
 
-    let submodules = submodules();
-
-    cpp_build::Config::new()
-        .include(submodules.join("downloads"))
-        .include(flatbuffers_include())
-        .flag("-fPIC")
-        .flag("-std=c++14")
-        .flag("-Wno-sign-compare")
-        .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
-        .debug(true)
-        .build("src/lib.rs");
-    println!("cargo:rerun-if-changed={}", out_dir().join("rust_cpp").display());
-
     println!("cargo:rerun-if-changed=src/interpreter/cxx.rs");
     println!("cargo:rerun-if-changed=cxx/src/interpreter.cc");
     println!("cargo:rerun-if-changed=cxx/include/interpreter.h");
+
+    #[cfg(feature = "model")]
+    {
+        let submodules = submodules();
+
+        cpp_build::Config::new()
+            .include(submodules.join("downloads"))
+            .include(flatbuffers_include())
+            .flag("-fPIC")
+            .flag("-std=c++14")
+            .flag("-Wno-sign-compare")
+            .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
+            .debug(true)
+            .build("src/lib.rs");
+        println!("cargo:rerun-if-changed={}", out_dir().join("rust_cpp").display());
+    }
 }
 
 fn import_stl_types() {
@@ -361,6 +364,7 @@ use crate::model::stl::memory::UniquePtr;
         "QuantizationParametersT",
         "ModelT",
         "MetadataT",
+        "SparsityParametersT",
     ];
 
     for t in memory_types.iter() {
@@ -427,7 +431,7 @@ cpp! {{{{
         rust_type: &'a str,
     }
 
-    let vector_types = vec![
+    let vector_types = [
         ("std::unique_ptr<OperatorCodeT>", "UniquePtr<crate::model::OperatorCodeT>"),
         ("std::unique_ptr<TensorT>", "UniquePtr<crate::model::TensorT>"),
         ("std::unique_ptr<OperatorT>", "UniquePtr<crate::model::OperatorT>"),
@@ -436,7 +440,7 @@ cpp! {{{{
         ("std::unique_ptr<MetadataT>", "UniquePtr<crate::model::MetadataT>"),
     ];
 
-    for (cpp_type, rust_type) in vector_types {
+    for (cpp_type, rust_type) in vector_types.iter().copied() {
         writeln!(&mut file, "{}\n", &VectorBasicImpl { cpp_type, rust_type },)?;
     }
     Ok(())
@@ -571,7 +575,7 @@ fn main() {
         generate_builtin_options_impl().unwrap();
     }
     import_tflite_types();
-    build_inline_cpp();
+    build_cxx();
     if env::var("DOCS_RS").is_err() {
         prepare_tensorflow_library();
     }

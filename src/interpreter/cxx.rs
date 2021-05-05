@@ -1,5 +1,4 @@
 pub use self::interpreter::*;
-use cxx::kind::Kind;
 
 #[cxx::bridge]
 mod interpreter {
