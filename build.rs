@@ -50,18 +50,6 @@ fn prepare_tensorflow_source() -> PathBuf {
             &copy_dir,
         )
         .expect("Unable to copy download dir");
-
-        let flatbuffers_h = download_dir.join("flatbuffers/include/flatbuffers/flatbuffers.h");
-        let flatbuffers =
-            std::fs::read_to_string(&flatbuffers_h).expect("Unable to read flatbuffers.h");
-        std::fs::write(
-            flatbuffers_h,
-            flatbuffers.replace(
-                "struct NativeTable { virtual ~NativeTable() {} };",
-                "struct NativeTable {};",
-            ),
-        )
-        .expect("Unable to write to flatbuffers.h");
     }
 
     println!("Moving source took {:?}", start.elapsed());
@@ -248,6 +236,7 @@ fn import_tflite_types() {
         .clang_arg(format!("-I{}/tensorflow", submodules_str))
         .clang_arg(format!("-I{}/downloads/flatbuffers/include", submodules_str))
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
+        .clang_arg("-DFLATBUFFERS_POLYMORPHIC_NATIVETABLE")
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=c++11")
@@ -271,6 +260,7 @@ fn build_inline_cpp() {
         .flag("-std=c++14")
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
+        .define("FLATBUFFERS_POLYMORPHIC_NATIVETABLE", None)
         .debug(true)
         .opt_level(if cfg!(debug_assertions) { 0 } else { 2 })
         .build("src/lib.rs");
