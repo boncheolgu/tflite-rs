@@ -47,7 +47,7 @@ impl fmt::Debug for TensorInfo {
 impl<'a> From<&'a bindings::TfLiteTensor> for TensorInfo {
     fn from(t: &'a bindings::TfLiteTensor) -> Self {
         Self {
-            name: unsafe { CStr::from_ptr(t.name) }.to_str().unwrap().to_string(),
+            name: unsafe { CStr::from_ptr(t.name) }.to_str().unwrap_or("").to_string(),
             element_kind: t.type_,
             dims: {
                 let slice = unsafe {

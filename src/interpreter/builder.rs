@@ -1,106 +1,40 @@
-use maybe_owned::MaybeOwned;
-
 use super::op_resolver::OpResolver;
 use super::FlatBufferModel;
 use super::Interpreter;
-use crate::bindings::tflite as bindings;
 use crate::{Error, Result};
+use std::sync::Arc;
 
-cpp! {{
-    #include "tensorflow/lite/model.h"
-    #include "tensorflow/lite/kernels/register.h"
-
-    using namespace tflite;
-}}
-
-pub struct InterpreterBuilder<'a, Op>
-where
-    Op: OpResolver,
-{
-    handle: Box<bindings::InterpreterBuilder>,
-    _model: MaybeOwned<'a, FlatBufferModel>,
-    _resolver: Op,
+pub struct InterpreterBuilder {
+    handle: cxx::UniquePtr<super::cxx::InterpreterBuilder>,
+    resolver: Arc<dyn OpResolver>,
+    model: Arc<FlatBufferModel>,
 }
 
-impl<'a, Op> Drop for InterpreterBuilder<'a, Op>
-where
-    Op: OpResolver,
-{
-    fn drop(&mut self) {
-        let handle = Box::into_raw(std::mem::take(&mut self.handle));
-        #[allow(clippy::forget_copy, clippy::useless_transmute, deprecated)]
-        unsafe {
-            cpp!([handle as "InterpreterBuilder*"] {
-                delete handle;
-            });
-        }
-    }
-}
-
-impl<'a, Op> InterpreterBuilder<'a, Op>
-where
-    Op: OpResolver,
-{
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new<M: Into<MaybeOwned<'a, FlatBufferModel>>>(model: M, resolver: Op) -> Result<Self> {
-        use std::ops::Deref;
-        let model = model.into();
-        let handle = {
-            let model_handle = model.as_ref().handle.deref();
-            let resolver_handle = resolver.get_resolver_handle();
-
-            #[allow(clippy::forget_copy, deprecated)]
-            unsafe {
-                cpp!([model_handle as "const FlatBufferModel*",
-                    resolver_handle as "const OpResolver*"
-                ] -> *mut bindings::InterpreterBuilder as "InterpreterBuilder*" {
-                    return new InterpreterBuilder(*model_handle, *resolver_handle);
-                })
-            }
-        };
+impl InterpreterBuilder {
+    pub fn new(model: Arc<FlatBufferModel>, resolver: Arc<dyn OpResolver>) -> Result<Self> {
+        let handle = super::cxx::interpreter_builder(
+            model.cxx_flatbuffer_model(),
+            resolver.get_resolver_handle(),
+        );
         if handle.is_null() {
-            return Err(Error::InternalError("failed to create InterpreterBuilder".to_string()));
+            return Err(Error::internal_error("failed to create InterpreterBuilder"));
         }
-        let handle = unsafe { Box::from_raw(handle) };
-        Ok(Self { handle, _model: model, _resolver: resolver })
+        Ok(Self { handle, model, resolver })
     }
 
-    pub fn build(mut self) -> Result<Interpreter<'a, Op>> {
-        #[allow(clippy::forget_copy, deprecated)]
-        let handle = {
-            let builder = &mut *self.handle;
-            unsafe {
-                cpp!([builder as "InterpreterBuilder*"] -> *mut bindings::Interpreter as "Interpreter*" {
-                    std::unique_ptr<Interpreter> interpreter;
-                    (*builder)(&interpreter);
-                    return interpreter.release();
-                })
-            }
-        };
+    pub fn build(mut self) -> Result<Interpreter> {
+        let handle = super::cxx::build_model(self.handle.as_mut().unwrap());
         if handle.is_null() {
-            return Err(Error::InternalError("failed to build".to_string()));
+            return Err(Error::internal_error("failed to build"));
         }
-        Interpreter::new(handle, self)
+        Interpreter::new(handle, self.model, self.resolver)
     }
 
-    pub fn build_with_threads(
-        mut self,
-        threads: std::os::raw::c_int,
-    ) -> Result<Interpreter<'a, Op>> {
-        #[allow(clippy::forget_copy, deprecated)]
-        let handle = {
-            let builder = &mut *self.handle;
-            unsafe {
-                cpp!([builder as "InterpreterBuilder*", threads as "int"] -> *mut bindings::Interpreter as "Interpreter*" {
-                    std::unique_ptr<Interpreter> interpreter;
-                    (*builder)(&interpreter, threads);
-                    return interpreter.release();
-                })
-            }
-        };
+    pub fn build_with_threads(mut self, threads: u8) -> Result<Interpreter> {
+        let handle = super::cxx::build_model_with_threads(self.handle.as_mut().unwrap(), threads);
         if handle.is_null() {
-            return Err(Error::InternalError("failed to build with threads".to_string()));
+            return Err(Error::internal_error("failed to build with threads"));
         }
-        Interpreter::new(handle, self)
+        Interpreter::new(handle, self.model, self.resolver)
     }
 }

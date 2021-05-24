@@ -3,8 +3,7 @@
 extern crate bart_derive;
 
 use std::env;
-use std::env::VarError;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 #[cfg(feature = "build")]
 use std::time::Instant;
 
@@ -16,59 +15,38 @@ fn submodules() -> PathBuf {
     manifest_dir().join("submodules")
 }
 
+fn downloads() -> PathBuf {
+    submodules().join("downloads")
+}
+
+fn flatbuffers_include() -> PathBuf {
+    downloads().join("tensorflow/lite/tools/make/downloads/flatbuffers/include")
+}
+
+fn out_dir() -> PathBuf {
+    PathBuf::from(env::var("OUT_DIR").unwrap())
+}
+
 #[cfg(feature = "build")]
 fn prepare_tensorflow_source() -> PathBuf {
-    println!("Moving tflite source");
-    let start = Instant::now();
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let tf_src_dir = out_dir.join("tensorflow/tensorflow");
-    let submodules = submodules();
+    let out_dir = out_dir();
+    let tf_src_dir = out_dir.join("downloads");
 
     let mut copy_dir = fs_extra::dir::CopyOptions::new();
     copy_dir.overwrite = true;
     copy_dir.buffer_size = 65536;
 
     if !tf_src_dir.exists() {
-        fs_extra::dir::copy(submodules.join("tensorflow"), &out_dir, &copy_dir)
-            .expect("Unable to copy tensorflow");
-
-        // TODO: remove these when we upgrade tensorflow far enough that they exist
-        for f in &["aarch64_makefile.inc", "linux_makefile.inc"] {
-            std::fs::copy(
-                manifest_dir().join("data").join(f),
-                tf_src_dir.join("lite/tools/make/targets").join(f),
-            )
-            .unwrap_or_else(|_| panic!("Unable to copy makefile {}", f));
-        }
+        println!("Moving tflite source");
+        let start = Instant::now();
+        fs_extra::dir::copy(downloads(), &out_dir, &copy_dir).expect("Unable to copy tensorflow");
+        println!("Moving source took {:?}", start.elapsed());
     }
-
-    let download_dir = tf_src_dir.join("lite/tools/make/downloads");
-    if !download_dir.exists() {
-        fs_extra::dir::copy(
-            submodules.join("downloads"),
-            download_dir.parent().unwrap(),
-            &copy_dir,
-        )
-        .expect("Unable to copy download dir");
-
-        let flatbuffers_h = download_dir.join("flatbuffers/include/flatbuffers/flatbuffers.h");
-        let flatbuffers =
-            std::fs::read_to_string(&flatbuffers_h).expect("Unable to read flatbuffers.h");
-        std::fs::write(
-            flatbuffers_h,
-            flatbuffers.replace(
-                "struct NativeTable { virtual ~NativeTable() {} };",
-                "struct NativeTable {};",
-            ),
-        )
-        .expect("Unable to write to flatbuffers.h");
-    }
-
-    println!("Moving source took {:?}", start.elapsed());
 
     tf_src_dir
 }
 
+#[cfg(feature = "build")]
 fn binary_changing_features() -> String {
     let mut features = String::new();
     if cfg!(feature = "debug_tflite") {
@@ -86,17 +64,18 @@ fn prepare_tensorflow_library() {
     #[cfg(feature = "build")]
     {
         let tflite = prepare_tensorflow_source();
-        let out_dir = env::var("OUT_DIR").unwrap();
+        let out_dir = out_dir();
         // append tf_lib_name with features that can change how it is built
         // so a cached version that doesn't match expectations isn't used
         let binary_changing_features = binary_changing_features();
         let tf_lib_name =
-            Path::new(&out_dir).join(format!("libtensorflow-lite{}.a", binary_changing_features,));
+            out_dir.join(format!("libtensorflow-lite{}.a", binary_changing_features,));
         let os = env::var("CARGO_CFG_TARGET_OS").expect("Unable to get TARGET_OS");
         if !tf_lib_name.exists() {
             println!("Building tflite");
             let start = Instant::now();
             let mut make = std::process::Command::new("make");
+            make.envs(env::vars_os());
             if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
                 make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
             };
@@ -107,7 +86,7 @@ fn prepare_tensorflow_library() {
             #[cfg(feature = "debug_tflite")]
             {
                 println!("Feature debug_tflite enabled. Changing optimization to 0");
-                let makefile = tflite.join("lite/tools/make/Makefile");
+                let makefile = tflite.join("tensorflow/lite/tools/make/Makefile");
                 let makefile_contents =
                     std::fs::read_to_string(&makefile).expect("Unable to read Makefile");
                 let replaced = makefile_contents.replace("-O3", "-Og -g").replace("-DNDEBUG", "");
@@ -117,7 +96,7 @@ fn prepare_tensorflow_library() {
                 }
             }
 
-            let make_dir = tflite.parent().unwrap();
+            let make_dir = tflite.as_path();
 
             make.arg("-j")
                 // allow parallelism to be overridden
@@ -135,6 +114,7 @@ fn prepare_tensorflow_library() {
                 ("TARGET_ARCH", Some(arch.as_str())),
                 ("TARGET_TOOLCHAIN_PREFIX", None),
                 ("EXTRA_CFLAGS", None),
+                ("EXTRA_CXXFLAGS", None),
             ] {
                 let env_var = format!("TFLITE_RS_MAKE_{}", make_var);
                 println!("cargo:rerun-if-env-changed={}", env_var);
@@ -143,13 +123,13 @@ fn prepare_tensorflow_library() {
                     Ok(result) => {
                         make.arg(format!("{}={}", make_var, result));
                     }
-                    Err(VarError::NotPresent) => {
+                    Err(env::VarError::NotPresent) => {
                         // Try and set some reasonable default values
                         if let Some(result) = default {
                             make.arg(format!("{}={}", make_var, result));
                         }
                     }
-                    Err(VarError::NotUnicode(_)) => {
+                    Err(env::VarError::NotUnicode(_)) => {
                         panic!("Provided a non-unicode value for {}", env_var)
                     }
                 }
@@ -168,32 +148,34 @@ fn prepare_tensorflow_library() {
             }
 
             // find library
-            let library = std::fs::read_dir(tflite.join("lite/tools/make/gen"))
+            let library = std::fs::read_dir(tflite.join("tensorflow/lite/tools/make/gen"))
                 .expect("Make gen file should exist")
                 .filter_map(|de| Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
             std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
-                panic!(format!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display()))
+                eprintln!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display());
+                panic!("Unable to copy libtensorflow-lite.a");
             });
 
             println!("Building tflite from source took {:?}", start.elapsed());
         }
-        println!("cargo:rustc-link-search=native={}", out_dir);
+        println!("cargo:rustc-link-search=native={}", out_dir.display());
         println!("cargo:rustc-link-lib=static=tensorflow-lite{}", binary_changing_features);
     }
     #[cfg(not(feature = "build"))]
     {
         let arch_var = format!("TFLITE_{}_LIB_DIR", arch.replace("-", "_").to_uppercase());
         let all_var = "TFLITE_LIB_DIR".to_string();
-        let lib_dir = env::var(&arch_var).or(env::var(&all_var)).unwrap_or_else(|_| {
+        let lib_dir = env::var(&arch_var).or_else(|_| env::var(&all_var)).unwrap_or_else(|_| {
             panic!(
                 "[feature = build] not set and environment variables {} and {} are not set",
                 arch_var, all_var
             )
         });
         println!("cargo:rustc-link-search=native={}", lib_dir);
-        let static_dynamic = if Path::new(&lib_dir).join("libtensorflow-lite.a").exists() {
+        let static_dynamic = if std::path::Path::new(&lib_dir).join("libtensorflow-lite.a").exists()
+        {
             "static"
         } else {
             "dylib"
@@ -209,71 +191,117 @@ fn prepare_tensorflow_library() {
 fn import_tflite_types() {
     use bindgen::*;
 
-    let submodules = submodules();
-    let submodules_str = submodules.to_string_lossy();
     let bindings = Builder::default()
-        .whitelist_recursively(true)
+        .rustfmt_bindings(false)
+        .allowlist_recursively(true)
         .prepend_enum_name(false)
         .impl_debug(true)
         .with_codegen_config(CodegenConfig::TYPES)
-        .layout_tests(false)
+        .layout_tests(true)
         .enable_cxx_namespaces()
         .derive_default(true)
         .size_t_is_usize(true)
         // for model APIs
-        .whitelist_type("tflite::ModelT")
-        .whitelist_type(".+OptionsT")
-        .blacklist_type(".+_TableType")
+        .allowlist_type("tflite::ModelT")
+        .allowlist_type(".+OptionsT")
+        .blocklist_type(".+_TableType")
         // for interpreter
-        .whitelist_type("tflite::FlatBufferModel")
-        .opaque_type("tflite::FlatBufferModel")
-        .whitelist_type("tflite::InterpreterBuilder")
-        .opaque_type("tflite::InterpreterBuilder")
-        .whitelist_type("tflite::Interpreter")
-        .opaque_type("tflite::Interpreter")
-        .whitelist_type("tflite::ops::builtin::BuiltinOpResolver")
-        .opaque_type("tflite::ops::builtin::BuiltinOpResolver")
-        .whitelist_type("tflite::OpResolver")
-        .opaque_type("tflite::OpResolver")
-        .whitelist_type("TfLiteTensor")
+        // .allowlist_type("tflite::FlatBufferModel")
+        // .opaque_type("tflite::FlatBufferModel")
+        // .allowlist_type("tflite::InterpreterBuilder")
+        // .opaque_type("tflite::InterpreterBuilder")
+        // .allowlist_type("tflite::Interpreter")
+        // .opaque_type("tflite::Interpreter")
+        // .allowlist_type("tflite::ops::builtin::BuiltinOpResolver")
+        // .opaque_type("tflite::ops::builtin::BuiltinOpResolver")
+        // .allowlist_type("tflite::OpResolver")
+        // .opaque_type("tflite::OpResolver")
+        .allowlist_type("TfLiteTensor")
         .opaque_type("std::string")
         .opaque_type("flatbuffers::NativeTable")
-        .blacklist_type("std")
-        .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
-        .blacklist_type("tflite::Interpreter_State")
+        .blocklist_type("std")
+        .blocklist_type("tflite::Interpreter_TfLiteDelegatePtr")
+        .blocklist_type("tflite::Interpreter_State")
         .default_enum_style(EnumVariation::Rust { non_exhaustive: false })
         .derive_partialeq(true)
         .derive_eq(true)
         .header("csrc/tflite_wrapper.hpp")
-        .clang_arg(format!("-I{}/tensorflow", submodules_str))
-        .clang_arg(format!("-I{}/downloads/flatbuffers/include", submodules_str))
+        .clang_arg(format!("-I{}", downloads().display()))
+        .clang_arg(format!("-I{}", flatbuffers_include().display()))
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-x")
         .clang_arg("c++")
-        .clang_arg("-std=c++11")
+        .clang_arg("-std=c++14")
         // required to get cross compilation for aarch64 to work because of an issue in flatbuffers
         .clang_arg("-fms-extensions");
 
     let bindings = bindings.generate().expect("Unable to generate bindings");
-
+    let binding_string = bindings
+        .to_string()
+        // make vec 3 usizes not 3 bytes
+        .replace(
+            "pub struct __alloc_traits { pub _address : u8",
+            "pub struct __alloc_traits { pub _address: usize",
+        )
+        // make any struct that only contains a NativeTable the size of one byte
+        .replace("{ pub _base : root :: flatbuffers :: NativeTable , }", "{ pub _base: u8 }")
+        // make NativeTable a zero-sized struct
+        .replace(
+            "pub struct NativeTable { pub _bindgen_opaque_blob : u8 , }",
+            "pub struct NativeTable { pub _bindgen_opaque_blob: () }",
+        )
+        // make tuple a usize and not a u8 since it is the implementation for UniquePtr
+        .replace(
+            "pub struct tuple { pub _address : u8 , }",
+            "pub struct tuple { pub _address: usize }",
+        )
+        // ignore tests that expect UniquePtr to be 2 usizes
+        .replace(
+            "fn __bindgen_test_layout_unique_ptr_open0_TfLiteDelegate",
+            "#[ignore]fn __bindgen_test_layout_unique_ptr_open0_TfLiteDelegate",
+        )
+        // ignore test for now changed NativeTable layout
+        .replace(
+            "fn bindgen_test_layout_NativeTable",
+            "#[ignore] fn bindgen_test_layout_NativeTable",
+        );
     // Write the bindings to the $OUT_DIR/tflite_types.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("tflite_types.rs");
-    bindings.write_to_file(out_path).expect("Couldn't write bindings!");
+    let out_path = out_dir().join("tflite_types.rs");
+    std::fs::write(out_path, binding_string).expect("Couldn't write tflite bindings!");
+    // bindings.write_to_file(out_path).expect("Couldn't write bindings!");
 }
 
-fn build_inline_cpp() {
-    let submodules = submodules();
+fn build_cxx() {
+    let download_deps = downloads().join("tensorflow/lite/tools/make/downloads");
 
-    cpp_build::Config::new()
-        .include(submodules.join("tensorflow"))
-        .include(submodules.join("downloads/flatbuffers/include"))
+    cxx_build::bridges(&["src/interpreter/cxx.rs"]) // returns a cc::Build
+        .file("cxx/src/interpreter.cc")
         .flag("-fPIC")
-        .flag("-std=c++14")
-        .flag("-Wno-sign-compare")
-        .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
-        .debug(true)
-        .opt_level(if cfg!(debug_assertions) { 0 } else { 2 })
-        .build("src/lib.rs");
+        .flag_if_supported("-std=c++14")
+        .include(downloads())
+        .include(download_deps.join("flatbuffers/include"))
+        .warnings(false)
+        .compile("cxx-tflite");
+
+    println!("cargo:rerun-if-changed=src/interpreter/cxx.rs");
+    println!("cargo:rerun-if-changed=cxx/src/interpreter.cc");
+    println!("cargo:rerun-if-changed=cxx/include/interpreter.h");
+
+    #[cfg(feature = "model")]
+    {
+        let submodules = submodules();
+
+        cpp_build::Config::new()
+            .include(submodules.join("downloads"))
+            .include(flatbuffers_include())
+            .flag("-fPIC")
+            .flag("-std=c++14")
+            .flag("-Wno-sign-compare")
+            .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
+            .debug(true)
+            .build("src/lib.rs");
+        println!("cargo:rerun-if-changed={}", out_dir().join("rust_cpp").display());
+    }
 }
 
 fn import_stl_types() {
@@ -281,25 +309,26 @@ fn import_stl_types() {
 
     let bindings = Builder::default()
         .enable_cxx_namespaces()
-        .whitelist_type("std::string")
+        .allowlist_type("std::string")
         .opaque_type("std::string")
-        .whitelist_type("rust::.+")
+        .allowlist_type("rust::.+")
         .opaque_type("rust::.+")
-        .blacklist_type("std")
+        .blocklist_type("std")
         .header("csrc/stl_wrapper.hpp")
-        .layout_tests(false)
+        .layout_tests(true)
         .derive_partialeq(true)
         .derive_eq(true)
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=c++14")
         .clang_arg("-fms-extensions")
+        .clang_arg(format!("-I{}", downloads().display()))
         .rustfmt_bindings(false)
         .generate()
         .expect("Unable to generate STL bindings");
 
-    // Write the bindings to the $OUT_DIR/tflite_types.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("stl_types.rs");
+    // Write the bindings to the $OUT_DIR/stl_types.rs file.
+    let out_path = out_dir().join("stl_types.rs");
     bindings.write_to_file(out_path).expect("Couldn't write bindings!");
 }
 
@@ -322,21 +351,31 @@ use crate::model::stl::memory::UniquePtr;
     struct MemoryBasicImpl<'a> {
         cpp_type: &'a str,
         rust_type: &'a str,
+        rust_original_type: &'a str,
     }
 
-    let memory_types = vec![
-        ("OperatorCodeT", "crate::model::OperatorCodeT"),
-        ("TensorT", "crate::model::TensorT"),
-        ("OperatorT", "crate::model::OperatorT"),
-        ("SubGraphT", "crate::model::SubGraphT"),
-        ("BufferT", "crate::model::BufferT"),
-        ("QuantizationParametersT", "crate::model::QuantizationParametersT"),
-        ("ModelT", "crate::model::ModelT"),
-        ("MetadataT", "crate::model::MetadataT"),
+    let memory_types = [
+        "OperatorCodeT",
+        "TensorT",
+        "OperatorT",
+        "SubGraphT",
+        "BufferT",
+        "QuantizationParametersT",
+        "ModelT",
+        "MetadataT",
+        "SparsityParametersT",
     ];
 
-    for (cpp_type, rust_type) in memory_types {
-        writeln!(&mut file, "{}\n", &MemoryBasicImpl { cpp_type, rust_type },)?;
+    for t in memory_types.iter() {
+        writeln!(
+            &mut file,
+            "{}\n",
+            &MemoryBasicImpl {
+                cpp_type: t,
+                rust_type: &format!("crate::model::{}", t),
+                rust_original_type: &format!("crate::bindings::tflite::{}", t)
+            },
+        )?;
     }
     Ok(())
 }
@@ -391,7 +430,7 @@ cpp! {{{{
         rust_type: &'a str,
     }
 
-    let vector_types = vec![
+    let vector_types = [
         ("std::unique_ptr<OperatorCodeT>", "UniquePtr<crate::model::OperatorCodeT>"),
         ("std::unique_ptr<TensorT>", "UniquePtr<crate::model::TensorT>"),
         ("std::unique_ptr<OperatorT>", "UniquePtr<crate::model::OperatorT>"),
@@ -400,7 +439,7 @@ cpp! {{{{
         ("std::unique_ptr<MetadataT>", "UniquePtr<crate::model::MetadataT>"),
     ];
 
-    for (cpp_type, rust_type) in vector_types {
+    for (cpp_type, rust_type) in vector_types.iter().copied() {
         writeln!(&mut file, "{}\n", &VectorBasicImpl { cpp_type, rust_type },)?;
     }
     Ok(())
@@ -535,7 +574,7 @@ fn main() {
         generate_builtin_options_impl().unwrap();
     }
     import_tflite_types();
-    build_inline_cpp();
+    build_cxx();
     if env::var("DOCS_RS").is_err() {
         prepare_tensorflow_library();
     }

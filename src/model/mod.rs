@@ -24,6 +24,15 @@ pub use builtin_options::{
 };
 pub use builtin_options_impl::*;
 
+cpp! {{
+    #include "tensorflow/lite/model.h"
+    #include "tensorflow/lite/kernels/register.h"
+    #include "tensorflow/lite/interpreter.h"
+    #include "tensorflow/lite/optional_debug_tools.h"
+
+    using namespace tflite;
+}}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct QuantizationDetailsUnion {
@@ -67,6 +76,8 @@ pub struct TensorT {
     pub name: StlString,
     pub quantization: UniquePtr<QuantizationParametersT>,
     pub is_variable: bool,
+    pub sparsity: UniquePtr<SparsityParametersT>,
+    pub shape_signature: VectorOfI32,
 }
 
 #[repr(C)]
@@ -122,6 +133,7 @@ pub struct ModelT {
     pub buffers: VectorOfUniquePtr<BufferT>,
     pub metadata_buffer: VectorOfI32,
     pub metadata: VectorOfUniquePtr<MetadataT>,
+    pub signature_defs: VectorOfU8,
 }
 
 impl Clone for BuiltinOptionsUnion {
@@ -247,8 +259,8 @@ impl Model {
     pub fn from_buffer(buffer: &[u8]) -> Option<Self> {
         let len = buffer.len();
         let buffer = buffer.as_ptr();
-        let mut model: UniquePtr<ModelT> = unsafe { mem::zeroed() };
-        let model_ref = &mut model;
+        let mut model = mem::MaybeUninit::<UniquePtr<ModelT>>::uninit();
+        let model_ref = model.as_mut_ptr();
         #[allow(deprecated)]
         let r = unsafe {
             cpp!([buffer as "const void*", len as "size_t", model_ref as "std::unique_ptr<ModelT>*"]
@@ -263,6 +275,7 @@ impl Model {
                 return true;
             })
         };
+        let model = unsafe { model.assume_init() };
         if r && model.is_valid() {
             Some(Self(model))
         } else {
@@ -309,6 +322,7 @@ mod tests {
     use crate::model::stl::vector::{VectorErase, VectorExtract, VectorInsert, VectorSlice};
     use crate::ops::builtin::BuiltinOpResolver;
     use crate::{FlatBufferModel, InterpreterBuilder};
+    use std::sync::Arc;
 
     #[test]
     fn flatbuffer_model_apis_inspect() {
@@ -322,8 +336,8 @@ mod tests {
         assert_eq!(model.description.c_str().to_string_lossy(), "TOCO Converted.");
 
         assert_eq!(
-            model.operator_codes[0].builtin_code,
-            BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D
+            model.operator_codes[0].builtin_code as u32,
+            BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D as u32
         );
 
         assert_eq!(
@@ -400,20 +414,28 @@ mod tests {
 
     #[test]
     fn flatbuffer_model_apis_insert() {
+        println!("0");
         let mut model1 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+        println!("1");
         let mut model2 = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
+        println!("2");
 
         let num_buffers = model1.buffers.size();
+        println!("3");
 
         let data = model1.buffers[0].data.to_vec();
+        println!("4: {}, {:?}", data.len(), &data[..20.min(data.len())]);
         let buffer = model1.buffers.extract(0);
+        println!("5");
         model2.buffers.push_back(buffer);
+        println!("6");
         assert_eq!(model2.buffers.size(), num_buffers + 1);
 
         assert_eq!(model2.buffers[num_buffers].data.to_vec(), data);
     }
 
     #[test]
+    #[allow(clippy::field_reassign_with_default)]
     fn flatbuffer_model_apis_extract() {
         let source_model = Model::from_file("data/MNISTnet_uint8_quant.tflite").unwrap();
         let source_subgraph = &source_model.subgraphs[0];
@@ -568,6 +590,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::field_reassign_with_default)]
     fn unittest_build_model() {
         let mut model = Model::default();
         model.version = 3;
@@ -625,11 +648,9 @@ mod tests {
 
         model.subgraphs.push_back(subgraph);
 
-        let builder = InterpreterBuilder::new(
-            FlatBufferModel::build_from_model(&model).unwrap(),
-            BuiltinOpResolver::default(),
-        )
-        .unwrap();
+        let fb = Arc::new(FlatBufferModel::build_from_buffer(model.to_buffer()).unwrap());
+
+        let builder = InterpreterBuilder::new(fb, Arc::new(BuiltinOpResolver::default())).unwrap();
         let mut interpreter = builder.build().unwrap();
 
         interpreter.allocate_tensors().unwrap();

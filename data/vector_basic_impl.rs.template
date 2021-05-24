@@ -1,14 +1,14 @@
 #[allow(deprecated)]
 impl Default for VectorOf{{{rust_type}}} {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<{{{cpp_type}}}>*"] {
                 new (this_ref) const std::vector<{{{cpp_type}}}>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -73,14 +73,14 @@ impl VectorInsert<{{{rust_type}}}> for VectorOf{{{rust_type}}} {
 impl VectorExtract<{{{rust_type}}}> for VectorOf{{{rust_type}}} {
     fn extract(&mut self, index: usize) -> {{{rust_type}}} {
         assert!(index < self.size());
-        let mut v: {{{rust_type}}} = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<{{{cpp_type}}}>*", index as "size_t", vref as "{{{cpp_type}}}*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 

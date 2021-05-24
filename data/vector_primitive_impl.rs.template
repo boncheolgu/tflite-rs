@@ -1,17 +1,17 @@
 #[repr(C)]
-pub struct VectorOf{{{RustType}}}(dummy_vector);
+pub struct VectorOf{{{RustType}}}(pub(crate) dummy_vector);
 
 #[allow(deprecated)]
 impl Default for VectorOf{{{RustType}}} {
     fn default() -> Self {
-        let mut this = unsafe{ mem::zeroed() };
-        let this_ref = &mut this;
+        let mut this = mem::MaybeUninit::uninit();
+        let this_ref = this.as_mut_ptr();
         unsafe {
             cpp!([this_ref as "std::vector<{{{cpp_type}}}>*"] {
                 new (this_ref) const std::vector<{{{cpp_type}}}>;
-            })
+            });
+            this.assume_init()
         }
-        this
     }
 }
 
@@ -29,14 +29,14 @@ impl Drop for VectorOf{{{RustType}}} {
 #[allow(deprecated)]
 impl Clone for VectorOf{{{RustType}}} {
     fn clone(&self) -> Self {
-        let mut cloned = unsafe { mem::zeroed() };
-        let cloned_ref = &mut cloned;
+        let mut cloned = mem::MaybeUninit::uninit();
+        let cloned_ref = cloned.as_mut_ptr();
         unsafe {
             cpp!([self as "const std::vector<{{{cpp_type}}}>*", cloned_ref as "std::vector<{{{cpp_type}}}>*"] {
                 new (cloned_ref) std::vector<{{{cpp_type}}}>(*self);
             });
+            cloned.assume_init()
         }
-        cloned
     }
 }
 
@@ -108,14 +108,14 @@ impl VectorInsert<{{{rust_type}}}> for VectorOf{{{RustType}}} {
 impl VectorExtract<{{{rust_type}}}> for VectorOf{{{RustType}}} {
     fn extract(&mut self, index: usize) -> {{{rust_type}}} {
         assert!(index < self.size());
-        let mut v: {{{rust_type}}} = unsafe { mem::zeroed() };
-        let vref = &mut v;
+        let mut v = mem::MaybeUninit::uninit();
+        let vref = v.as_mut_ptr();
         unsafe {
             cpp!([self as "std::vector<{{{cpp_type}}}>*", index as "size_t", vref as "{{{cpp_type}}}*"] {
                 *vref = std::move((*self)[index]);
-            })
+            });
+            v.assume_init()
         }
-        v
     }
 }
 
