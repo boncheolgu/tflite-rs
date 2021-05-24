@@ -225,11 +225,13 @@ impl Interpreter {
     }
 }
 
-// #[allow(unused)]
-// fn threadsafe_types() {
-//     fn send_sync<T: Send + Sync>() {}
-//     send_sync::<FlatBufferModel>();
-//     send_sync::<BuiltinOpResolver>();
-//     send_sync::<InterpreterBuilder<BuiltinOpResolver>>();
-//     send_sync::<Interpreter<BuiltinOpResolver>>();
-// }
+#[allow(unused)]
+fn threadsafe_types() {
+    use ops::builtin::BuiltinOpResolver;
+    fn send_sync<T: Send + Sync>() {}
+    fn send<T: Send>() {}
+    send_sync::<FlatBufferModel>();
+    send::<BuiltinOpResolver>();
+    send::<InterpreterBuilder>();
+    send::<Interpreter>();
+}

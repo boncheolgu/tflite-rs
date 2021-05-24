@@ -1,6 +1,7 @@
 [package]
 name = "tflite"
-version = "0.10.0"
+# TODO: before merge roll this back to 0.10.0
+version = "0.10.1"
 authors = ["Boncheol Gu <boncheol.gu@gmail.com>"]
 description = "Rust bindings for TensorFlow Lite"
 keywords = ["tensorflow", "tflite", "bindings"]

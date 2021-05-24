@@ -84,3 +84,10 @@ unsafe impl cxx::ExternType for crate::bindings::TfLiteQuantization {
     type Id = cxx::type_id!("TfLiteQuantization");
     type Kind = cxx::kind::Trivial;
 }
+
+unsafe impl Send for FlatBufferModel {}
+unsafe impl Sync for FlatBufferModel {}
+unsafe impl Send for OpResolver {}
+unsafe impl Send for BuiltinOpResolver {}
+unsafe impl Send for InterpreterBuilder {}
+unsafe impl Send for Interpreter {}
