@@ -3,4 +3,4 @@
 	url = https://github.com/tensorflow/tensorflow.git
 [submodule "submodules/downloads"]
 	path = submodules/downloads
-	url = https://github.com/boncheolgu/tflite-rs-downloads
+	url = https://github.com/yotarok/tflite-rs-downloads

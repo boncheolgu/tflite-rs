@@ -87,9 +87,10 @@ pub struct OperatorT {
 #[derive(Debug, PartialEq, Eq)]
 pub struct OperatorCodeT {
     _vtable: NativeTable,
-    pub builtin_code: BuiltinOperator,
+    pub deprecated_builtin_code: u8,
     pub custom_code: StlString,
     pub version: i32,
+    pub builtin_code: BuiltinOperator,
 }
 
 #[repr(C)]
@@ -113,6 +114,23 @@ pub struct MetadataT {
 
 #[repr(C)]
 #[derive(Debug)]
+pub struct TensorMapT {
+    name: StlString,
+    tensor_index: u32,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct SignatureDefT {
+    inputs: VectorOfUniquePtr<TensorMapT>,
+    outputs: VectorOfUniquePtr<TensorMapT>,
+    signature_key: StlString,
+    deprecated_tag: StlString,
+    subgraph_index: u32,
+}
+
+#[repr(C)]
+#[derive(Debug)]
 pub struct ModelT {
     _vtable: NativeTable,
     pub version: u32,
@@ -122,6 +140,7 @@ pub struct ModelT {
     pub buffers: VectorOfUniquePtr<BufferT>,
     pub metadata_buffer: VectorOfI32,
     pub metadata: VectorOfUniquePtr<MetadataT>,
+    pub signature_defs: VectorOfUniquePtr<SignatureDefT>
 }
 
 impl Clone for BuiltinOptionsUnion {
@@ -160,6 +179,7 @@ impl Clone for UniquePtr<BufferT> {
 impl Clone for UniquePtr<OperatorCodeT> {
     fn clone(&self) -> Self {
         let mut cloned: UniquePtr<OperatorCodeT> = Default::default();
+        cloned.deprecated_builtin_code = self.deprecated_builtin_code;
         cloned.builtin_code = self.builtin_code;
         cloned.custom_code.assign(&self.custom_code);
         cloned.version = self.version;
@@ -322,18 +342,18 @@ mod tests {
         assert_eq!(model.description.c_str().to_string_lossy(), "TOCO Converted.");
 
         assert_eq!(
-            model.operator_codes[0].builtin_code,
-            BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D
+            model.operator_codes[0].deprecated_builtin_code,
+            BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D as u8
         );
 
         assert_eq!(
-            model.operator_codes.iter().map(|oc| oc.builtin_code).collect::<Vec<_>>(),
+            model.operator_codes.iter().map(|oc| oc.deprecated_builtin_code).collect::<Vec<_>>(),
             vec![
-                BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D,
-                BuiltinOperator::BuiltinOperator_CONV_2D,
-                BuiltinOperator::BuiltinOperator_DEPTHWISE_CONV_2D,
-                BuiltinOperator::BuiltinOperator_SOFTMAX,
-                BuiltinOperator::BuiltinOperator_RESHAPE
+                BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D as u8,
+                BuiltinOperator::BuiltinOperator_CONV_2D  as u8,
+                BuiltinOperator::BuiltinOperator_DEPTHWISE_CONV_2D as u8,
+                BuiltinOperator::BuiltinOperator_SOFTMAX as u8,
+                BuiltinOperator::BuiltinOperator_RESHAPE as u8
             ]
         );
 
@@ -347,8 +367,8 @@ mod tests {
             .operators
             .iter()
             .position(|op| {
-                model.operator_codes[op.opcode_index as usize].builtin_code
-                    == BuiltinOperator::BuiltinOperator_SOFTMAX
+                model.operator_codes[op.opcode_index as usize].deprecated_builtin_code
+                    == BuiltinOperator::BuiltinOperator_SOFTMAX as u8
             })
             .unwrap();
 
@@ -374,7 +394,7 @@ mod tests {
         model.version = 2;
         model.operator_codes.erase(4);
         model.buffers.erase(22);
-        model.buffers.erase(23);
+        model.buffers.erase(22);  // why it was okay before fixing it from 23 to 22?
         model.description.assign(&CString::new("flatbuffer").unwrap());
 
         {

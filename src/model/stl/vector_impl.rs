@@ -1,10 +1,11 @@
-use std::ops::{Deref, DerefMut, Index, IndexMut};
+
 use std::{fmt, mem, slice};
+use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use libc::size_t;
 
 use super::memory::UniquePtr;
-use super::vector::{VectorErase, VectorExtract, VectorInsert, VectorOfUniquePtr, VectorSlice};
+use super::vector::{VectorOfUniquePtr, VectorErase, VectorExtract, VectorInsert, VectorSlice};
 use crate::model::stl::bindings::root::rust::dummy_vector;
 
 cpp! {{
@@ -17,7 +18,7 @@ pub struct VectorOfU8(dummy_vector);
 #[allow(deprecated)]
 impl Default for VectorOfU8 {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<uint8_t>*"] {
@@ -134,13 +135,14 @@ impl VectorExtract<u8> for VectorOfU8 {
 
 add_impl!(VectorOfU8);
 
+
 #[repr(C)]
 pub struct VectorOfI32(dummy_vector);
 
 #[allow(deprecated)]
 impl Default for VectorOfI32 {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<int32_t>*"] {
@@ -257,13 +259,14 @@ impl VectorExtract<i32> for VectorOfI32 {
 
 add_impl!(VectorOfI32);
 
+
 #[repr(C)]
 pub struct VectorOfI64(dummy_vector);
 
 #[allow(deprecated)]
 impl Default for VectorOfI64 {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<int64_t>*"] {
@@ -380,13 +383,14 @@ impl VectorExtract<i64> for VectorOfI64 {
 
 add_impl!(VectorOfI64);
 
+
 #[repr(C)]
 pub struct VectorOfF32(dummy_vector);
 
 #[allow(deprecated)]
 impl Default for VectorOfF32 {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<float>*"] {
@@ -503,10 +507,11 @@ impl VectorExtract<f32> for VectorOfF32 {
 
 add_impl!(VectorOfF32);
 
+
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<OperatorCodeT>>*"] {
@@ -562,9 +567,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::OperatorCodeT> {
 }
 
 #[allow(deprecated)]
-impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>>
-    for VectorOfUniquePtr<crate::model::OperatorCodeT>
-{
+impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -577,9 +580,7 @@ impl VectorInsert<UniquePtr<crate::model::OperatorCodeT>>
 }
 
 #[allow(deprecated)]
-impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>>
-    for VectorOfUniquePtr<crate::model::OperatorCodeT>
-{
+impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>> for VectorOfUniquePtr<crate::model::OperatorCodeT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::OperatorCodeT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::OperatorCodeT> = unsafe { mem::zeroed() };
@@ -595,10 +596,11 @@ impl VectorExtract<UniquePtr<crate::model::OperatorCodeT>>
 
 add_impl!(VectorOfUniquePtr<crate::model::OperatorCodeT>);
 
+
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::TensorT> {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<TensorT>>*"] {
@@ -683,10 +685,11 @@ impl VectorExtract<UniquePtr<crate::model::TensorT>> for VectorOfUniquePtr<crate
 
 add_impl!(VectorOfUniquePtr<crate::model::TensorT>);
 
+
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::OperatorT> {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<OperatorT>>*"] {
@@ -742,9 +745,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::OperatorT> {
 }
 
 #[allow(deprecated)]
-impl VectorInsert<UniquePtr<crate::model::OperatorT>>
-    for VectorOfUniquePtr<crate::model::OperatorT>
-{
+impl VectorInsert<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crate::model::OperatorT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -757,9 +758,7 @@ impl VectorInsert<UniquePtr<crate::model::OperatorT>>
 }
 
 #[allow(deprecated)]
-impl VectorExtract<UniquePtr<crate::model::OperatorT>>
-    for VectorOfUniquePtr<crate::model::OperatorT>
-{
+impl VectorExtract<UniquePtr<crate::model::OperatorT>> for VectorOfUniquePtr<crate::model::OperatorT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::OperatorT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::OperatorT> = unsafe { mem::zeroed() };
@@ -775,10 +774,11 @@ impl VectorExtract<UniquePtr<crate::model::OperatorT>>
 
 add_impl!(VectorOfUniquePtr<crate::model::OperatorT>);
 
+
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<SubGraphT>>*"] {
@@ -834,9 +834,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::SubGraphT> {
 }
 
 #[allow(deprecated)]
-impl VectorInsert<UniquePtr<crate::model::SubGraphT>>
-    for VectorOfUniquePtr<crate::model::SubGraphT>
-{
+impl VectorInsert<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -849,9 +847,7 @@ impl VectorInsert<UniquePtr<crate::model::SubGraphT>>
 }
 
 #[allow(deprecated)]
-impl VectorExtract<UniquePtr<crate::model::SubGraphT>>
-    for VectorOfUniquePtr<crate::model::SubGraphT>
-{
+impl VectorExtract<UniquePtr<crate::model::SubGraphT>> for VectorOfUniquePtr<crate::model::SubGraphT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::SubGraphT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::SubGraphT> = unsafe { mem::zeroed() };
@@ -867,10 +863,11 @@ impl VectorExtract<UniquePtr<crate::model::SubGraphT>>
 
 add_impl!(VectorOfUniquePtr<crate::model::SubGraphT>);
 
+
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::BufferT> {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<BufferT>>*"] {
@@ -955,10 +952,11 @@ impl VectorExtract<UniquePtr<crate::model::BufferT>> for VectorOfUniquePtr<crate
 
 add_impl!(VectorOfUniquePtr<crate::model::BufferT>);
 
+
 #[allow(deprecated)]
 impl Default for VectorOfUniquePtr<crate::model::MetadataT> {
     fn default() -> Self {
-        let mut this = unsafe { mem::zeroed() };
+        let mut this = unsafe{ mem::zeroed() };
         let this_ref = &mut this;
         unsafe {
             cpp!([this_ref as "std::vector<std::unique_ptr<MetadataT>>*"] {
@@ -1014,9 +1012,7 @@ impl VectorErase for VectorOfUniquePtr<crate::model::MetadataT> {
 }
 
 #[allow(deprecated)]
-impl VectorInsert<UniquePtr<crate::model::MetadataT>>
-    for VectorOfUniquePtr<crate::model::MetadataT>
-{
+impl VectorInsert<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crate::model::MetadataT> {
     fn push_back(&mut self, mut v: Self::Item) {
         let vref = &mut v;
         unsafe {
@@ -1029,9 +1025,7 @@ impl VectorInsert<UniquePtr<crate::model::MetadataT>>
 }
 
 #[allow(deprecated)]
-impl VectorExtract<UniquePtr<crate::model::MetadataT>>
-    for VectorOfUniquePtr<crate::model::MetadataT>
-{
+impl VectorExtract<UniquePtr<crate::model::MetadataT>> for VectorOfUniquePtr<crate::model::MetadataT> {
     fn extract(&mut self, index: usize) -> UniquePtr<crate::model::MetadataT> {
         assert!(index < self.size());
         let mut v: UniquePtr<crate::model::MetadataT> = unsafe { mem::zeroed() };
@@ -1046,3 +1040,183 @@ impl VectorExtract<UniquePtr<crate::model::MetadataT>>
 }
 
 add_impl!(VectorOfUniquePtr<crate::model::MetadataT>);
+
+
+#[allow(deprecated)]
+impl Default for VectorOfUniquePtr<crate::model::SignatureDefT> {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<std::unique_ptr<SignatureDefT>>*"] {
+                new (this_ref) const std::vector<std::unique_ptr<SignatureDefT>>;
+            })
+        }
+        this
+    }
+}
+
+#[allow(deprecated)]
+impl VectorSlice for VectorOfUniquePtr<crate::model::SignatureDefT> {
+    type Item = UniquePtr<crate::model::SignatureDefT>;
+
+    fn get_ptr(&self) -> *const Self::Item {
+        unsafe {
+            cpp!([self as "const std::vector<std::unique_ptr<SignatureDefT>>*"]
+                  -> *const UniquePtr<crate::model::SignatureDefT> as "const std::unique_ptr<SignatureDefT>*" {
+                return self->data();
+            })
+        }
+    }
+
+    fn get_mut_ptr(&mut self) -> *mut Self::Item {
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<SignatureDefT>>*"]
+                  -> *mut UniquePtr<crate::model::SignatureDefT> as "std::unique_ptr<SignatureDefT>*" {
+                return self->data();
+            })
+        }
+    }
+
+    fn size(&self) -> usize {
+        unsafe {
+            cpp!([self as "const std::vector<std::unique_ptr<SignatureDefT>>*"] -> size_t as "size_t" {
+                return self->size();
+            })
+        }
+    }
+}
+
+#[allow(deprecated)]
+impl VectorErase for VectorOfUniquePtr<crate::model::SignatureDefT> {
+    fn erase_range(&mut self, offset: usize, size: usize) {
+        let begin = offset as size_t;
+        let end = offset + size as size_t;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<SignatureDefT>>*", begin as "size_t", end as "size_t"] {
+                self->erase(self->begin() + begin, self->begin() + end);
+            });
+        }
+    }
+}
+
+#[allow(deprecated)]
+impl VectorInsert<UniquePtr<crate::model::SignatureDefT>> for VectorOfUniquePtr<crate::model::SignatureDefT> {
+    fn push_back(&mut self, mut v: Self::Item) {
+        let vref = &mut v;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<SignatureDefT>>*", vref as "std::unique_ptr<SignatureDefT>*"] {
+                self->push_back(std::move(*vref));
+            })
+        }
+        mem::forget(v);
+    }
+}
+
+#[allow(deprecated)]
+impl VectorExtract<UniquePtr<crate::model::SignatureDefT>> for VectorOfUniquePtr<crate::model::SignatureDefT> {
+    fn extract(&mut self, index: usize) -> UniquePtr<crate::model::SignatureDefT> {
+        assert!(index < self.size());
+        let mut v: UniquePtr<crate::model::SignatureDefT> = unsafe { mem::zeroed() };
+        let vref = &mut v;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<SignatureDefT>>*", index as "size_t", vref as "std::unique_ptr<SignatureDefT>*"] {
+                *vref = std::move((*self)[index]);
+            })
+        }
+        v
+    }
+}
+
+add_impl!(VectorOfUniquePtr<crate::model::SignatureDefT>);
+
+
+#[allow(deprecated)]
+impl Default for VectorOfUniquePtr<crate::model::TensorMapT> {
+    fn default() -> Self {
+        let mut this = unsafe{ mem::zeroed() };
+        let this_ref = &mut this;
+        unsafe {
+            cpp!([this_ref as "std::vector<std::unique_ptr<TensorMapT>>*"] {
+                new (this_ref) const std::vector<std::unique_ptr<TensorMapT>>;
+            })
+        }
+        this
+    }
+}
+
+#[allow(deprecated)]
+impl VectorSlice for VectorOfUniquePtr<crate::model::TensorMapT> {
+    type Item = UniquePtr<crate::model::TensorMapT>;
+
+    fn get_ptr(&self) -> *const Self::Item {
+        unsafe {
+            cpp!([self as "const std::vector<std::unique_ptr<TensorMapT>>*"]
+                  -> *const UniquePtr<crate::model::TensorMapT> as "const std::unique_ptr<TensorMapT>*" {
+                return self->data();
+            })
+        }
+    }
+
+    fn get_mut_ptr(&mut self) -> *mut Self::Item {
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<TensorMapT>>*"]
+                  -> *mut UniquePtr<crate::model::TensorMapT> as "std::unique_ptr<TensorMapT>*" {
+                return self->data();
+            })
+        }
+    }
+
+    fn size(&self) -> usize {
+        unsafe {
+            cpp!([self as "const std::vector<std::unique_ptr<TensorMapT>>*"] -> size_t as "size_t" {
+                return self->size();
+            })
+        }
+    }
+}
+
+#[allow(deprecated)]
+impl VectorErase for VectorOfUniquePtr<crate::model::TensorMapT> {
+    fn erase_range(&mut self, offset: usize, size: usize) {
+        let begin = offset as size_t;
+        let end = offset + size as size_t;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<TensorMapT>>*", begin as "size_t", end as "size_t"] {
+                self->erase(self->begin() + begin, self->begin() + end);
+            });
+        }
+    }
+}
+
+#[allow(deprecated)]
+impl VectorInsert<UniquePtr<crate::model::TensorMapT>> for VectorOfUniquePtr<crate::model::TensorMapT> {
+    fn push_back(&mut self, mut v: Self::Item) {
+        let vref = &mut v;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<TensorMapT>>*", vref as "std::unique_ptr<TensorMapT>*"] {
+                self->push_back(std::move(*vref));
+            })
+        }
+        mem::forget(v);
+    }
+}
+
+#[allow(deprecated)]
+impl VectorExtract<UniquePtr<crate::model::TensorMapT>> for VectorOfUniquePtr<crate::model::TensorMapT> {
+    fn extract(&mut self, index: usize) -> UniquePtr<crate::model::TensorMapT> {
+        assert!(index < self.size());
+        let mut v: UniquePtr<crate::model::TensorMapT> = unsafe { mem::zeroed() };
+        let vref = &mut v;
+        unsafe {
+            cpp!([self as "std::vector<std::unique_ptr<TensorMapT>>*", index as "size_t", vref as "std::unique_ptr<TensorMapT>*"] {
+                *vref = std::move((*self)[index]);
+            })
+        }
+        v
+    }
+}
+
+add_impl!(VectorOfUniquePtr<crate::model::TensorMapT>);
+
+

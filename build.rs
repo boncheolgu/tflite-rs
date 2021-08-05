@@ -153,7 +153,7 @@ fn prepare_tensorflow_library() {
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
             std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
-                panic!(format!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display()))
+                panic!("{}", format!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display()))
             });
 
             println!("Building tflite from source took {:?}", start.elapsed());
@@ -216,6 +216,7 @@ fn import_tflite_types() {
         .opaque_type("tflite::OpResolver")
         .whitelist_type("TfLiteTensor")
         .opaque_type("std::string")
+        .opaque_type("std::basic_string.*")
         .opaque_type("flatbuffers::NativeTable")
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
@@ -226,7 +227,6 @@ fn import_tflite_types() {
         .header("csrc/tflite_wrapper.hpp")
         .clang_arg(format!("-I{}/tensorflow", submodules_str))
         .clang_arg(format!("-I{}/downloads/flatbuffers/include", submodules_str))
-        .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
         .clang_arg("-DFLATBUFFERS_POLYMORPHIC_NATIVETABLE")
         .clang_arg("-x")
         .clang_arg("c++")
@@ -250,7 +250,6 @@ fn build_inline_cpp() {
         .flag("-fPIC")
         .flag("-std=c++14")
         .flag("-Wno-sign-compare")
-        .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
         .define("FLATBUFFERS_POLYMORPHIC_NATIVETABLE", None)
         .debug(true)
         .opt_level(if cfg!(debug_assertions) { 0 } else { 2 })
@@ -314,6 +313,8 @@ use crate::model::stl::memory::UniquePtr;
         ("QuantizationParametersT", "crate::model::QuantizationParametersT"),
         ("ModelT", "crate::model::ModelT"),
         ("MetadataT", "crate::model::MetadataT"),
+        ("TensorMapT", "crate::model::TensorMapT"),
+        ("SignatureDefT", "crate::model::SignatureDefT"),
     ];
 
     for (cpp_type, rust_type) in memory_types {
@@ -379,6 +380,8 @@ cpp! {{{{
         ("std::unique_ptr<SubGraphT>", "UniquePtr<crate::model::SubGraphT>"),
         ("std::unique_ptr<BufferT>", "UniquePtr<crate::model::BufferT>"),
         ("std::unique_ptr<MetadataT>", "UniquePtr<crate::model::MetadataT>"),
+        ("std::unique_ptr<SignatureDefT>", "UniquePtr<crate::model::SignatureDefT>"),
+        ("std::unique_ptr<TensorMapT>", "UniquePtr<crate::model::TensorMapT>"),
     ];
 
     for (cpp_type, rust_type) in vector_types {
