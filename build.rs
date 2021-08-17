@@ -217,6 +217,7 @@ fn import_tflite_types() {
         .whitelist_type("TfLiteTensor")
         .opaque_type("std::string")
         .opaque_type("std::basic_string.*")
+        .opaque_type("std::map.*")
         .opaque_type("flatbuffers::NativeTable")
         .blacklist_type("std")
         .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
