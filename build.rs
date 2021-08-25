@@ -153,7 +153,7 @@ fn prepare_tensorflow_library() {
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
             std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
-                panic!(format!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display()))
+                panic!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display())
             });
 
             println!("Building tflite from source took {:?}", start.elapsed());
@@ -191,7 +191,7 @@ fn import_tflite_types() {
     let submodules = submodules();
     let submodules_str = submodules.to_string_lossy();
     let bindings = Builder::default()
-        .whitelist_recursively(true)
+        .allowlist_recursively(true)
         .prepend_enum_name(false)
         .impl_debug(true)
         .with_codegen_config(CodegenConfig::TYPES)
@@ -200,26 +200,26 @@ fn import_tflite_types() {
         .derive_default(true)
         .size_t_is_usize(true)
         // for model APIs
-        .whitelist_type("tflite::ModelT")
-        .whitelist_type(".+OptionsT")
-        .blacklist_type(".+_TableType")
+        .allowlist_type("tflite::ModelT")
+        .allowlist_type(".+OptionsT")
+        .blocklist_type(".+_TableType")
         // for interpreter
-        .whitelist_type("tflite::FlatBufferModel")
+        .allowlist_type("tflite::FlatBufferModel")
         .opaque_type("tflite::FlatBufferModel")
-        .whitelist_type("tflite::InterpreterBuilder")
+        .allowlist_type("tflite::InterpreterBuilder")
         .opaque_type("tflite::InterpreterBuilder")
-        .whitelist_type("tflite::Interpreter")
+        .allowlist_type("tflite::Interpreter")
         .opaque_type("tflite::Interpreter")
-        .whitelist_type("tflite::ops::builtin::BuiltinOpResolver")
+        .allowlist_type("tflite::ops::builtin::BuiltinOpResolver")
         .opaque_type("tflite::ops::builtin::BuiltinOpResolver")
-        .whitelist_type("tflite::OpResolver")
+        .allowlist_type("tflite::OpResolver")
         .opaque_type("tflite::OpResolver")
-        .whitelist_type("TfLiteTensor")
+        .allowlist_type("TfLiteTensor")
         .opaque_type("std::string")
         .opaque_type("flatbuffers::NativeTable")
-        .blacklist_type("std")
-        .blacklist_type("tflite::Interpreter_TfLiteDelegatePtr")
-        .blacklist_type("tflite::Interpreter_State")
+        .blocklist_type("std")
+        .blocklist_type("tflite::Interpreter_TfLiteDelegatePtr")
+        .blocklist_type("tflite::Interpreter_State")
         .default_enum_style(EnumVariation::Rust { non_exhaustive: false })
         .derive_partialeq(true)
         .derive_eq(true)
@@ -262,11 +262,11 @@ fn import_stl_types() {
 
     let bindings = Builder::default()
         .enable_cxx_namespaces()
-        .whitelist_type("std::string")
+        .allowlist_type("std::string")
         .opaque_type("std::string")
-        .whitelist_type("rust::.+")
+        .allowlist_type("rust::.+")
         .opaque_type("rust::.+")
-        .blacklist_type("std")
+        .blocklist_type("std")
         .header("csrc/stl_wrapper.hpp")
         .layout_tests(false)
         .derive_partialeq(true)
