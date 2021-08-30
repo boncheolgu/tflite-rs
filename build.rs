@@ -153,7 +153,7 @@ fn prepare_tensorflow_library() {
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
             std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
-                panic!("{}", format!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display()))
+                panic!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display())
             });
 
             println!("Building tflite from source took {:?}", start.elapsed());
