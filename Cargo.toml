@@ -23,16 +23,22 @@ include = [
   "submodules/downloads",
   "submodules/tensorflow/tensorflow/lite/c",
   "submodules/tensorflow/tensorflow/lite/core",
+  "submodules/tensorflow/tensorflow/lite/delegates/*.cc",
+  "submodules/tensorflow/tensorflow/lite/delegates/*.h",
   "submodules/tensorflow/tensorflow/lite/delegates/nnapi",
-  "submodules/tensorflow/tensorflow/lite/experimental/resource_variable",
-  "submodules/tensorflow/tensorflow/lite/experimental/ruy",
+  "submodules/tensorflow/tensorflow/lite/experimental/acceleration",
+  "submodules/tensorflow/tensorflow/lite/experimental/examples",
+  "submodules/tensorflow/tensorflow/lite/experimental/microfrontend",
+  "submodules/tensorflow/tensorflow/lite/experimental/mlir",
+  "submodules/tensorflow/tensorflow/lite/experimental/resource",
   "submodules/tensorflow/tensorflow/lite/kernels",
   "submodules/tensorflow/tensorflow/lite/nnapi",
   "submodules/tensorflow/tensorflow/lite/profiling",
-  "submodules/tensorflow/tensorflow/lite/schema/schema_generated.h",
+  "submodules/tensorflow/tensorflow/lite/schema/*.h",
   "submodules/tensorflow/tensorflow/lite/*.cc",
   "submodules/tensorflow/tensorflow/lite/*.h",
   "submodules/tensorflow/tensorflow/lite/tools/make",
+  "submodules/tensorflow/tensorflow/lite/tools/optimize/sparsity/*.h",
   "submodules/tensorflow/third_party/eigen3",
   "submodules/tensorflow/third_party/fft2d",
   "submodules/tensorflow/tensorflow/core/kernels/eigen_convolution_helpers.h",
@@ -41,7 +47,7 @@ include = [
 ]
 
 [dependencies]
-cpp = "0.5.5"
+cpp = "0.5.6"
 libc = "0.2.77"
 maybe-owned = "0.3.4"
 thiserror = "1.0.20"
@@ -50,7 +56,7 @@ thiserror = "1.0.20"
 bart = { version = "0.1.4", optional = true }
 bart_derive = { version = "0.1.4", optional = true }
 bindgen = "0.55.1"
-cpp_build = "0.5.5"
+cpp_build = "0.5.6"
 fs_extra = { version = "1.2.0", optional = true }
 
 [features]

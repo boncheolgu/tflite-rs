@@ -1,3 +1,4 @@
+
 use super::{BuiltinOptions, BuiltinOptionsUnion, NativeTable};
 
 impl BuiltinOptionsUnion {
@@ -9,9 +10,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_Conv2DOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_Conv2DOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -22,9 +27,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_DepthwiseConv2DOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_DepthwiseConv2DOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -35,9 +44,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ConcatEmbeddingsOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ConcatEmbeddingsOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -48,9 +61,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LSHProjectionOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LSHProjectionOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -61,9 +78,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_Pool2DOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_Pool2DOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -74,9 +95,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SVDFOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SVDFOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -87,9 +112,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_RNNOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_RNNOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -100,9 +129,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_FullyConnectedOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_FullyConnectedOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -113,9 +146,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SoftmaxOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SoftmaxOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -126,9 +163,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ConcatenationOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ConcatenationOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -139,9 +180,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_AddOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_AddOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -152,9 +197,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_L2NormOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_L2NormOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -165,9 +214,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LocalResponseNormalizationOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LocalResponseNormalizationOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -178,9 +231,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LSTMOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LSTMOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -191,9 +248,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ResizeBilinearOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ResizeBilinearOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -204,9 +265,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_CallOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_CallOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -217,9 +282,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ReshapeOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ReshapeOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -230,9 +299,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SkipGramOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SkipGramOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -243,9 +316,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SpaceToDepthOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SpaceToDepthOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -256,9 +333,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_EmbeddingLookupSparseOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_EmbeddingLookupSparseOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -269,9 +350,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_MulOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_MulOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -282,9 +367,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_PadOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_PadOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -295,9 +384,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_GatherOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_GatherOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -308,9 +401,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_BatchToSpaceNDOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_BatchToSpaceNDOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -321,9 +418,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SpaceToBatchNDOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SpaceToBatchNDOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -334,9 +435,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_TransposeOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_TransposeOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -347,9 +452,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ReducerOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ReducerOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -360,9 +469,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SubOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SubOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -373,9 +486,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_DivOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_DivOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -386,9 +503,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SqueezeOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SqueezeOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -399,9 +520,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SequenceRNNOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SequenceRNNOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -412,9 +537,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_StridedSliceOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_StridedSliceOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -425,9 +554,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ExpOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ExpOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -438,9 +571,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_TopKV2Options, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_TopKV2Options,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -451,9 +588,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SplitOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SplitOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -464,9 +605,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LogSoftmaxOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LogSoftmaxOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -477,9 +622,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_CastOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_CastOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -490,9 +639,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_DequantizeOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_DequantizeOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -503,9 +656,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_MaximumMinimumOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_MaximumMinimumOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -516,9 +673,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ArgMaxOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ArgMaxOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -529,9 +690,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LessOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LessOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -542,9 +707,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_NegOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_NegOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -555,9 +724,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_PadV2Options, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_PadV2Options,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -568,9 +741,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_GreaterOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_GreaterOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -581,9 +758,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_GreaterEqualOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_GreaterEqualOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -594,9 +775,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LessEqualOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LessEqualOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -607,9 +792,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SelectOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SelectOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -620,9 +809,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SliceOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SliceOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -633,9 +826,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_TransposeConvOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_TransposeConvOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -646,9 +843,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SparseToDenseOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SparseToDenseOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -659,9 +860,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_TileOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_TileOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -672,9 +877,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ExpandDimsOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ExpandDimsOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -685,9 +894,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_EqualOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_EqualOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -698,9 +911,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_NotEqualOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_NotEqualOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -711,9 +928,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ShapeOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ShapeOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -724,9 +945,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_PowOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_PowOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -737,9 +962,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ArgMinOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ArgMinOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -750,9 +979,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_FakeQuantOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_FakeQuantOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -763,9 +996,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_PackOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_PackOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -776,9 +1013,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LogicalOrOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LogicalOrOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -789,9 +1030,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_OneHotOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_OneHotOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -802,9 +1047,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LogicalAndOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LogicalAndOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -815,9 +1064,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LogicalNotOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LogicalNotOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -828,9 +1081,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_UnpackOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_UnpackOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -841,9 +1098,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_FloorDivOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_FloorDivOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -854,9 +1115,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SquareOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SquareOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -867,9 +1132,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ZerosLikeOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ZerosLikeOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -880,9 +1149,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_FillOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_FillOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -893,9 +1166,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_BidirectionalSequenceLSTMOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_BidirectionalSequenceLSTMOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -906,9 +1183,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_BidirectionalSequenceRNNOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_BidirectionalSequenceRNNOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -919,9 +1200,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_UnidirectionalSequenceLSTMOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_UnidirectionalSequenceLSTMOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -932,9 +1217,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_FloorModOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_FloorModOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -945,9 +1234,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_RangeOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_RangeOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -958,9 +1251,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ResizeNearestNeighborOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ResizeNearestNeighborOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -971,9 +1268,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_LeakyReluOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_LeakyReluOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -984,9 +1285,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SquaredDifferenceOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SquaredDifferenceOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -997,9 +1302,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_MirrorPadOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_MirrorPadOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1010,9 +1319,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_AbsOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_AbsOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1023,9 +1336,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_SplitVOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_SplitVOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1036,9 +1353,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_UniqueOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_UniqueOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1049,9 +1370,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ReverseV2Options, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ReverseV2Options,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1062,9 +1387,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_AddNOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_AddNOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1075,9 +1404,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_GatherNdOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_GatherNdOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1088,9 +1421,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_CosOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_CosOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1101,9 +1438,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_WhereOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_WhereOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1114,9 +1455,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_RankOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_RankOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1127,9 +1472,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_ReverseSequenceOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_ReverseSequenceOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1140,9 +1489,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_MatrixDiagOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_MatrixDiagOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1153,9 +1506,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_QuantizeOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_QuantizeOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1166,9 +1523,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_MatrixSetDiagOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_MatrixSetDiagOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1179,9 +1540,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_HardSwishOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_HardSwishOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1192,9 +1557,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_IfOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_IfOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1205,9 +1574,13 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_WhileOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_WhileOptions,
+            value,
+        }
     }
 }
+
 
 impl BuiltinOptionsUnion {
     #[allow(non_snake_case, deprecated)]
@@ -1218,6 +1591,11 @@ impl BuiltinOptionsUnion {
             })
         };
 
-        Self { typ: BuiltinOptions::BuiltinOptions_DepthToSpaceOptions, value }
+        Self {
+            typ: BuiltinOptions::BuiltinOptions_DepthToSpaceOptions,
+            value,
+        }
     }
 }
+
+
