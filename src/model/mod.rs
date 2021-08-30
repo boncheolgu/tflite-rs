@@ -140,7 +140,7 @@ pub struct ModelT {
     pub buffers: VectorOfUniquePtr<BufferT>,
     pub metadata_buffer: VectorOfI32,
     pub metadata: VectorOfUniquePtr<MetadataT>,
-    pub signature_defs: VectorOfUniquePtr<SignatureDefT>
+    pub signature_defs: VectorOfUniquePtr<SignatureDefT>,
 }
 
 impl Clone for BuiltinOptionsUnion {
@@ -350,7 +350,7 @@ mod tests {
             model.operator_codes.iter().map(|oc| oc.deprecated_builtin_code).collect::<Vec<_>>(),
             vec![
                 BuiltinOperator::BuiltinOperator_AVERAGE_POOL_2D as u8,
-                BuiltinOperator::BuiltinOperator_CONV_2D  as u8,
+                BuiltinOperator::BuiltinOperator_CONV_2D as u8,
                 BuiltinOperator::BuiltinOperator_DEPTHWISE_CONV_2D as u8,
                 BuiltinOperator::BuiltinOperator_SOFTMAX as u8,
                 BuiltinOperator::BuiltinOperator_RESHAPE as u8
@@ -394,7 +394,7 @@ mod tests {
         model.version = 2;
         model.operator_codes.erase(4);
         model.buffers.erase(22);
-        model.buffers.erase(22);  // why it was okay before fixing it from 23 to 22?
+        model.buffers.erase(22); // why it was okay before fixing it from 23 to 22?
         model.description.assign(&CString::new("flatbuffer").unwrap());
 
         {
