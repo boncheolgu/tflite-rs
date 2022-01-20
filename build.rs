@@ -3,6 +3,7 @@
 extern crate bart_derive;
 
 use std::env;
+use std::env::VarError;
 use std::path::{Path, PathBuf};
 #[cfg(feature = "build")]
 use std::time::Instant;
@@ -30,15 +31,6 @@ fn prepare_tensorflow_source() -> PathBuf {
     if !tf_src_dir.exists() {
         fs_extra::dir::copy(submodules.join("tensorflow"), &out_dir, &copy_dir)
             .expect("Unable to copy tensorflow");
-
-        // TODO: remove these when we upgrade tensorflow far enough that they exist
-        for f in &["aarch64_makefile.inc", "linux_makefile.inc"] {
-            std::fs::copy(
-                manifest_dir().join("data").join(f),
-                tf_src_dir.join("lite/tools/make/targets").join(f),
-            )
-            .unwrap_or_else(|_| panic!("Unable to copy makefile {}", f));
-        }
     }
 
     let download_dir = tf_src_dir.join("lite/tools/make/downloads");
@@ -49,18 +41,6 @@ fn prepare_tensorflow_source() -> PathBuf {
             &copy_dir,
         )
         .expect("Unable to copy download dir");
-
-        let flatbuffers_h = download_dir.join("flatbuffers/include/flatbuffers/flatbuffers.h");
-        let flatbuffers =
-            std::fs::read_to_string(&flatbuffers_h).expect("Unable to read flatbuffers.h");
-        std::fs::write(
-            flatbuffers_h,
-            flatbuffers.replace(
-                "struct NativeTable { virtual ~NativeTable() {} };",
-                "struct NativeTable {};",
-            ),
-        )
-        .expect("Unable to write to flatbuffers.h");
     }
 
     println!("Moving source took {:?}", start.elapsed());
@@ -118,9 +98,7 @@ fn prepare_tensorflow_library() {
 
             let make_dir = tflite.parent().unwrap();
 
-            make.arg(format!("TARGET={}", target))
-                .arg(format!("TARGET_ARCH={}", arch))
-                .arg("-j")
+            make.arg("-j")
                 // allow parallelism to be overridden
                 .arg(
                     env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or_else(|_| {
@@ -130,6 +108,31 @@ fn prepare_tensorflow_library() {
                 .arg("BUILD_WITH_NNAPI=false")
                 .arg("-f")
                 .arg("tensorflow/lite/tools/make/Makefile");
+
+            for (make_var, default) in &[
+                ("TARGET", Some(target.as_str())),
+                ("TARGET_ARCH", Some(arch.as_str())),
+                ("TARGET_TOOLCHAIN_PREFIX", None),
+                ("EXTRA_CFLAGS", None),
+            ] {
+                let env_var = format!("TFLITE_RS_MAKE_{}", make_var);
+                println!("cargo:rerun-if-env-changed={}", env_var);
+
+                match env::var(&env_var) {
+                    Ok(result) => {
+                        make.arg(format!("{}={}", make_var, result));
+                    }
+                    Err(VarError::NotPresent) => {
+                        // Try and set some reasonable default values
+                        if let Some(result) = default {
+                            make.arg(format!("{}={}", make_var, result));
+                        }
+                    }
+                    Err(VarError::NotUnicode(_)) => {
+                        panic!("Provided a non-unicode value for {}", env_var)
+                    }
+                }
+            }
 
             if cfg!(feature = "no_micro") {
                 println!("Building lib but no micro");
@@ -224,6 +227,7 @@ fn import_tflite_types() {
         .clang_arg(format!("-I{}/tensorflow", submodules_str))
         .clang_arg(format!("-I{}/downloads/flatbuffers/include", submodules_str))
         .clang_arg("-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK")
+        .clang_arg("-DFLATBUFFERS_POLYMORPHIC_NATIVETABLE")
         .clang_arg("-x")
         .clang_arg("c++")
         .clang_arg("-std=c++11")
@@ -247,6 +251,7 @@ fn build_inline_cpp() {
         .flag("-std=c++14")
         .flag("-Wno-sign-compare")
         .define("GEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK", None)
+        .define("FLATBUFFERS_POLYMORPHIC_NATIVETABLE", None)
         .debug(true)
         .opt_level(if cfg!(debug_assertions) { 0 } else { 2 })
         .build("src/lib.rs");
@@ -512,5 +517,7 @@ fn main() {
     }
     import_tflite_types();
     build_inline_cpp();
-    prepare_tensorflow_library();
+    if env::var("DOCS_RS").is_err() {
+        prepare_tensorflow_library();
+    }
 }

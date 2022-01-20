@@ -1,0 +1,36 @@
+From 645cce1b2ef7ea7d68d42fc6739cba8f1c767c68 Mon Sep 17 00:00:00 2001
+From: Martin Schwaighofer <mschwaig@users.noreply.github.com>
+Date: Thu, 6 May 2021 23:02:40 +0200
+Subject: [PATCH 1/1] make NativeTable configurable as polymorphic
+
+This is required for import_tflite_types and build_inline_cpp but
+not for building libtensorflow-lite.a. It's done via a #define here.
+Previously this was done by rewriting the code from inside in build.rs
+of tflite-rs before the relevant build step.
+Doing it with a define seems much cleaner.
+
+See:
+https://github.com/boncheolgu/tflite-rs/pull/20#discussion_r343465525
+---
+ flatbuffers/include/flatbuffers/flatbuffers.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/flatbuffers/include/flatbuffers/flatbuffers.h b/flatbuffers/include/flatbuffers/flatbuffers.h
+index a1a95f0..6480764 100644
+--- a/flatbuffers/include/flatbuffers/flatbuffers.h
++++ b/flatbuffers/include/flatbuffers/flatbuffers.h
+@@ -2410,7 +2410,11 @@ inline uoffset_t GetPrefixedSize(const uint8_t* buf){ return ReadScalar<uoffset_
+ // Base class for native objects (FlatBuffer data de-serialized into native
+ // C++ data structures).
+ // Contains no functionality, purely documentative.
++#ifdef FLATBUFFERS_POLYMORPHIC_NATIVETABLE
++struct NativeTable { virtual ~NativeTable() {} };
++#else
+ struct NativeTable {};
++#endif
+ 
+ /// @brief Function types to be used with resolving hashes into objects and
+ /// back again. The resolver gets a pointer to a field inside an object API
+-- 
+2.31.1
+
