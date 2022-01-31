@@ -1,4 +1,4 @@
-[![Build Status](https://www.travis-ci.org/boncheolgu/tflite-rs.svg?branch=master)](https://www.travis-ci.org/boncheolgu/tflite-rs)
+[![Rust](https://github.com/boncheolgu/tflite-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/boncheolgu/tflite-rs/actions/workflows/rust.yml)
 
 # Rust bindings for TensorFlow Lite
 
