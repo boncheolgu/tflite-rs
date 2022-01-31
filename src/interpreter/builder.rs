@@ -90,6 +90,7 @@ where
         #[allow(clippy::forget_copy, deprecated)]
         let handle = {
             let builder = &mut *self.handle;
+            #[allow(clippy::transmute_num_to_bytes)]
             unsafe {
                 cpp!([builder as "InterpreterBuilder*", threads as "int"] -> *mut bindings::Interpreter as "Interpreter*" {
                     std::unique_ptr<Interpreter> interpreter;

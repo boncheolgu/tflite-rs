@@ -217,7 +217,7 @@ impl Eq for VectorOfBool {}
 
 impl VectorOfBool {
     pub fn get(&self, index: usize) -> bool {
-        #[allow(deprecated)]
+        #[allow(deprecated, clippy::transmute_num_to_bytes)]
         unsafe {
             cpp!([self as "const std::vector<bool>*", index as "size_t"] -> bool as "bool" {
                 return (*self)[index];
@@ -226,7 +226,7 @@ impl VectorOfBool {
     }
 
     pub fn set(&mut self, index: usize, v: bool) {
-        #[allow(deprecated)]
+        #[allow(deprecated, clippy::transmute_num_to_bytes)]
         unsafe {
             cpp!([self as "std::vector<bool>*", index as "size_t", v as "bool"] {
                 (*self)[index] = v;
@@ -243,7 +243,7 @@ impl VectorOfBool {
         }
     }
 
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = bool> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = bool> + '_ {
         (0..self.size()).map(move |i| self.get(i))
     }
 }
