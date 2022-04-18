@@ -1,3 +1,4 @@
+#![allow(clippy::transmute_num_to_bytes)]
 use std::ops::{Deref, DerefMut};
 use std::{fmt, mem};
 

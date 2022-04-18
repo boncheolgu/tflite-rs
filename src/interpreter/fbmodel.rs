@@ -40,7 +40,7 @@ impl FlatBufferModel {
         let ptr = model_buffer.as_ptr();
         let size = model_buffer.len();
 
-        #[allow(clippy::forget_copy, deprecated)]
+        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
         let handle = unsafe {
             cpp!([ptr as "const char*", size as "size_t"]
                   -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
@@ -63,6 +63,6 @@ impl FlatBufferModel {
     }
 
     pub fn release_buffer(mut self) -> Vec<u8> {
-        mem::replace(&mut self.model_buffer, Vec::new())
+        mem::take(&mut self.model_buffer)
     }
 }
