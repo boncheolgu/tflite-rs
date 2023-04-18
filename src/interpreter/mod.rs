@@ -95,6 +95,34 @@ where
         }
     }
 
+    /// Gets model input details
+    /// Returns a list of input details
+    pub fn get_input_details(&self) -> Result<Vec<TensorInfo>> {
+        self.inputs()
+            .iter()
+            .map(|index| {
+                if let Some(tensor_info) = self.tensor_info(*index) {
+                    Ok(tensor_info)
+                } else {
+                    Err(Error::internal_error("tensor not found"))
+                }
+            })
+            .collect()
+    }
+
+    pub fn get_output_details(&self) -> Result<Vec<TensorInfo>> {
+        self.outputs()
+            .iter()
+            .map(|index| {
+                if let Some(tensor_info) = self.tensor_info(*index) {
+                    Ok(tensor_info)
+                } else {
+                    Err(Error::internal_error("tensor not found"))
+                }
+            })
+            .collect()
+    }
+
     /// Prints a dump of what tensors and what nodes are in the interpreter.
     pub fn print_state(&self) {
         let interpreter = self.handle();
