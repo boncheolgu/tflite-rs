@@ -96,29 +96,21 @@ where
     }
 
     /// Gets model input details
-    /// Returns a list of input details
     pub fn get_input_details(&self) -> Result<Vec<TensorInfo>> {
         self.inputs()
             .iter()
             .map(|index| {
-                if let Some(tensor_info) = self.tensor_info(*index) {
-                    Ok(tensor_info)
-                } else {
-                    Err(Error::internal_error("tensor not found"))
-                }
+                self.tensor_info(*index).ok_or_else(|| Error::internal_error("tensor not found"))
             })
             .collect()
     }
 
+    /// Gets model output details
     pub fn get_output_details(&self) -> Result<Vec<TensorInfo>> {
         self.outputs()
             .iter()
             .map(|index| {
-                if let Some(tensor_info) = self.tensor_info(*index) {
-                    Ok(tensor_info)
-                } else {
-                    Err(Error::internal_error("tensor not found"))
-                }
+                self.tensor_info(*index).ok_or_else(|| Error::internal_error("tensor not found"))
             })
             .collect()
     }
