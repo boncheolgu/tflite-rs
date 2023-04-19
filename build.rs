@@ -152,7 +152,7 @@ fn prepare_tensorflow_library() {
                 .filter_map(|de| Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
-            std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
+            std::fs::copy(library, &tf_lib_name).unwrap_or_else(|_| {
                 panic!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display())
             });
 
