@@ -46,12 +46,12 @@ libc = "0.2.77"
 maybe-owned = "0.3.4"
 thiserror = "1.0.20"
 
-[patch.crates-io]
-syn = {git = "https://github.com/dtolnay/syn.git", tag = "0.10.5"}
+# [patch.crates-io]
+# syn = {git = "https://github.com/dtolnay/syn.git", tag = "0.10.5"}
 
 [build-dependencies]
-bart = { version = "0.1.4", optional = true }
-bart_derive = { version = "0.1.4", optional = true }
+# bart = { version = "0.1.4", optional = true }
+# bart_derive = { version = "0.1.4", optional = true }
 bindgen = "0.55.1"
 cpp_build = "0.5.5"
 fs_extra = { version = "1.2.0", optional = true }
@@ -60,7 +60,7 @@ fs_extra = { version = "1.2.0", optional = true }
 build = ["fs_extra"]
 default = ["build"]
 debug_tflite = ["build"] # use "libtensorflow-lite.a" built in debug mode
-generate_model_apis = ["bart", "bart_derive"]
+# generate_model_apis = ["bart", "bart_derive"]
 no_micro = ["build"]
 
 [package.metadata.docs.rs]

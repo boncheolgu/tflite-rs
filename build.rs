@@ -1,6 +1,6 @@
-#[cfg(feature = "generate_model_apis")]
-#[macro_use]
-extern crate bart_derive;
+// #[cfg(feature = "generate_model_apis")]
+// #[macro_use]
+// extern crate bart_derive;
 
 use std::env;
 use std::env::VarError;
@@ -152,7 +152,7 @@ fn prepare_tensorflow_library() {
                 .filter_map(|de| Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
-            std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
+            std::fs::copy(library, &tf_lib_name).unwrap_or_else(|_| {
                 panic!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display())
             });
 
@@ -284,239 +284,239 @@ fn import_stl_types() {
     bindings.write_to_file(out_path).expect("Couldn't write bindings!");
 }
 
-#[cfg(feature = "generate_model_apis")]
-fn generate_memory_impl() -> Result<(), Box<dyn std::error::Error>> {
-    use std::io::Write;
-    let mut file = std::fs::File::create("src/model/stl/memory_impl.rs")?;
-    writeln!(
-        &mut file,
-        r#"
-#![allow(clippy::transmute_num_to_bytes)]
-use std::{{fmt, mem}};
-use std::ops::{{Deref, DerefMut}};
+// #[cfg(feature = "generate_model_apis")]
+// fn generate_memory_impl() -> Result<(), Box<dyn std::error::Error>> {
+//     use std::io::Write;
+//     let mut file = std::fs::File::create("src/model/stl/memory_impl.rs")?;
+//     writeln!(
+//         &mut file,
+//         r#"
+// #![allow(clippy::transmute_num_to_bytes)]
+// use std::{{fmt, mem}};
+// use std::ops::{{Deref, DerefMut}};
 
-use crate::model::stl::memory::UniquePtr;
-"#
-    )?;
+// use crate::model::stl::memory::UniquePtr;
+// "#
+//     )?;
 
-    #[derive(BartDisplay)]
-    #[template = "data/memory_basic_impl.rs.template"]
-    struct MemoryBasicImpl<'a> {
-        cpp_type: &'a str,
-        rust_type: &'a str,
-    }
+//     #[derive(BartDisplay)]
+//     #[template = "data/memory_basic_impl.rs.template"]
+//     struct MemoryBasicImpl<'a> {
+//         cpp_type: &'a str,
+//         rust_type: &'a str,
+//     }
 
-    let memory_types = vec![
-        ("OperatorCodeT", "crate::model::OperatorCodeT"),
-        ("TensorT", "crate::model::TensorT"),
-        ("OperatorT", "crate::model::OperatorT"),
-        ("SubGraphT", "crate::model::SubGraphT"),
-        ("BufferT", "crate::model::BufferT"),
-        ("QuantizationParametersT", "crate::model::QuantizationParametersT"),
-        ("ModelT", "crate::model::ModelT"),
-        ("MetadataT", "crate::model::MetadataT"),
-    ];
+//     let memory_types = vec![
+//         ("OperatorCodeT", "crate::model::OperatorCodeT"),
+//         ("TensorT", "crate::model::TensorT"),
+//         ("OperatorT", "crate::model::OperatorT"),
+//         ("SubGraphT", "crate::model::SubGraphT"),
+//         ("BufferT", "crate::model::BufferT"),
+//         ("QuantizationParametersT", "crate::model::QuantizationParametersT"),
+//         ("ModelT", "crate::model::ModelT"),
+//         ("MetadataT", "crate::model::MetadataT"),
+//     ];
 
-    for (cpp_type, rust_type) in memory_types {
-        writeln!(&mut file, "{}\n", &MemoryBasicImpl { cpp_type, rust_type },)?;
-    }
-    Ok(())
-}
+//     for (cpp_type, rust_type) in memory_types {
+//         writeln!(&mut file, "{}\n", &MemoryBasicImpl { cpp_type, rust_type },)?;
+//     }
+//     Ok(())
+// }
 
-#[cfg(feature = "generate_model_apis")]
-fn generate_vector_impl() -> Result<(), Box<dyn std::error::Error>> {
-    use std::io::Write;
-    let mut file = std::fs::File::create("src/model/stl/vector_impl.rs")?;
-    writeln!(
-        &mut file,
-        r#"
-#![allow(clippy::transmute_num_to_bytes)]
-use std::{{fmt, mem, slice}};
-use std::ops::{{Deref, DerefMut, Index, IndexMut}};
+// #[cfg(feature = "generate_model_apis")]
+// fn generate_vector_impl() -> Result<(), Box<dyn std::error::Error>> {
+//     use std::io::Write;
+//     let mut file = std::fs::File::create("src/model/stl/vector_impl.rs")?;
+//     writeln!(
+//         &mut file,
+//         r#"
+// #![allow(clippy::transmute_num_to_bytes)]
+// use std::{{fmt, mem, slice}};
+// use std::ops::{{Deref, DerefMut, Index, IndexMut}};
 
-use libc::size_t;
+// use libc::size_t;
 
-use super::memory::UniquePtr;
-use super::vector::{{VectorOfUniquePtr, VectorErase, VectorExtract, VectorInsert, VectorSlice}};
-use crate::model::stl::bindings::root::rust::dummy_vector;
+// use super::memory::UniquePtr;
+// use super::vector::{{VectorOfUniquePtr, VectorErase, VectorExtract, VectorInsert, VectorSlice}};
+// use crate::model::stl::bindings::root::rust::dummy_vector;
 
-cpp! {{{{
-    #include <vector>
-}}}}
-"#
-    )?;
+// cpp! {{{{
+//     #include <vector>
+// }}}}
+// "#
+//     )?;
 
-    #[derive(BartDisplay)]
-    #[template = "data/vector_primitive_impl.rs.template"]
-    #[allow(non_snake_case)]
-    struct VectorPrimitiveImpl<'a> {
-        cpp_type: &'a str,
-        rust_type: &'a str,
-        RustType: &'a str,
-    }
+//     #[derive(BartDisplay)]
+//     #[template = "data/vector_primitive_impl.rs.template"]
+//     #[allow(non_snake_case)]
+//     struct VectorPrimitiveImpl<'a> {
+//         cpp_type: &'a str,
+//         rust_type: &'a str,
+//         RustType: &'a str,
+//     }
 
-    let vector_types = vec![
-        ("uint8_t", "u8", "U8"),
-        ("int32_t", "i32", "I32"),
-        ("int64_t", "i64", "I64"),
-        ("float", "f32", "F32"),
-    ];
+//     let vector_types = vec![
+//         ("uint8_t", "u8", "U8"),
+//         ("int32_t", "i32", "I32"),
+//         ("int64_t", "i64", "I64"),
+//         ("float", "f32", "F32"),
+//     ];
 
-    #[allow(non_snake_case)]
-    for (cpp_type, rust_type, RustType) in vector_types {
-        writeln!(&mut file, "{}\n", &VectorPrimitiveImpl { cpp_type, rust_type, RustType },)?;
-    }
+//     #[allow(non_snake_case)]
+//     for (cpp_type, rust_type, RustType) in vector_types {
+//         writeln!(&mut file, "{}\n", &VectorPrimitiveImpl { cpp_type, rust_type, RustType },)?;
+//     }
 
-    #[derive(BartDisplay)]
-    #[template = "data/vector_basic_impl.rs.template"]
-    struct VectorBasicImpl<'a> {
-        cpp_type: &'a str,
-        rust_type: &'a str,
-    }
+//     #[derive(BartDisplay)]
+//     #[template = "data/vector_basic_impl.rs.template"]
+//     struct VectorBasicImpl<'a> {
+//         cpp_type: &'a str,
+//         rust_type: &'a str,
+//     }
 
-    let vector_types = vec![
-        ("std::unique_ptr<OperatorCodeT>", "UniquePtr<crate::model::OperatorCodeT>"),
-        ("std::unique_ptr<TensorT>", "UniquePtr<crate::model::TensorT>"),
-        ("std::unique_ptr<OperatorT>", "UniquePtr<crate::model::OperatorT>"),
-        ("std::unique_ptr<SubGraphT>", "UniquePtr<crate::model::SubGraphT>"),
-        ("std::unique_ptr<BufferT>", "UniquePtr<crate::model::BufferT>"),
-        ("std::unique_ptr<MetadataT>", "UniquePtr<crate::model::MetadataT>"),
-    ];
+//     let vector_types = vec![
+//         ("std::unique_ptr<OperatorCodeT>", "UniquePtr<crate::model::OperatorCodeT>"),
+//         ("std::unique_ptr<TensorT>", "UniquePtr<crate::model::TensorT>"),
+//         ("std::unique_ptr<OperatorT>", "UniquePtr<crate::model::OperatorT>"),
+//         ("std::unique_ptr<SubGraphT>", "UniquePtr<crate::model::SubGraphT>"),
+//         ("std::unique_ptr<BufferT>", "UniquePtr<crate::model::BufferT>"),
+//         ("std::unique_ptr<MetadataT>", "UniquePtr<crate::model::MetadataT>"),
+//     ];
 
-    for (cpp_type, rust_type) in vector_types {
-        writeln!(&mut file, "{}\n", &VectorBasicImpl { cpp_type, rust_type },)?;
-    }
-    Ok(())
-}
+//     for (cpp_type, rust_type) in vector_types {
+//         writeln!(&mut file, "{}\n", &VectorBasicImpl { cpp_type, rust_type },)?;
+//     }
+//     Ok(())
+// }
 
-#[cfg(feature = "generate_model_apis")]
-fn generate_builtin_options_impl() -> Result<(), Box<dyn std::error::Error>> {
-    use std::io::Write;
-    let mut file = std::fs::File::create("src/model/builtin_options_impl.rs")?;
-    writeln!(
-        &mut file,
-        r#"
-use super::{{BuiltinOptions, BuiltinOptionsUnion, NativeTable}};
-"#
-    )?;
+// #[cfg(feature = "generate_model_apis")]
+// fn generate_builtin_options_impl() -> Result<(), Box<dyn std::error::Error>> {
+//     use std::io::Write;
+//     let mut file = std::fs::File::create("src/model/builtin_options_impl.rs")?;
+//     writeln!(
+//         &mut file,
+//         r#"
+// use super::{{BuiltinOptions, BuiltinOptionsUnion, NativeTable}};
+// "#
+//     )?;
 
-    #[derive(BartDisplay)]
-    #[template = "data/builtin_options_impl.rs.template"]
-    struct BuiltinOptionsImpl<'a> {
-        name: &'a str,
-    }
+//     #[derive(BartDisplay)]
+//     #[template = "data/builtin_options_impl.rs.template"]
+//     struct BuiltinOptionsImpl<'a> {
+//         name: &'a str,
+//     }
 
-    let option_names = vec![
-        "Conv2DOptions",
-        "DepthwiseConv2DOptions",
-        "ConcatEmbeddingsOptions",
-        "LSHProjectionOptions",
-        "Pool2DOptions",
-        "SVDFOptions",
-        "RNNOptions",
-        "FullyConnectedOptions",
-        "SoftmaxOptions",
-        "ConcatenationOptions",
-        "AddOptions",
-        "L2NormOptions",
-        "LocalResponseNormalizationOptions",
-        "LSTMOptions",
-        "ResizeBilinearOptions",
-        "CallOptions",
-        "ReshapeOptions",
-        "SkipGramOptions",
-        "SpaceToDepthOptions",
-        "EmbeddingLookupSparseOptions",
-        "MulOptions",
-        "PadOptions",
-        "GatherOptions",
-        "BatchToSpaceNDOptions",
-        "SpaceToBatchNDOptions",
-        "TransposeOptions",
-        "ReducerOptions",
-        "SubOptions",
-        "DivOptions",
-        "SqueezeOptions",
-        "SequenceRNNOptions",
-        "StridedSliceOptions",
-        "ExpOptions",
-        "TopKV2Options",
-        "SplitOptions",
-        "LogSoftmaxOptions",
-        "CastOptions",
-        "DequantizeOptions",
-        "MaximumMinimumOptions",
-        "ArgMaxOptions",
-        "LessOptions",
-        "NegOptions",
-        "PadV2Options",
-        "GreaterOptions",
-        "GreaterEqualOptions",
-        "LessEqualOptions",
-        "SelectOptions",
-        "SliceOptions",
-        "TransposeConvOptions",
-        "SparseToDenseOptions",
-        "TileOptions",
-        "ExpandDimsOptions",
-        "EqualOptions",
-        "NotEqualOptions",
-        "ShapeOptions",
-        "PowOptions",
-        "ArgMinOptions",
-        "FakeQuantOptions",
-        "PackOptions",
-        "LogicalOrOptions",
-        "OneHotOptions",
-        "LogicalAndOptions",
-        "LogicalNotOptions",
-        "UnpackOptions",
-        "FloorDivOptions",
-        "SquareOptions",
-        "ZerosLikeOptions",
-        "FillOptions",
-        "BidirectionalSequenceLSTMOptions",
-        "BidirectionalSequenceRNNOptions",
-        "UnidirectionalSequenceLSTMOptions",
-        "FloorModOptions",
-        "RangeOptions",
-        "ResizeNearestNeighborOptions",
-        "LeakyReluOptions",
-        "SquaredDifferenceOptions",
-        "MirrorPadOptions",
-        "AbsOptions",
-        "SplitVOptions",
-        "UniqueOptions",
-        "ReverseV2Options",
-        "AddNOptions",
-        "GatherNdOptions",
-        "CosOptions",
-        "WhereOptions",
-        "RankOptions",
-        "ReverseSequenceOptions",
-        "MatrixDiagOptions",
-        "QuantizeOptions",
-        "MatrixSetDiagOptions",
-        "HardSwishOptions",
-        "IfOptions",
-        "WhileOptions",
-        "DepthToSpaceOptions",
-    ];
+//     let option_names = vec![
+//         "Conv2DOptions",
+//         "DepthwiseConv2DOptions",
+//         "ConcatEmbeddingsOptions",
+//         "LSHProjectionOptions",
+//         "Pool2DOptions",
+//         "SVDFOptions",
+//         "RNNOptions",
+//         "FullyConnectedOptions",
+//         "SoftmaxOptions",
+//         "ConcatenationOptions",
+//         "AddOptions",
+//         "L2NormOptions",
+//         "LocalResponseNormalizationOptions",
+//         "LSTMOptions",
+//         "ResizeBilinearOptions",
+//         "CallOptions",
+//         "ReshapeOptions",
+//         "SkipGramOptions",
+//         "SpaceToDepthOptions",
+//         "EmbeddingLookupSparseOptions",
+//         "MulOptions",
+//         "PadOptions",
+//         "GatherOptions",
+//         "BatchToSpaceNDOptions",
+//         "SpaceToBatchNDOptions",
+//         "TransposeOptions",
+//         "ReducerOptions",
+//         "SubOptions",
+//         "DivOptions",
+//         "SqueezeOptions",
+//         "SequenceRNNOptions",
+//         "StridedSliceOptions",
+//         "ExpOptions",
+//         "TopKV2Options",
+//         "SplitOptions",
+//         "LogSoftmaxOptions",
+//         "CastOptions",
+//         "DequantizeOptions",
+//         "MaximumMinimumOptions",
+//         "ArgMaxOptions",
+//         "LessOptions",
+//         "NegOptions",
+//         "PadV2Options",
+//         "GreaterOptions",
+//         "GreaterEqualOptions",
+//         "LessEqualOptions",
+//         "SelectOptions",
+//         "SliceOptions",
+//         "TransposeConvOptions",
+//         "SparseToDenseOptions",
+//         "TileOptions",
+//         "ExpandDimsOptions",
+//         "EqualOptions",
+//         "NotEqualOptions",
+//         "ShapeOptions",
+//         "PowOptions",
+//         "ArgMinOptions",
+//         "FakeQuantOptions",
+//         "PackOptions",
+//         "LogicalOrOptions",
+//         "OneHotOptions",
+//         "LogicalAndOptions",
+//         "LogicalNotOptions",
+//         "UnpackOptions",
+//         "FloorDivOptions",
+//         "SquareOptions",
+//         "ZerosLikeOptions",
+//         "FillOptions",
+//         "BidirectionalSequenceLSTMOptions",
+//         "BidirectionalSequenceRNNOptions",
+//         "UnidirectionalSequenceLSTMOptions",
+//         "FloorModOptions",
+//         "RangeOptions",
+//         "ResizeNearestNeighborOptions",
+//         "LeakyReluOptions",
+//         "SquaredDifferenceOptions",
+//         "MirrorPadOptions",
+//         "AbsOptions",
+//         "SplitVOptions",
+//         "UniqueOptions",
+//         "ReverseV2Options",
+//         "AddNOptions",
+//         "GatherNdOptions",
+//         "CosOptions",
+//         "WhereOptions",
+//         "RankOptions",
+//         "ReverseSequenceOptions",
+//         "MatrixDiagOptions",
+//         "QuantizeOptions",
+//         "MatrixSetDiagOptions",
+//         "HardSwishOptions",
+//         "IfOptions",
+//         "WhileOptions",
+//         "DepthToSpaceOptions",
+//     ];
 
-    for name in option_names {
-        writeln!(&mut file, "{}\n", &BuiltinOptionsImpl { name },)?;
-    }
-    Ok(())
-}
+//     for name in option_names {
+//         writeln!(&mut file, "{}\n", &BuiltinOptionsImpl { name },)?;
+//     }
+//     Ok(())
+// }
 
 fn main() {
     import_stl_types();
-    #[cfg(feature = "generate_model_apis")]
-    {
-        generate_memory_impl().unwrap();
-        generate_vector_impl().unwrap();
-        generate_builtin_options_impl().unwrap();
-    }
+    // #[cfg(feature = "generate_model_apis")]
+    // {
+    //     generate_memory_impl().unwrap();
+    //     generate_vector_impl().unwrap();
+    //     generate_builtin_options_impl().unwrap();
+    // }
     import_tflite_types();
     build_inline_cpp();
     if env::var("DOCS_RS").is_err() {
