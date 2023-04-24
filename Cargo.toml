@@ -46,6 +46,9 @@ libc = "0.2.77"
 maybe-owned = "0.3.4"
 thiserror = "1.0.20"
 
+[patch.crates-io]
+syn = {git = "https://github.com/dtolnay/syn.git", tag = "0.10.5"}
+
 [build-dependencies]
 bart = { version = "0.1.4", optional = true }
 bart_derive = { version = "0.1.4", optional = true }
