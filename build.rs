@@ -78,7 +78,23 @@ fn prepare_tensorflow_library() {
             let mut make = std::process::Command::new("make");
             if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
                 make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
-            };
+            } else {
+                let target_triple = env::var("TARGET").unwrap();
+                let host_triple = env::var("HOST").unwrap();
+                let kind = if host_triple == target_triple { "HOST" } else { "TARGET" };
+                let target_u = target_triple.replace("-", "_");
+                for name in ["CC", "CXX", "AR", "CFLAGS", "CXXFLAGS", "ARFLAGS"] {
+                    if let Ok(value) = env::var(&format!("{name}_{target_triple}"))
+                        .or_else(|_| env::var(&format!("{name}_{target_u}")))
+                        .or_else(|_| env::var(&format!("{kind}_{name}")))
+                        .or_else(|_| env::var(name))
+                    {
+                        make.arg(format!("{name}={value}"));
+                        println!("inherited: {name}={value}")
+                    }
+                }
+            }
+
             // Use cargo's cross-compilation information while building tensorflow
             // Now that tensorflow has an aarch64_makefile.inc use theirs
             let target = if &arch == "aarch64" { &arch } else { &os };
@@ -114,6 +130,7 @@ fn prepare_tensorflow_library() {
                 ("TARGET_ARCH", Some(arch.as_str())),
                 ("TARGET_TOOLCHAIN_PREFIX", None),
                 ("EXTRA_CFLAGS", None),
+                ("EXTRA_CXXFLAGS", None),
             ] {
                 let env_var = format!("TFLITE_RS_MAKE_{}", make_var);
                 println!("cargo:rerun-if-env-changed={}", env_var);
