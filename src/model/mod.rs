@@ -1,4 +1,5 @@
 #![allow(clippy::field_reassign_with_default)]
+#![allow(clippy::size_of_ref)]
 
 mod builtin_options;
 mod builtin_options_impl;

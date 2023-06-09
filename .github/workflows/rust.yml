@@ -25,7 +25,7 @@ jobs:
           profile: minimal
           toolchain: ${{matrix.rust}}
       - run: cargo fmt -- --check
-      - run: cargo clippy --all-targets -- --deny warnings
+      - run: cargo clippy --all-targets -- --deny warnings --allow unknown-lints
       - run: cargo test --features generate_model_apis -- --nocapture
       - run: cargo test --features debug_tflite,no_micro -- --nocapture
       - run: cargo fmt

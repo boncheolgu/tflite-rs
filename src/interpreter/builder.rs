@@ -46,8 +46,8 @@ where
         use std::ops::Deref;
         let model = model.into();
         let handle = {
-            let model_handle = model.as_ref().handle.deref();
-            let resolver_handle = resolver.get_resolver_handle();
+            let model_handle = model.as_ref().handle.deref() as *const _;
+            let resolver_handle = resolver.get_resolver_handle() as *const _;
 
             #[allow(clippy::forget_copy, deprecated)]
             unsafe {
@@ -68,7 +68,7 @@ where
     pub fn build(mut self) -> Result<Interpreter<'a, Op>> {
         #[allow(clippy::forget_copy, deprecated)]
         let handle = {
-            let builder = &mut *self.handle;
+            let builder = (&mut *self.handle) as *mut _;
             unsafe {
                 cpp!([builder as "InterpreterBuilder*"] -> *mut bindings::Interpreter as "Interpreter*" {
                     std::unique_ptr<Interpreter> interpreter;
@@ -89,7 +89,7 @@ where
     ) -> Result<Interpreter<'a, Op>> {
         #[allow(clippy::forget_copy, deprecated)]
         let handle = {
-            let builder = &mut *self.handle;
+            let builder = (&mut *self.handle) as *mut _;
             #[allow(clippy::transmute_num_to_bytes)]
             unsafe {
                 cpp!([builder as "InterpreterBuilder*", threads as "int"] -> *mut bindings::Interpreter as "Interpreter*" {
