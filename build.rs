@@ -114,16 +114,20 @@ fn prepare_tensorflow_library() {
 
             let make_dir = tflite.parent().unwrap();
 
-            make.arg("-j")
-                // allow parallelism to be overridden
-                .arg(
-                    env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or_else(|_| {
-                        env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())
-                    }),
-                )
-                .arg("BUILD_WITH_NNAPI=false")
-                .arg("-f")
-                .arg("tensorflow/lite/tools/make/Makefile");
+            // allow parallelism to be overridden...
+            let num_jobs = env::var("TFLITE_RS_MAKE_PARALLELISM").ok().or_else(|| {
+                // but prefer jobserver if not explicitly given
+                if !env::var("MAKEFLAGS").unwrap_or_default().contains("--jobserver") {
+                    env::var("NUM_JOBS").ok()
+                } else {
+                    None
+                }
+            });
+            if let Some(num_jobs) = num_jobs {
+                make.arg("-j").arg(num_jobs);
+            }
+
+            make.arg("BUILD_WITH_NNAPI=false").arg("-f").arg("tensorflow/lite/tools/make/Makefile");
 
             for (make_var, default) in &[
                 ("TARGET", Some(target.as_str())),
