@@ -159,7 +159,7 @@ where
                 interpreter->SetNumThreads(threads);
             })
         };
-        println!("Set num threads to {}", threads);
+        println!("Set num threads to {threads}");
     }
 
     /// Read only access to list of inputs.

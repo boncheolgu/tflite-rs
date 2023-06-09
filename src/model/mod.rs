@@ -461,19 +461,19 @@ mod tests {
             println!("{:?}", subgraph.outputs);
 
             for operator in &subgraph.operators {
-                println!("{:?}", operator);
+                println!("{operator:?}");
             }
 
             for tensor in &subgraph.tensors {
-                println!("{:?}", tensor);
+                println!("{tensor:?}");
             }
 
             for buffer in &model.buffers {
-                println!("{:?}", buffer);
+                println!("{buffer:?}");
             }
 
             for operator_code in &model.operator_codes {
-                println!("{:?}", operator_code);
+                println!("{operator_code:?}");
             }
             model.to_buffer()
         };
