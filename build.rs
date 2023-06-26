@@ -78,7 +78,23 @@ fn prepare_tensorflow_library() {
             let mut make = std::process::Command::new("make");
             if let Ok(prefix) = env::var("TARGET_TOOLCHAIN_PREFIX") {
                 make.arg(format!("TARGET_TOOLCHAIN_PREFIX={}", prefix));
-            };
+            } else {
+                let target_triple = env::var("TARGET").unwrap();
+                let host_triple = env::var("HOST").unwrap();
+                let kind = if host_triple == target_triple { "HOST" } else { "TARGET" };
+                let target_u = target_triple.replace('-', "_");
+                for name in ["CC", "CXX", "AR", "CFLAGS", "CXXFLAGS", "ARFLAGS"] {
+                    if let Ok(value) = env::var(&format!("{name}_{target_triple}"))
+                        .or_else(|_| env::var(format!("{name}_{target_u}")))
+                        .or_else(|_| env::var(format!("{kind}_{name}")))
+                        .or_else(|_| env::var(name))
+                    {
+                        make.arg(format!("{name}={value}"));
+                        println!("inherited: {name}={value}")
+                    }
+                }
+            }
+
             // Use cargo's cross-compilation information while building tensorflow
             // Now that tensorflow has an aarch64_makefile.inc use theirs
             let target = if &arch == "aarch64" { &arch } else { &os };
@@ -98,22 +114,27 @@ fn prepare_tensorflow_library() {
 
             let make_dir = tflite.parent().unwrap();
 
-            make.arg("-j")
-                // allow parallelism to be overridden
-                .arg(
-                    env::var("TFLITE_RS_MAKE_PARALLELISM").unwrap_or_else(|_| {
-                        env::var("NUM_JOBS").unwrap_or_else(|_| "1".to_string())
-                    }),
-                )
-                .arg("BUILD_WITH_NNAPI=false")
-                .arg("-f")
-                .arg("tensorflow/lite/tools/make/Makefile");
+            // allow parallelism to be overridden...
+            let num_jobs = env::var("TFLITE_RS_MAKE_PARALLELISM").ok().or_else(|| {
+                // but prefer jobserver if not explicitly given
+                if !env::var("MAKEFLAGS").unwrap_or_default().contains("--jobserver") {
+                    env::var("NUM_JOBS").ok()
+                } else {
+                    None
+                }
+            });
+            if let Some(num_jobs) = num_jobs {
+                make.arg("-j").arg(num_jobs);
+            }
+
+            make.arg("BUILD_WITH_NNAPI=false").arg("-f").arg("tensorflow/lite/tools/make/Makefile");
 
             for (make_var, default) in &[
                 ("TARGET", Some(target.as_str())),
                 ("TARGET_ARCH", Some(arch.as_str())),
                 ("TARGET_TOOLCHAIN_PREFIX", None),
                 ("EXTRA_CFLAGS", None),
+                ("EXTRA_CXXFLAGS", None),
             ] {
                 let env_var = format!("TFLITE_RS_MAKE_{}", make_var);
                 println!("cargo:rerun-if-env-changed={}", env_var);
@@ -152,7 +173,7 @@ fn prepare_tensorflow_library() {
                 .filter_map(|de| Some(de.ok()?.path().join("lib/libtensorflow-lite.a")))
                 .find(|p| p.exists())
                 .expect("Unable to find libtensorflow-lite.a");
-            std::fs::copy(&library, &tf_lib_name).unwrap_or_else(|_| {
+            std::fs::copy(library, &tf_lib_name).unwrap_or_else(|_| {
                 panic!("Unable to copy libtensorflow-lite.a to {}", tf_lib_name.display())
             });
 
