@@ -82,11 +82,11 @@ fn prepare_tensorflow_library() {
                 let target_triple = env::var("TARGET").unwrap();
                 let host_triple = env::var("HOST").unwrap();
                 let kind = if host_triple == target_triple { "HOST" } else { "TARGET" };
-                let target_u = target_triple.replace("-", "_");
+                let target_u = target_triple.replace('-', "_");
                 for name in ["CC", "CXX", "AR", "CFLAGS", "CXXFLAGS", "ARFLAGS"] {
                     if let Ok(value) = env::var(&format!("{name}_{target_triple}"))
-                        .or_else(|_| env::var(&format!("{name}_{target_u}")))
-                        .or_else(|_| env::var(&format!("{kind}_{name}")))
+                        .or_else(|_| env::var(format!("{name}_{target_u}")))
+                        .or_else(|_| env::var(format!("{kind}_{name}")))
                         .or_else(|_| env::var(name))
                     {
                         make.arg(format!("{name}={value}"));
