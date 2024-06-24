@@ -24,11 +24,23 @@ pub trait VectorSlice {
     }
 
     fn as_slice(&self) -> &[Self::Item] {
-        unsafe { slice::from_raw_parts(self.get_ptr(), self.size()) }
+        let size = self.size();
+
+        if size == 0 {
+            &[]
+        } else {
+            unsafe { slice::from_raw_parts(self.get_ptr(), size) }
+        }
     }
 
     fn as_mut_slice(&mut self) -> &mut [Self::Item] {
-        unsafe { slice::from_raw_parts_mut(self.get_mut_ptr(), self.size()) }
+        let size = self.size();
+
+        if size == 0 {
+            &mut []
+        } else {
+            unsafe { slice::from_raw_parts_mut(self.get_mut_ptr(), size) }
+        }
     }
 }
 
