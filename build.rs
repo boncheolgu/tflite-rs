@@ -253,7 +253,8 @@ fn import_tflite_types() {
         .clang_arg("c++")
         .clang_arg("-std=c++11")
         // required to get cross compilation for aarch64 to work because of an issue in flatbuffers
-        .clang_arg("-fms-extensions");
+        .clang_arg("-fms-extensions")
+        .no_copy("_Tp");
 
     let bindings = bindings.generate().expect("Unable to generate bindings");
 

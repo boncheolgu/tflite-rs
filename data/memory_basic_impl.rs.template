@@ -20,7 +20,7 @@ impl Deref for UniquePtr<{{{rust_type}}}> {
         unsafe {
             let ptr = cpp!([self as "const std::unique_ptr<{{{cpp_type}}}>*"] -> *const {{{rust_type}}} as "const {{{cpp_type}}}*" {
                 return self->get();
-            }) as *const Self::Target;
+            });
 
             ptr.as_ref().unwrap()
         }
@@ -33,7 +33,7 @@ impl DerefMut for UniquePtr<{{{rust_type}}}> {
         unsafe {
             let ptr = cpp!([self as "std::unique_ptr<{{{cpp_type}}}>*"] -> *mut {{{rust_type}}} as "{{{cpp_type}}}*" {
                 return self->get();
-            }) as *mut Self::Target;
+            });
 
             ptr.as_mut().unwrap()
         }

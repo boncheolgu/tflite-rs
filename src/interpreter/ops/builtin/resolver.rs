@@ -14,7 +14,7 @@ pub struct Resolver {
 }
 
 impl Drop for Resolver {
-    #[allow(clippy::useless_transmute, clippy::forget_copy, deprecated)]
+    #[allow(clippy::useless_transmute, clippy::forgetting_copy_types, deprecated)]
     fn drop(&mut self) {
         let handle = Box::into_raw(mem::take(&mut self.handle));
         unsafe {
@@ -32,7 +32,7 @@ impl OpResolver for Resolver {
 }
 
 impl Default for Resolver {
-    #[allow(clippy::forget_copy, deprecated)]
+    #[allow(clippy::forgetting_copy_types, deprecated)]
     fn default() -> Self {
         let handle = unsafe {
             cpp!([] -> *mut bindings::OpResolver as "OpResolver*" {
