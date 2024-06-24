@@ -28,7 +28,7 @@ where
 {
     fn drop(&mut self) {
         let handle = Box::into_raw(std::mem::take(&mut self.handle));
-        #[allow(clippy::forget_copy, clippy::useless_transmute, deprecated)]
+        #[allow(clippy::forgetting_copy_types, clippy::useless_transmute, deprecated)]
         unsafe {
             cpp!([handle as "InterpreterBuilder*"] {
                 delete handle;
@@ -49,7 +49,7 @@ where
             let model_handle = model.as_ref().handle.deref() as *const _;
             let resolver_handle = resolver.get_resolver_handle() as *const _;
 
-            #[allow(clippy::forget_copy, deprecated)]
+            #[allow(clippy::forgetting_copy_types, deprecated)]
             unsafe {
                 cpp!([model_handle as "const FlatBufferModel*",
                     resolver_handle as "const OpResolver*"
@@ -66,7 +66,7 @@ where
     }
 
     pub fn build(mut self) -> Result<Interpreter<'a, Op>> {
-        #[allow(clippy::forget_copy, deprecated)]
+        #[allow(clippy::forgetting_copy_types, deprecated)]
         let handle = {
             let builder = (&mut *self.handle) as *mut _;
             unsafe {
@@ -87,7 +87,7 @@ where
         mut self,
         threads: std::os::raw::c_int,
     ) -> Result<Interpreter<'a, Op>> {
-        #[allow(clippy::forget_copy, deprecated)]
+        #[allow(clippy::forgetting_copy_types, deprecated)]
         let handle = {
             let builder = (&mut *self.handle) as *mut _;
             #[allow(clippy::transmute_num_to_bytes)]

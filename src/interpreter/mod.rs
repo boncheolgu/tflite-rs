@@ -38,7 +38,7 @@ where
 {
     fn drop(&mut self) {
         let handle = Box::into_raw(mem::take(&mut self.handle));
-        #[allow(clippy::forget_copy, clippy::useless_transmute, deprecated)]
+        #[allow(clippy::forgetting_copy_types, clippy::useless_transmute, deprecated)]
         unsafe {
             cpp!([handle as "Interpreter*"] {
                 delete handle;
@@ -82,7 +82,7 @@ where
     pub fn allocate_tensors(&mut self) -> Result<()> {
         let interpreter = self.handle_mut() as *mut _;
 
-        #[allow(clippy::forget_copy, deprecated)]
+        #[allow(clippy::forgetting_copy_types, deprecated)]
         let r = unsafe {
             cpp!([interpreter as "Interpreter*"] -> bool as "bool" {
                 return interpreter->AllocateTensors() == kTfLiteOk;
@@ -119,7 +119,7 @@ where
     pub fn print_state(&self) {
         let interpreter = self.handle() as *const _;
 
-        #[allow(clippy::forget_copy, clippy::useless_transmute, deprecated)]
+        #[allow(clippy::forgetting_copy_types, clippy::useless_transmute, deprecated)]
         unsafe {
             cpp!([interpreter as "Interpreter*"] {
                 PrintInterpreterState(interpreter);
@@ -153,7 +153,7 @@ where
     pub fn set_num_threads(&mut self, threads: c_int) {
         let interpreter = self.handle_mut() as *mut _;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         unsafe {
             cpp!([interpreter as "Interpreter*", threads as "int"] {
                 interpreter->SetNumThreads(threads);
@@ -167,7 +167,7 @@ where
         let interpreter = self.handle() as *const _;
         let mut count: size_t = 0;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -186,7 +186,7 @@ where
         let interpreter = self.handle() as *const _;
         let mut count: size_t = 0;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -205,7 +205,7 @@ where
         let interpreter = self.handle() as *const _;
         let mut count: size_t = 0;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",
@@ -223,7 +223,7 @@ where
     pub fn tensors_size(&self) -> size_t {
         let interpreter = self.handle() as *const _;
 
-        #[allow(clippy::forget_copy, deprecated)]
+        #[allow(clippy::forgetting_copy_types, deprecated)]
         unsafe {
             cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
                 return interpreter->tensors_size();
@@ -235,7 +235,7 @@ where
     pub fn nodes_size(&self) -> size_t {
         let interpreter = self.handle() as *const _;
 
-        #[allow(clippy::forget_copy, deprecated)]
+        #[allow(clippy::forgetting_copy_types, deprecated)]
         unsafe {
             cpp!([interpreter as "const Interpreter*"] -> size_t as "size_t" {
                 return interpreter->nodes_size();
@@ -249,7 +249,7 @@ where
         let interpreter = self.handle_mut() as *mut _;
         let mut index: TensorIndex = 0;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -274,7 +274,7 @@ where
         let ptr = inputs.as_ptr();
         let len = inputs.len() as size_t;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -300,7 +300,7 @@ where
         let ptr = outputs.as_ptr();
         let len = outputs.len() as size_t;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -326,7 +326,7 @@ where
         let ptr = variables.as_ptr();
         let len = variables.len() as size_t;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -363,7 +363,7 @@ where
         let dims_ptr = dims.as_ptr();
         let dims_len = dims.len() as size_t;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let result = unsafe {
             cpp!([
                 interpreter as "Interpreter*",
@@ -391,7 +391,7 @@ where
     fn tensor_inner(&self, tensor_index: TensorIndex) -> Option<&bindings::TfLiteTensor> {
         let interpreter = self.handle() as *const _;
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let ptr = unsafe {
             cpp!([
                 interpreter as "const Interpreter*",

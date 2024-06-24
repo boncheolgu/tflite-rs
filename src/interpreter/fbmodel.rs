@@ -22,7 +22,7 @@ impl Drop for FlatBufferModel {
     fn drop(&mut self) {
         let handle = Box::into_raw(mem::take(&mut self.handle));
 
-        #[allow(clippy::forget_copy, clippy::useless_transmute, deprecated)]
+        #[allow(clippy::forgetting_copy_types, clippy::useless_transmute, deprecated)]
         unsafe {
             cpp!([handle as "FlatBufferModel*"] {
                 delete handle;
@@ -40,7 +40,7 @@ impl FlatBufferModel {
         let ptr = model_buffer.as_ptr();
         let size = model_buffer.len();
 
-        #[allow(clippy::forget_copy, deprecated, clippy::transmute_num_to_bytes)]
+        #[allow(clippy::forgetting_copy_types, deprecated, clippy::transmute_num_to_bytes)]
         let handle = unsafe {
             cpp!([ptr as "const char*", size as "size_t"]
                   -> *mut bindings::FlatBufferModel as "FlatBufferModel*" {
